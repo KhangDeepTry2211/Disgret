@@ -1,0 +1,99 @@
+{
+  "_huong_dan": "Video chi dung cho demo tren lop; nguon tac gia da ghi trong report cua nhom. tags: money, family, career, proveYourself, freedom. context: start (truoc khi hoc) / distracted (sau khi xao nhang). pinFirst: reel luon dung dau khi mo Reels voi context do (bo qua diem).",
+  "reels": [
+    {
+      "id": "r1",
+      "source": "asset",
+      "title": "Bạn đủ thông minh để thay đổi",
+      "tags": [
+        "proveYourself",
+        "career"
+      ],
+      "lengthSec": 23,
+      "assetPath": "assets/reels/r1.mp4",
+      "creditUrl": "https://www.instagram.com/p/DaVFgHwAuN7/",
+      "context": [
+        "start"
+      ]
+    },
+    {
+      "id": "r2",
+      "source": "asset",
+      "title": "Sợ thì cứ làm trong sợ hãi",
+      "tags": [
+        "proveYourself",
+        "freedom"
+      ],
+      "lengthSec": 15,
+      "assetPath": "assets/reels/r2.mp4",
+      "creditUrl": "https://www.instagram.com/p/DX59IZPS3ZE/",
+      "context": [
+        "start",
+        "distracted"
+      ]
+    },
+    {
+      "id": "r3",
+      "source": "asset",
+      "title": "Làm nhiều hơn người khác",
+      "tags": [
+        "career",
+        "proveYourself"
+      ],
+      "lengthSec": 15,
+      "assetPath": "assets/reels/r3.mp4",
+      "creditUrl": "https://www.instagram.com/p/DajnzRORPAY/",
+      "context": [
+        "start"
+      ]
+    },
+    {
+      "id": "r4",
+      "source": "asset",
+      "title": "Theo đuổi ước mơ, đừng chạy theo người",
+      "tags": [
+        "money",
+        "freedom"
+      ],
+      "lengthSec": 19,
+      "assetPath": "assets/reels/r4.mp4",
+      "creditUrl": "https://www.instagram.com/p/DdhF28oRvCs/",
+      "context": [
+        "start"
+      ]
+    },
+    {
+      "id": "r5",
+      "source": "asset",
+      "title": "Dù chỉ 1% cơ hội vẫn chiến",
+      "tags": [
+        "proveYourself",
+        "career"
+      ],
+      "lengthSec": 14,
+      "assetPath": "assets/reels/r5.mp4",
+      "creditUrl": "https://www.instagram.com/p/DcguPlsteit/",
+      "context": [
+        "start",
+        "distracted"
+      ]
+    },
+    {
+      "id": "r6",
+      "source": "asset",
+      "title": "Get back to work!",
+      "tags": [
+        "proveYourself"
+      ],
+      "lengthSec": 13,
+      "assetPath": "assets/reels/r6.mp4",
+      "creditUrl": "https://www.instagram.com/p/DeMZPs_Bueb/",
+      "context": [
+        "distracted"
+      ],
+      "pinFirst": [
+        "distracted"
+      ]
+    }
+  ]
+}

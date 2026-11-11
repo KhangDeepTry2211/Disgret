@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2.3 Nút chính trên màn can thiệp: hình viên thuốc màu cyan. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/intervention_button_ripple">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/disgret_cyan" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+</ripple>

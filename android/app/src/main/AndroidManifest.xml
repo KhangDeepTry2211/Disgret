@@ -1,6 +1,20 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- 5.2 google_fonts tải font Be Vietnam Pro qua mạng ở lần chạy đầu.
+         Bản debug tự có quyền này, bản release thì phải khai báo. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- 7.1 Quyền cho Reset break. Hai quyền đầu người dùng phải tự bật trong Cài đặt của máy. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
-        android:label="focus_app"
+        android:label="DisGret"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -25,6 +39,30 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- 2.3 Màn can thiệp: nằm trong task riêng để không kéo theo app vừa mở hay màn học,
+             không hiện trong danh sách app gần đây. Xoay màn hình không làm đếm ngược chạy lại. -->
+        <activity
+            android:name=".InterventionActivity"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:theme="@style/InterventionTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"/>
+
+        <!-- 7.2 Theo dõi app đang mở trong lúc học. Người dùng vuốt tắt DisGret thì phiên học
+             cũng mất, nên service phải dừng theo (stopWithTask). -->
+        <service
+            android:name=".FocusGuardService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="true">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Trong phiên học do người dùng tự bắt đầu, theo dõi app đang mở để nhắc người dùng quay lại học khi mở app gây xao nhãng do họ tự chọn."/>
+        </service>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -40,6 +78,16 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- 2.1 Liệt kê các app có biểu tượng ngoài màn hình chính, thay cho QUERY_ALL_PACKAGES. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
+        </intent>
+        <!-- 2.2 Tìm launcher để không bao giờ chặn nhầm. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.HOME"/>
         </intent>
     </queries>
 </manifest>

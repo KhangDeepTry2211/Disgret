@@ -5,6 +5,10 @@
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
@@ -14,5 +18,31 @@
          This Theme is only used starting with V2 of Flutter's Android embedding. -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+    <!-- 2.3 Màn can thiệp: luôn nền navy, không đổi theo chế độ sáng hay tối của máy. -->
+    <style name="InterventionTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/disgret_navy</item>
+        <item name="android:statusBarColor">@color/disgret_navy</item>
+        <item name="android:navigationBarColor">@color/disgret_navy</item>
+    </style>
+    <!-- 2.3 Các nút trên màn can thiệp. -->
+    <style name="InterventionButton" parent="@android:style/Widget.Material.Button">
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="InterventionButton.Primary">
+        <item name="android:background">@drawable/intervention_button</item>
+        <item name="android:textColor">@color/disgret_navy</item>
+    </style>
+    <style name="InterventionButton.Secondary">
+        <item name="android:background">@drawable/intervention_button_secondary</item>
+        <item name="android:textColor">@color/disgret_white</item>
+    </style>
+    <style name="InterventionButton.Text" parent="@android:style/Widget.Material.Button.Borderless">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/disgret_white</item>
     </style>
 </resources>

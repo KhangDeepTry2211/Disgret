@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2.3 Màn can thiệp. Nền tràn hết màn hình, nội dung tránh thanh trạng thái (fitsSystemWindows).
+     Đếm ngược xong thì khối đồng hồ ẩn đi, các lựa chọn hiện ra ở dưới. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/disgret_navy"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <!-- Cuộn được để chữ phóng to hoặc màn hình nhỏ vẫn không che mất các nút. -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <TextView
+                android:id="@+id/intervention_app_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/disgret_cyan"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/intervention_question"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:textColor="@color/disgret_white"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/intervention_countdown_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/intervention_countdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="40dp"
+                    android:gravity="center"
+                    android:textColor="@color/disgret_cyan"
+                    android:textSize="88sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="@string/intervention_breathe"
+                    android:textColor="@color/disgret_white"
+                    android:textSize="18sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 3 lựa chọn sau khi đếm ngược xong. -->
+    <LinearLayout
+        android:id="@+id/intervention_choices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingBottom="32dp"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/intervention_back_button"
+            style="@style/InterventionButton.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/intervention_back_to_study" />
+
+        <Button
+            android:id="@+id/intervention_reel_button"
+            style="@style/InterventionButton.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:text="@string/intervention_watch_reel" />
+
+        <Button
+            android:id="@+id/intervention_break_button"
+            style="@style/InterventionButton.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:text="@string/intervention_take_break" />
+    </LinearLayout>
+
+    <!-- 2.4 Chọn thời lượng nghỉ ngay trên màn chặn. -->
+    <LinearLayout
+        android:id="@+id/intervention_break_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingBottom="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/intervention_break_question"
+            android:textColor="@color/disgret_white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/intervention_break_5"
+                style="@style/InterventionButton.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/intervention_break_10"
+                style="@style/InterventionButton.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginHorizontal="8dp"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/intervention_break_15"
+                style="@style/InterventionButton.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/intervention_break_cancel"
+            style="@style/InterventionButton.Text"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:text="@string/intervention_break_cancel" />
+    </LinearLayout>
+</LinearLayout>

@@ -32,3 +32,7 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+# dart format dùng độ rộng 100 ký tự cho cả nhóm, giống code hiện có.
+formatter:
+  page_width: 100

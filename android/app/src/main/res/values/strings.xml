@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 7.2 Thông báo thường trực trong lúc có phiên học. -->
+    <string name="guard_channel_name">Phiên học đang chạy</string>
+    <string name="guard_notification_title">DisGret đang giữ bạn tập trung</string>
+    <string name="guard_notification_text">Bấm để quay lại phiên học</string>
+
+    <!-- 2.4 Nghỉ có chủ đích. -->
+    <string name="guard_break_title">Đang nghỉ – còn %1$s</string>
+    <string name="break_ended_channel_name">Hết giờ nghỉ</string>
+    <!-- Tách hai dòng vì khi hiện nổi, tiêu đề dài sẽ bị cắt mất đuôi. -->
+    <string name="break_ended_title">Hết giờ nghỉ rồi!</string>
+    <string name="break_ended_text">Quay lại học nào 📚</string>
+
+    <!-- 2.3 Màn can thiệp. -->
+    <string name="intervention_question">Bạn có chắc muốn vào %1$s không?</string>
+    <string name="intervention_breathe">Hít thở sâu một chút…</string>
+    <string name="intervention_back_to_study">Quay lại học</string>
+    <string name="intervention_watch_reel">Xem 1 reel động lực</string>
+    <string name="intervention_take_break">Nghỉ có chủ đích</string>
+    <string name="intervention_break_question">Bạn muốn nghỉ bao lâu?</string>
+    <string name="intervention_break_minutes">%1$d phút</string>
+    <string name="intervention_break_cancel">Thôi, chọn lại</string>
+    <string name="intervention_trial_break">Đây là bản thử nên chưa tính giờ nghỉ</string>
+</resources>
