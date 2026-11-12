@@ -107,7 +107,7 @@ flutter:
 # của launcher không cắt mất chữ D. Android 7 dùng nguyên logo.
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
   image_path: "assets/branding/logo_tam.png"
   adaptive_icon_background: "#0A2A6B"
   adaptive_icon_foreground: "assets/launcher/logo_foreground.png"
@@ -124,5 +124,5 @@ flutter_native_splash:
     color: "#0A2A6B"
     image: assets/launcher/logo_foreground.png
   android: true
-  ios: false
+  ios: true
   web: false
