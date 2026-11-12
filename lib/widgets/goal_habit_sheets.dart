@@ -1,4 +1,5 @@
-// 4.1 Đặt mục tiêu – bottom sheet thêm/sửa mục tiêu và thói quen, xoá có xác nhận.
+// 4.1 Đặt mục tiêu – bottom sheet thêm/sửa mục tiêu, xoá mục tiêu và thói quen có xác nhận.
+// Thêm/sửa thói quen dùng màn 4 bước (habit_form_screen.dart).
 // 4.2 Ghi nhận – bottom sheet ghi chú ngắn sau khi tick.
 // Sheet chỉ thu thập dữ liệu rồi trả về; việc lưu do Notifier làm để màn hình tự cập nhật.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,10 +11,8 @@ import '../providers/app_providers.dart';
 import '../theme/app_theme.dart';
 import 'app_dialogs.dart';
 import 'goal_form_fields.dart';
-import 'habit_form_fields.dart';
 
-typedef _GoalDraft = ({String title, String reason});
-typedef _HabitDraft = ({String name, int minutes});
+typedef _GoalDraft = ({String title, String reason, String identity});
 
 /// Thêm mục tiêu mới, hoặc sửa nếu truyền [goal].
 Future<void> showGoalSheet(BuildContext context, WidgetRef ref, {Goal? goal}) async {
@@ -25,31 +24,10 @@ Future<void> showGoalSheet(BuildContext context, WidgetRef ref, {Goal? goal}) as
   if (draft == null) return;
 
   if (goal == null) {
-    await notifier.add(title: draft.title, reason: draft.reason);
-  } else {
-    await notifier.edit(Goal(id: goal.id, title: draft.title, reason: draft.reason));
-  }
-}
-
-/// Thêm thói quen vào mục tiêu [goalId], hoặc sửa nếu truyền [habit].
-Future<void> showHabitSheet(
-  BuildContext context,
-  WidgetRef ref, {
-  required String goalId,
-  Habit? habit,
-}) async {
-  final notifier = ref.read(habitsProvider.notifier);
-  final draft = await showAppBottomSheet<_HabitDraft>(
-    context,
-    builder: (_) => _HabitSheet(habit: habit),
-  );
-  if (draft == null) return;
-
-  if (habit == null) {
-    await notifier.add(goalId: goalId, name: draft.name, minMinutesPerDay: draft.minutes);
+    await notifier.add(title: draft.title, reason: draft.reason, identity: draft.identity);
   } else {
     await notifier.edit(
-      Habit(id: habit.id, goalId: habit.goalId, name: draft.name, minMinutesPerDay: draft.minutes),
+      goal.copyWith(title: draft.title, reason: draft.reason, identity: draft.identity),
     );
   }
 }
@@ -83,7 +61,8 @@ Future<void> confirmDeleteGoal(BuildContext context, WidgetRef ref, Goal goal) a
   if (confirmed) await notifier.remove(goal.id);
 }
 
-Future<void> confirmDeleteHabit(BuildContext context, WidgetRef ref, Habit habit) async {
+/// Trả về true nếu đã xoá, để màn chi tiết biết mà đóng lại.
+Future<bool> confirmDeleteHabit(BuildContext context, WidgetRef ref, Habit habit) async {
   final notifier = ref.read(habitsProvider.notifier);
   final confirmed = await showConfirmDialog(
     context,
@@ -92,6 +71,7 @@ Future<void> confirmDeleteHabit(BuildContext context, WidgetRef ref, Habit habit
     confirmLabel: 'Xoá',
   );
   if (confirmed) await notifier.remove(habit.id);
+  return confirmed;
 }
 
 class _GoalSheet extends StatefulWidget {
@@ -107,17 +87,23 @@ class _GoalSheetState extends State<_GoalSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _title = TextEditingController(text: widget.goal?.title);
   late final TextEditingController _reason = TextEditingController(text: widget.goal?.reason);
+  late final TextEditingController _identity = TextEditingController(text: widget.goal?.identity);
 
   @override
   void dispose() {
     _title.dispose();
     _reason.dispose();
+    _identity.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop<_GoalDraft>((title: _title.text.trim(), reason: _reason.text.trim()));
+    Navigator.of(context).pop<_GoalDraft>((
+      title: _title.text.trim(),
+      reason: _reason.text.trim(),
+      identity: _identity.text.trim(),
+    ));
   }
 
   @override
@@ -133,59 +119,12 @@ class _GoalSheetState extends State<_GoalSheet> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.md),
-          GoalFormFields(titleController: _title, reasonController: _reason),
-          const SizedBox(height: AppSpacing.md),
-          FilledButton(onPressed: _submit, child: const Text('Lưu')),
-        ],
-      ),
-    );
-  }
-}
-
-class _HabitSheet extends StatefulWidget {
-  const _HabitSheet({this.habit});
-
-  final Habit? habit;
-
-  @override
-  State<_HabitSheet> createState() => _HabitSheetState();
-}
-
-class _HabitSheetState extends State<_HabitSheet> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _name = TextEditingController(text: widget.habit?.name);
-  late final TextEditingController _minutes = TextEditingController(
-    text: '${widget.habit?.minMinutesPerDay ?? HabitFormFields.defaultMinutes}',
-  );
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _minutes.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context)
-        .pop<_HabitDraft>((name: _name.text.trim(), minutes: int.parse(_minutes.text)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            widget.habit == null ? 'Thói quen mới' : 'Sửa thói quen',
-            style: Theme.of(context).textTheme.titleLarge,
+          GoalFormFields(
+            titleController: _title,
+            reasonController: _reason,
+            identityController: _identity,
           ),
           const SizedBox(height: AppSpacing.md),
-          HabitFormFields(nameController: _name, minutesController: _minutes),
-          const SizedBox(height: AppSpacing.lg),
           FilledButton(onPressed: _submit, child: const Text('Lưu')),
         ],
       ),

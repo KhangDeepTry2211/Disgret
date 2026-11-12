@@ -2,8 +2,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/data/habit_progress.dart';
+import 'package:focus_app/data/habit_science.dart';
 import 'package:focus_app/data/models/event.dart';
 import 'package:focus_app/data/models/goal.dart';
+import 'package:focus_app/data/models/habit.dart';
 import 'package:focus_app/data/models/habit_log.dart';
 import 'package:focus_app/data/models/motivation_type.dart';
 import 'package:focus_app/data/models/session.dart';
@@ -197,24 +199,49 @@ void main() {
   });
 
   group('Dữ liệu mẫu và xoá toàn bộ', () {
-    test('Tạo dữ liệu mẫu: 1 mục tiêu, 2 thói quen, streak đúng như mô tả', () async {
+    test('Tạo dữ liệu mẫu: 1 mục tiêu, 3 thói quen, streak đúng như mô tả', () async {
       await container.read(appDataActionsProvider).createDemoData();
 
       final allHabits = container.read(habitsProvider);
       final allLogs = container.read(habitLogsProvider);
       final today = container.read(todayProvider);
-      expect(container.read(goalsProvider), hasLength(1));
-      expect(allHabits, hasLength(2));
+      final goal = container.read(goalsProvider).single;
+      expect(goal.identity, isNotEmpty);
+      expect(allHabits, hasLength(3));
       expect(container.read(overallStreakProvider), 5);
+      // Hive sắp theo khoá nên "Làm bài tập" đứng đầu: Focus lúc demo chọn thói quen này.
+      expect(container.read(todayHabitProvider)?.id, 'demo_habit_exercise');
 
-      final review = allHabits.firstWhere((habit) => habit.id == 'demo_habit_review');
-      final exercise = allHabits.firstWhere((habit) => habit.id == 'demo_habit_exercise');
-      expect(HabitProgress.habitStreak(review, allLogs, today: today), 5);
-      expect(HabitProgress.habitStreak(exercise, allLogs, today: today), 3);
+      Habit habit(String id) => allHabits.firstWhere((habit) => habit.id == id);
+      final review = habit('demo_habit_review');
+      final exercise = habit('demo_habit_exercise');
+      final reading = habit('demo_habit_reading');
+      for (final item in allHabits) {
+        expect(item.cue, isNotEmpty);
+        expect(item.place, isNotEmpty);
+        expect(item.minimalVersion, isNotEmpty);
+      }
+      expect(HabitScience.habitStreak(review, allLogs, today: today), 5);
+      expect(HabitScience.habitStreak(exercise, allLogs, today: today), 3);
       expect(HabitProgress.isDone(exercise, today, allLogs), isFalse);
       expect(HabitProgress.minutesOn(exercise, today, allLogs), 10);
       // Hôm nay chưa có thói quen nào xong, để demo học xong một phiên thì thấy streak tăng.
-      expect(HabitProgress.isDone(review, today, allLogs), isFalse);
+      for (final item in allHabits) {
+        expect(HabitProgress.isDone(item, today, allLogs), isFalse, reason: item.name);
+      }
+
+      // Đủ loại ghi nhận để mọi biểu đồ và huy hiệu có số liệu.
+      final sources = allLogs.map((log) => log.source).toSet();
+      expect(sources, containsAll(HabitLogSource.values));
+      final reviewHistory = HabitHistory.of(review, allLogs);
+      expect(HabitScience.journeyDays(reviewHistory), 40);
+      expect(HabitScience.nextBadge(40)?.name, 'Thành thói quen');
+      expect(HabitScience.longestStreakOf(reviewHistory.doneDays, reviewHistory.freezeDays), 22);
+      expect(reviewHistory.freezeDays, hasLength(2));
+      expect(allLogs.where((log) => log.note.isNotEmpty), isNotEmpty);
+      expect(HabitScience.missedYesterday(HabitHistory.of(reading, allLogs), today), isTrue);
+      expect(HabitScience.missedYesterday(reviewHistory, today), isFalse);
+      expect(container.read(averageStrengthProvider), greaterThan(0.3));
     });
 
     test('Dữ liệu mẫu có phiên học và sự kiện cho Thống kê', () async {
@@ -249,7 +276,7 @@ void main() {
 
       await actions.createDemoData();
       expect(container.read(goalsProvider), hasLength(1));
-      expect(container.read(habitsProvider), hasLength(2));
+      expect(container.read(habitsProvider), hasLength(3));
       expect(container.read(habitLogsProvider), hasLength(logCount));
       expect(SessionRepository().getAll(), hasLength(5));
       expect(EventRepository().getAll(), hasLength(eventCount));

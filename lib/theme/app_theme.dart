@@ -102,6 +102,46 @@ class AppRadius {
 
   /// Bottom sheet chỉ bo hai góc trên, cùng độ bo với thẻ.
   static const BorderRadius sheetBorder = BorderRadius.vertical(top: Radius.circular(card));
+
+  /// Ô nhỏ của lịch nhiệt.
+  static const double heatCell = 3;
+  static const BorderRadius heatCellBorder = BorderRadius.all(Radius.circular(heatCell));
+
+  /// Ô trong lịch tháng, nhãn nhỏ (huy hiệu, nhắc nhở).
+  static const double small = 8;
+  static const BorderRadius smallBorder = BorderRadius.all(Radius.circular(small));
+}
+
+/// 5.2 Kích thước riêng của Habit tracker (4.x).
+class AppHabit {
+  AppHabit._();
+
+  /// Vòng tiến độ phút trên thẻ thói quen (chạm để tick).
+  static const double checkRing = 52;
+  static const double checkRingStroke = 5;
+
+  /// Vòng nhỏ của dải 7 ngày.
+  static const double dayRing = 36;
+  static const double dayRingStroke = 3;
+
+  /// Lịch nhiệt mini 4 tuần trên thẻ.
+  static const double miniHeatHeight = 10;
+  static const double heatGap = 2;
+
+  /// Ô lớn nhất của lịch nhiệt 16 tuần trong màn chi tiết.
+  static const double heatCellMax = 20;
+
+  /// Ô của bảng Tuần.
+  static const double weekCell = 28;
+
+  /// Ô icon trên màn chi tiết và nút chọn icon.
+  static const double iconTile = 48;
+
+  /// Biểu đồ đường điểm sức mạnh.
+  static const double chartHeight = 180;
+
+  /// Thời gian chạy hiệu ứng vòng đầy khi tick xong.
+  static const Duration tickAnimation = Duration(milliseconds: 450);
 }
 
 /// 5.2 Thông số riêng của màn Reels (1.4).
@@ -151,6 +191,42 @@ class AppIcons {
   static const IconData deleteAll = Icons.delete_forever_outlined;
   static const IconData stats = Icons.bar_chart_rounded;
   static const IconData reelStats = Icons.movie_outlined;
+
+  // 4.1, 4.2 Habit tracker.
+  static const IconData done = Icons.check_rounded;
+  static const IconData freeze = Icons.ac_unit_rounded;
+  static const IconData minimal = Icons.hourglass_bottom_rounded;
+  static const IconData strength = Icons.trending_up_rounded;
+  static const IconData badge = Icons.military_tech_outlined;
+  static const IconData identity = Icons.person_outline_rounded;
+  static const IconData place = Icons.place_outlined;
+  static const IconData cue = Icons.link_rounded;
+  static const IconData reminder = Icons.info_outline_rounded;
+  static const IconData clearMark = Icons.undo_rounded;
+  static const IconData previous = Icons.chevron_left_rounded;
+  static const IconData next = Icons.chevron_right_rounded;
+  static const IconData close = Icons.close_rounded;
+
+  /// Icon chọn cho thói quen. Thói quen chỉ lưu tên (khoá) để bản release lược được font icon;
+  /// khoá "book" là icon mặc định (Habit.defaultIcon).
+  static const Map<String, IconData> habitIcons = {
+    'book': Icons.menu_book_rounded,
+    'edit': Icons.edit_outlined,
+    'reading': Icons.auto_stories_outlined,
+    'code': Icons.code_rounded,
+    'language': Icons.translate_rounded,
+    'math': Icons.calculate_outlined,
+    'science': Icons.science_outlined,
+    'idea': Icons.lightbulb_outline_rounded,
+    'music': Icons.music_note_outlined,
+    'fitness': Icons.fitness_center_rounded,
+    'run': Icons.directions_run_rounded,
+    'meditation': Icons.self_improvement_rounded,
+    'water': Icons.water_drop_outlined,
+    'sleep': Icons.bedtime_outlined,
+  };
+
+  static IconData habitIcon(String key) => habitIcons[key] ?? habitIcons['book']!;
 }
 
 /// 5.2 ThemeData sáng và tối (Material 3, font Be Vietnam Pro).
@@ -370,14 +446,6 @@ class AppTheme {
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.cardBorder, side: thinLine),
         labelTextStyle: WidgetStatePropertyAll(text.bodyMedium),
-      ),
-      // 4.2 Ô tick "Hôm nay đã làm".
-      checkboxTheme: CheckboxThemeData(
-        fillColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected) ? scheme.secondary : Colors.transparent,
-        ),
-        checkColor: WidgetStatePropertyAll(scheme.onSecondary),
-        side: BorderSide(color: scheme.onSurfaceVariant, width: 1.5),
       ),
       // 4 tab dưới cùng: không có nền chỉ báo, tab đang chọn đổi sang màu nhấn.
       navigationBarTheme: NavigationBarThemeData(

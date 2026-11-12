@@ -98,9 +98,6 @@ class _SetupViewState extends ConsumerState<_SetupView> {
   final _formKey = GlobalKey<FormState>();
   final _minutes = TextEditingController(text: '${_SetupView.defaultMinutes}');
 
-  /// Thói quen người dùng tự chọn; null nghĩa là dùng thói quen hôm nay.
-  String? _selectedHabitId;
-
   /// Đang chờ kiểm tra quyền; bấm "Bắt đầu" hai lần cũng chỉ hỏi một lần.
   bool _isStarting = false;
 
@@ -110,9 +107,12 @@ class _SetupViewState extends ConsumerState<_SetupView> {
     super.dispose();
   }
 
+  /// Thói quen người dùng tự chọn (ở ô chọn hoặc nút "Focus" trên thẻ thói quen);
+  /// chưa chọn hoặc thói quen đó đã bị xoá thì dùng thói quen hôm nay.
   Habit? _currentHabit(List<Habit> habits, Habit? todayHabit) {
+    final selectedId = ref.watch(focusHabitChoiceProvider);
     for (final habit in habits) {
-      if (habit.id == _selectedHabitId) return habit;
+      if (habit.id == selectedId) return habit;
     }
     return todayHabit;
   }
@@ -181,7 +181,7 @@ class _SetupViewState extends ConsumerState<_SetupView> {
                     child: Text(item.name, overflow: TextOverflow.ellipsis),
                   ),
               ],
-              onChanged: (id) => setState(() => _selectedHabitId = id),
+              onChanged: (id) => ref.read(focusHabitChoiceProvider.notifier).choose(id),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text('Thời lượng', style: theme.textTheme.titleSmall),

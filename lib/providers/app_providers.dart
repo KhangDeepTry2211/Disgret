@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/date_utils.dart';
 import '../data/habit_progress.dart';
+import '../data/habit_science.dart';
 import '../data/hive_boxes.dart';
 import '../data/mock_data.dart';
 import '../data/models/goal.dart';
@@ -103,8 +104,8 @@ class GoalsNotifier extends Notifier<List<Goal>> {
   @override
   List<Goal> build() => ref.watch(goalRepositoryProvider).getAll();
 
-  Future<Goal> add({required String title, required String reason}) async {
-    final goal = Goal(id: newId(), title: title, reason: reason);
+  Future<Goal> add({required String title, required String reason, String identity = ''}) async {
+    final goal = Goal(id: newId(), title: title, reason: reason, identity: identity);
     await _repository.save(goal);
     state = _repository.getAll();
     return goal;
@@ -135,12 +136,20 @@ class HabitsNotifier extends Notifier<List<Habit>> {
     required String goalId,
     required String name,
     required int minMinutesPerDay,
+    String cue = '',
+    String place = '',
+    String minimalVersion = '',
+    String icon = Habit.defaultIcon,
   }) async {
     final habit = Habit(
       id: newId(),
       goalId: goalId,
       name: name,
       minMinutesPerDay: minMinutesPerDay,
+      cue: cue,
+      place: place,
+      minimalVersion: minimalVersion,
+      icon: icon,
     );
     await _repository.save(habit);
     state = _repository.getAll();
@@ -184,6 +193,12 @@ class HabitLogsNotifier extends Notifier<List<HabitLog>> {
     } else {
       await _repository.unmarkDone(habit.id, today);
     }
+    state = _repository.getAll();
+  }
+
+  /// Giữ lâu vòng tiến độ: "Làm bản 2 phút" (minimal) hoặc "Nghỉ phép" (freeze) cho hôm nay.
+  Future<void> setMarkToday(Habit habit, HabitLogSource source) async {
+    await _repository.setMark(habit, ref.read(todayProvider), source);
     state = _repository.getAll();
   }
 
@@ -268,14 +283,43 @@ class TodayHabitNotifier extends Notifier<Habit?> {
 
 final todayHabitProvider = NotifierProvider<TodayHabitNotifier, Habit?>(TodayHabitNotifier.new);
 
-/// Streak chung hiện trên vòng streak.
+/// Streak chung hiện trên vòng streak; ngày nghỉ phép không làm đứt chuỗi (4.2).
 final overallStreakProvider = Provider<int>((ref) {
-  return HabitProgress.overallStreak(
+  return HabitScience.overallStreak(
     ref.watch(habitsProvider),
     ref.watch(habitLogsProvider),
     today: ref.watch(todayProvider),
   );
 });
+
+/// 4.2 Lịch sử từng thói quen (theo id), dựng lại mỗi khi danh sách thói quen hoặc log đổi.
+/// Các thẻ, lịch nhiệt và màn chi tiết dùng chung nên không phải tính lại nhiều lần.
+final habitHistoriesProvider = Provider<Map<String, HabitHistory>>((ref) {
+  final logs = ref.watch(habitLogsProvider);
+  return {for (final habit in ref.watch(habitsProvider)) habit.id: HabitHistory.of(habit, logs)};
+});
+
+/// 4.2 Điểm sức mạnh trung bình của các thói quen, hiện ở Trang chủ.
+final averageStrengthProvider = Provider<double>((ref) {
+  return HabitScience.averageStrength(
+    ref.watch(habitsProvider),
+    ref.watch(habitLogsProvider),
+    today: ref.watch(todayProvider),
+  );
+});
+
+/// 3.1 Thói quen được chọn sẵn ở màn Focus, ví dụ khi bấm nút "Focus" trên thẻ thói quen.
+/// null nghĩa là dùng thói quen hôm nay (todayHabitProvider).
+class FocusHabitChoiceNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void choose(String? habitId) => state = habitId;
+}
+
+final focusHabitChoiceProvider = NotifierProvider<FocusHabitChoiceNotifier, String?>(
+  FocusHabitChoiceNotifier.new,
+);
 
 // ---------- 8.2 Thống kê ----------
 

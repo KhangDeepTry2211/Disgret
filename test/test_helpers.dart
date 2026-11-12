@@ -12,6 +12,7 @@ import 'package:focus_app/data/repositories/reel_repository.dart';
 import 'package:focus_app/providers/app_providers.dart';
 import 'package:focus_app/providers/focus_session_provider.dart';
 import 'package:focus_app/services/native_bridge.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -58,6 +59,9 @@ Future<void> pumpApp(
       child: const DisGretApp(),
     ),
   );
+  // Chờ font Be Vietnam Pro nạp xong từ assets/fonts/ rồi mới thao tác: nếu font nạp xong
+  // giữa lúc đang vẽ thì chữ đổi kích thước giữa chừng và framework báo lỗi khi vẽ.
+  await tester.runAsync(GoogleFonts.pendingFonts);
   await tester.pumpAndSettle();
 }
 

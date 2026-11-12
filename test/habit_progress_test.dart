@@ -1,6 +1,8 @@
 // 4.2 Unit test logic hoàn thành và streak (hàm thuần, không cần Hive).
+// Streak có ngày nghỉ phép, điểm sức mạnh... xem thêm habit_science_test.dart.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/data/habit_progress.dart';
+import 'package:focus_app/data/habit_science.dart';
 import 'package:focus_app/data/models/habit.dart';
 import 'package:focus_app/data/models/habit_log.dart';
 
@@ -31,7 +33,36 @@ HabitLog _focus(DateTime day, int minutes, {Habit habit = _habit}) => HabitLog(
   minutes: minutes,
 );
 
+HabitLog _mark(DateTime day, HabitLogSource source) =>
+    HabitLog(id: 'log_${_nextId++}', habitId: _habit.id, date: day, source: source, minutes: 0);
+
 void main() {
+  group('Bản 2 phút và nghỉ phép', () {
+    test('Làm bản 2 phút được tính là hoàn thành (giữ chuỗi)', () {
+      expect(HabitProgress.isDone(_habit, _today, [_mark(_today, HabitLogSource.minimal)]), isTrue);
+    });
+
+    test('Nghỉ phép không phải ngày hoàn thành', () {
+      expect(HabitProgress.isDone(_habit, _today, [_mark(_today, HabitLogSource.freeze)]), isFalse);
+    });
+
+    test('Bản 2 phút hiện ít nhất 2 phút, phút Focus nhiều hơn thì lấy phút Focus', () {
+      expect(HabitProgress.minutesOn(_habit, _today, [_mark(_today, HabitLogSource.minimal)]), 2);
+      final logs = [_mark(_today, HabitLogSource.minimal), _focus(_today, 12)];
+      expect(HabitProgress.minutesOn(_habit, _today, logs), 12);
+    });
+
+    test('Nghỉ phép không cộng phút nào', () {
+      expect(HabitProgress.minutesOn(_habit, _today, [_mark(_today, HabitLogSource.freeze)]), 0);
+    });
+
+    test('markLogOn trả về đánh dấu cả ngày, bỏ qua log focus', () {
+      final logs = [_focus(_today, 30), _mark(_today, HabitLogSource.minimal)];
+      expect(HabitProgress.markLogOn(_habit, _today, logs)?.source, HabitLogSource.minimal);
+      expect(HabitProgress.markLogOn(_habit, _today, [_focus(_today, 30)]), isNull);
+    });
+  });
+
   group('Thói quen hoàn thành trong ngày', () {
     test('Không có log thì chưa hoàn thành', () {
       expect(HabitProgress.isDone(_habit, _today, const []), isFalse);
@@ -98,7 +129,7 @@ void main() {
   });
 
   group('Streak riêng của một thói quen', () {
-    int streak(List<HabitLog> logs) => HabitProgress.habitStreak(_habit, logs, today: _today);
+    int streak(List<HabitLog> logs) => HabitScience.habitStreak(_habit, logs, today: _today);
 
     test('Không có log thì bằng 0', () {
       expect(streak(const []), 0);
@@ -135,7 +166,7 @@ void main() {
 
   group('Streak chung của cả app', () {
     int streak(List<Habit> habits, List<HabitLog> logs) =>
-        HabitProgress.overallStreak(habits, logs, today: _today);
+        HabitScience.overallStreak(habits, logs, today: _today);
 
     test('Không có thói quen, không có log thì bằng 0', () {
       expect(streak(const [], const []), 0);

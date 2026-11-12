@@ -34,13 +34,18 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Icon nét mảnh (outline), dùng icon Material Symbols rounded.
 - Màn Reels: vuốt dọc, video hiện trọn vẹn không bị cắt (co vừa khung), phía sau là chính video đó làm mờ (tắt bằng `AppReels.blurBackground`; trên web nền chỉ là màu đen). Chữ và nút nổi ở đáy, có lớp mờ gradient đen để chữ dễ đọc.
 - Thanh điều hướng dưới cùng 4 tab: Trang chủ, Reels, Focus, Thói quen.
+- Tab Thói quen: SegmentedButton Hôm nay / Tuần / Tháng. Thẻ thói quen (HabitCard) có vòng tiến độ phút (chạm để tick, giữ lâu chọn bản 2 phút / nghỉ phép), lịch nhiệt mini 4 tuần, nút Focus (chọn sẵn thói quen qua focusHabitChoiceProvider). Chạm thẻ mở màn chi tiết (/habit/:id; biểu đồ đường bằng fl_chart, lịch nhiệt tự vẽ). Thêm/sửa thói quen bằng màn 4 bước (/habit-form). Lịch nhiệt lấy màu bằng AppColors.heatOf(context).
 - TẤT CẢ màu, font, bo góc, khoảng cách đặt trong MỘT file lib/theme/app_theme.dart (kèm class AppColors, AppSpacing, AppRadius). Màn hình không được viết mã màu cứng, phải lấy từ theme, để sau này đổi giao diện chỉ cần sửa một chỗ.
 - Riêng màn can thiệp (2.3) viết bằng Kotlin nên không đọc được file trên: màu của nó nằm trong android/app/src/main/res/values/colors.xml (hiện dùng màu chế độ tối A: disgret_navy = #06090F làm nền, disgret_cyan = #4CC9F0 làm nút; tên màu giữ nguyên). Đổi màu thương hiệu thì phải sửa cả hai nơi.
 
 ## Mô hình dữ liệu (6.2)
 - UserProfile: motivationTypes (tiền bạc, gia đình, sự nghiệp, chứng minh bản thân, tự do), preferredReelLength, demoMode
-- Goal: title, reason; Habit: goalId, name, minMinutesPerDay
-- HabitLog: habitId, date (chỉ ngày), source (manual, focus), minutes, note
+- Goal: title, reason, identity (câu sau "Tôi là người…", mặc định rỗng)
+- Habit: goalId, name, minMinutesPerDay, cue (sau "Sau khi…"), place (sau "Tại…"), minimalVersion (bản 2 phút), icon (khoá trong AppIcons.habitIcons, mặc định "book"); trường mới đều có mặc định để đọc được dữ liệu cũ
+- HabitLog: habitId, date (chỉ ngày), source (manual, focus, minimal, freeze), minutes, note
+  - manual/minimal/freeze là đánh dấu cả ngày, mỗi ngày tối đa một loại, id "<loại>_<habitId>_<yyyy-MM-dd>"; focus là phút thật từ phiên Focus
+  - Hoàn thành (giữ chuỗi) = manual, minimal, hoặc tổng phút focus ≥ minMinutesPerDay. freeze không phải hoàn thành nhưng không làm đứt chuỗi
+- Habit tracker khoa học (lib/data/habit_science.dart, hàm thuần, test trong test/habit_science_test.dart): điểm sức mạnh `điểm = điểm × (1 − α) + α × done`, α = 1 − 0.05^(1/66) (done: manual 1, minimal 0.5, focus phút/min tối đa 1; freeze giữ điểm; hôm nay chỉ cộng không trừ); mỗi tuần T2–CN tối đa 1 ngày freeze; nhắc "Đừng bỏ 2 lần liên tiếp" khi hôm qua bỏ; Hành trình 66 ngày với huy hiệu 7/21/40/66.
 - Session: habitId, start, end, plannedMinutes, focusedSeconds, distractionCount, awaySeconds, selfRating, note
 - Reel: id, assetPath, title, tags (motivation type), lengthSec, context (start, distracted), pinFirst (danh sách context, mặc định rỗng)
   - 1.3 Ghim reel: reel có pinFirst chứa context hiện tại luôn đứng đầu, bỏ qua điểm và luật "vừa xem gần nhất"; các reel còn lại xếp theo điểm, tổng tối đa 3. Hiện r6 "Get back to work!" ghim cho "distracted", áp dụng cho mọi đường mở Reels sau xao nhãng.
@@ -56,7 +61,7 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   - Phút tập trung 7 ngày gần nhất: cộng focusedSeconds của Session theo ngày bắt đầu; biểu đồ cột vẽ bằng widget. Kèm số phiên và số ngày hoàn thành thói quen (từ HabitLog).
   - Reset break: số intervention_shown, tỉ lệ chose_study / chose_reel / chose_break trên tổng số lần đã chọn. Chỉ tính lựa chọn trên màn can thiệp, không tính sheet nhắc trong app (3.3).
   - Reels: số reel_watched và tỉ lệ có startedFocus. Thời gian quay lại: trung bình awaySeconds của session_distracted.
-- "Tạo dữ liệu mẫu" (lib/data/mock_data.dart) dùng id cố định nên bấm nhiều lần không trùng. Hôm nay để trống (chỉ có "Làm bài tập" 10/30 phút) để demo xong một phiên thì streak tăng từ 5 lên 6. Có 5 phiên học, 8 lượt xem reel, 6 lần chặn kèm lựa chọn, 7 lần xao nhãng; mọi lượt xem reel mẫu đều cũ hơn 24 giờ để không làm lệch thứ tự đề xuất lúc demo.
+- "Tạo dữ liệu mẫu" (lib/data/mock_data.dart) dùng id cố định nên bấm nhiều lần không trùng. 1 mục tiêu có câu bản sắc, 3 thói quen có cue/place/minimalVersion, lịch sử 45 ngày có ngày bỏ, ngày bản 2 phút, ngày nghỉ phép (các ngày nghỉ phép cách nhau ≥ 7 ngày để luôn khác tuần dù hôm nay là thứ mấy); "Ôn bài" đạt 40/66 ngày, "Đọc sách" bỏ hôm qua để hiện lời nhắc. Ngày thứ 6 trước hôm nay không thói quen nào được làm nên streak chung là 5. Hôm nay để trống (chỉ có "Làm bài tập" 10/30 phút) để demo xong một phiên thì streak tăng từ 5 lên 6. Có 5 phiên học, 8 lượt xem reel, 6 lần chặn kèm lựa chọn, 7 lần xao nhãng; mọi lượt xem reel mẫu đều cũ hơn 24 giờ để không làm lệch thứ tự đề xuất lúc demo.
 
 ## MethodChannel focus/native
 Phần Kotlin nằm trong android/app/src/main/kotlin/com/nhom/focus/focus_app/. Phía Flutter mọi lời gọi đi qua lib/services/native_bridge.dart; trên web các hàm này không gọi gì và trả về giá trị mặc định.

@@ -10,7 +10,7 @@ Quy ước code, màu sắc và giao tiếp với phần Kotlin nằm trong [CLA
 
 | Tính năng | Người dùng thấy gì |
 |---|---|
-| **Thói quen** (Habit tracker) | Đặt mục tiêu, thói quen kèm số phút tối thiểu mỗi ngày. Học đủ phút hoặc tự tick thì được tính một ngày; vòng streak ở Trang chủ đếm số ngày liên tiếp. |
+| **Thói quen** (Habit tracker) | Đặt mục tiêu kèm câu bản sắc "Tôi là người…", tạo thói quen theo 4 bước ("Sau khi… tôi sẽ… tại…", phiên bản 2 phút). Chạm vòng tiến độ để tick, giữ lâu để làm bản 2 phút hoặc nghỉ phép. Mỗi thói quen có điểm sức mạnh 0–100%, lịch nhiệt, Hành trình 66 ngày; vòng streak ở Trang chủ đếm số ngày liên tiếp. |
 | **Reels** (anti-reel) | Trước khi học, xem 1–3 reel động lực hợp với hồ sơ của mình (làm quiz lúc mở app lần đầu), rồi bấm "Bắt đầu 5 phút". |
 | **Focus** | Đồng hồ đếm ngược. Rời app giữa chừng thì bị tính một lần xao nhãng; hết giờ hiện màn Tổng kết, lưu lại thì cộng phút vào thói quen. |
 | **Reset break** | Đang học mà mở TikTok, YouTube, Chrome… thì DisGret hiện màn can thiệp: chờ vài giây rồi chọn **Quay lại học**, **Xem 1 reel động lực** hoặc **Nghỉ có chủ đích** (có hẹn giờ). |
@@ -44,6 +44,20 @@ học, thời gian trung bình để quay lại sau xao nhãng.
 
         Mọi bước đều ghi sự kiện → màn THỐNG KÊ (8.2)
 ```
+
+### Habit tracker có cơ sở khoa học
+
+Phần tính nằm ở `lib/data/habit_science.dart` (hàm thuần, có unit test trong
+`test/habit_science_test.dart`).
+
+| Cơ chế | Luật | Cơ sở |
+|---|---|---|
+| Điểm sức mạnh 0–100% | Mỗi ngày: `điểm = điểm hôm trước × (1 − α) + α × done`, với `α = 1 − 0.05^(1/66) ≈ 0.0444`. `done` = 1 nếu tick, 0.5 nếu làm bản 2 phút, `phút Focus / phút tối thiểu` (tối đa 1) nếu học bằng Focus. Ngày nghỉ phép giữ nguyên điểm; hôm nay chưa làm thì chưa bị trừ. | Làm đều 66 ngày thì đạt 95%: 66 ngày là thời gian trung bình để một hành vi thành tự động (Lally và cộng sự, 2010). |
+| Ngày nghỉ phép | Mỗi tuần (T2–CN) tối đa 1 ngày, không làm đứt chuỗi nhưng cũng không cộng vào chuỗi. | Lỡ một ngày không ảnh hưởng đáng kể tới việc hình thành thói quen (Lally, 2010); cho nghỉ có kế hoạch để tránh tâm lý "hỏng rồi, bỏ luôn". |
+| Không bỏ 2 lần liên tiếp | Hôm qua bỏ thì thẻ hôm nay nhắc "Đừng bỏ 2 lần liên tiếp – làm bản 2 phút nhé". | Quy tắc "never miss twice" và quy tắc 2 phút (James Clear, *Atomic Habits*). |
+| Hành trình 66 ngày | Tổng số ngày hoàn thành (không cần liên tiếp), huy hiệu 7 "Khởi động", 21 "Bền bỉ", 40 "Vững vàng", 66 "Thành thói quen". | Mốc 66 ngày của Lally (2010). |
+| Ý định thực hiện | Mỗi thói quen ghi "Sau khi…" và "Tại…". | Implementation intentions (Gollwitzer & Sheeran, 2006). |
+| Bản sắc | Mục tiêu có câu "Tôi là người…". | Thói quen dựa trên bản sắc (James Clear, *Atomic Habits*). |
 
 Khi mở Reels sau xao nhãng (từ màn can thiệp hoặc từ sheet nhắc trong app), reel
 **"Get back to work!"** luôn đứng đầu vì được ghim (`pinFirst` trong `assets/reels/reels.json`).
@@ -115,7 +129,12 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
    > vào thời gian tập trung, nên phiên chỉ còn khoảng 1–2 phút tập trung thật. Mức tối thiểu
    > 1 phút đảm bảo cuối phiên thói quen hoàn thành và streak tăng.
 2. **Cài đặt** (bánh răng ở Trang chủ): bật **Chế độ demo** (1 phút chỉ dài 20 giây), bấm
-   **Tạo dữ liệu mẫu** → quay lại: Trang chủ có vòng streak **5 ngày**.
+   **Tạo dữ liệu mẫu** → quay lại: Trang chủ có vòng streak **5 ngày**, câu bản sắc và điểm
+   sức mạnh trung bình.
+   - (Không bắt buộc) Tab **Thói quen**: thẻ "Đọc sách 10 trang" nhắc "Đừng bỏ 2 lần liên tiếp";
+     chuyển **Tuần** / **Tháng** để xem bảng tuần và lịch nhiệt; chạm thẻ "Ôn bài Tư Duy Tính
+     Toán" để xem biểu đồ sức mạnh 60 ngày, huy hiệu "Vững vàng" (40/66 ngày), lịch 16 tuần.
+     Đừng tick thói quen nào hôm nay, nếu không streak đã lên 6 trước khi demo phiên học.
 3. **Bắt đầu** → màn Reels: xem một reel, vuốt lên xem reel khác nếu muốn →
    **Bắt đầu 5 phút** → màn Focus đếm ngược từ 05:00 (thật ra 100 giây).
 4. **Lần chặn 1.** Bấm Home, mở YouTube → màn can thiệp đếm ngược **10 giây** →
@@ -154,8 +173,8 @@ Mỗi file ghi mã thành phần ở dòng đầu. `kotlin/` là
 | 3.2 | Phát hiện lơ là | `lib/services/focus_session_timer.dart`, `lib/providers/focus_session_provider.dart`, `lib/app.dart` |
 | 3.3 | Phản hồi sau xao nhãng | `lib/widgets/focus_feedback.dart`, `lib/app.dart`, `lib/screens/main_shell.dart` |
 | 3.4 | Tổng kết phiên | `lib/screens/summary_screen.dart`, `lib/data/models/session.dart`, `lib/services/time_format.dart` |
-| 4.1 | Đặt mục tiêu, thói quen | `lib/screens/habits_screen.dart`, `lib/screens/onboarding_screen.dart`, `lib/widgets/goal_habit_sheets.dart`, `lib/widgets/goal_form_fields.dart`, `lib/widgets/habit_form_fields.dart`, `lib/widgets/empty_goal_view.dart`, `lib/widgets/edit_delete_menu.dart`, `lib/widgets/app_dialogs.dart` |
-| 4.2 | Ghi nhận và streak | `lib/data/habit_progress.dart`, `lib/data/repositories/habit_log_repository.dart`, `lib/widgets/habit_tile.dart` |
+| 4.1 | Đặt mục tiêu, thói quen (bản sắc, tạo thói quen 4 bước) | `lib/screens/habits_screen.dart`, `lib/screens/habit_form_screen.dart`, `lib/screens/onboarding_screen.dart`, `lib/widgets/goal_habit_sheets.dart`, `lib/widgets/goal_form_fields.dart`, `lib/widgets/habit_form_fields.dart`, `lib/widgets/empty_goal_view.dart`, `lib/widgets/edit_delete_menu.dart`, `lib/widgets/app_dialogs.dart` |
+| 4.2 | Ghi nhận, streak, điểm sức mạnh, lịch nhiệt, màn chi tiết | `lib/data/habit_progress.dart`, `lib/data/habit_science.dart`, `lib/data/repositories/habit_log_repository.dart`, `lib/widgets/habit_card.dart`, `lib/widgets/habit_check_ring.dart`, `lib/widgets/habit_heat_map.dart`, `lib/screens/habit_detail_screen.dart` |
 | 5.1 | Khung app, điều hướng, các màn chính | `lib/main.dart`, `lib/app.dart`, `lib/router/app_router.dart`, `lib/screens/main_shell.dart`, `lib/screens/home_screen.dart`, `lib/screens/settings_screen.dart`, `lib/providers/app_providers.dart`, `kotlin/MainActivity.kt` |
 | 5.2 | Giao diện (design system) | `lib/theme/app_theme.dart`, `lib/widgets/app_logo.dart`, `lib/widgets/gradient_pill_button.dart`, `lib/widgets/gradient_progress_bar.dart`, `lib/widgets/progress_ring.dart`, `lib/widgets/streak_ring.dart`, `assets/fonts/`, `assets/branding/`, `assets/launcher/` |
 | 6.2 | Mô hình dữ liệu, lưu trữ Hive | `lib/data/models/`, `lib/data/repositories/`, `lib/data/hive_boxes.dart`, `lib/data/date_utils.dart`, `lib/data/mock_data.dart` |

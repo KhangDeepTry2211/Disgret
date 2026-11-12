@@ -1,9 +1,20 @@
 // 6.2 Mô hình dữ liệu – một lần ghi nhận thói quen trong ngày (4.2 Ghi nhận).
 import '../date_utils.dart';
 
-/// Nguồn ghi nhận: tự tick tay, hoặc từ một phiên Focus.
-/// Tên enum chính là giá trị lưu trong Hive: "manual" và "focus".
-enum HabitLogSource { manual, focus }
+/// Nguồn ghi nhận. Tên enum chính là giá trị lưu trong Hive.
+/// - manual: tự tick "đã làm" (đủ mức tối thiểu).
+/// - focus: số phút thật từ một phiên Focus.
+/// - minimal: chỉ làm phiên bản 2 phút; vẫn giữ chuỗi nhưng điểm sức mạnh chỉ cộng một nửa.
+/// - freeze: ngày nghỉ phép; không làm đứt chuỗi, điểm sức mạnh giữ nguyên.
+enum HabitLogSource {
+  manual,
+  focus,
+  minimal,
+  freeze;
+
+  /// Các nguồn do người dùng tự đánh dấu cho cả ngày; mỗi ngày chỉ có tối đa một loại.
+  bool get isDayMark => this != focus;
+}
 
 class HabitLog {
   HabitLog({

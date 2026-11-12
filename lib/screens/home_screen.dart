@@ -1,4 +1,5 @@
-// 5.1 Màn Trang chủ: vòng streak, mục tiêu hôm nay, thói quen hôm nay và nút "Bắt đầu".
+// 5.1 Màn Trang chủ: vòng streak, mục tiêu hôm nay (kèm câu bản sắc và điểm sức mạnh
+// trung bình, 4.2), thói quen hôm nay và nút "Bắt đầu".
 // Toàn bộ lấy từ dữ liệu thật; chưa có mục tiêu thì hiện màn trống.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,9 +13,9 @@ import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/empty_goal_view.dart';
-import '../widgets/goal_habit_sheets.dart';
 import '../widgets/gradient_pill_button.dart';
-import '../widgets/habit_tile.dart';
+import '../widgets/gradient_progress_bar.dart';
+import '../widgets/habit_card.dart';
 import '../widgets/streak_ring.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -90,15 +91,17 @@ class _TodayView extends ConsumerWidget {
   }
 }
 
-class _TodayGoalCard extends StatelessWidget {
+class _TodayGoalCard extends ConsumerWidget {
   const _TodayGoalCard({required this.goal});
 
   final Goal goal;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final secondaryColor = theme.colorScheme.onSurfaceVariant;
+    final strength = ref.watch(averageStrengthProvider);
+    final hasHabits = ref.watch(habitsProvider).isNotEmpty;
 
     return Card(
       child: Padding(
@@ -118,8 +121,45 @@ class _TodayGoalCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(goal.title, style: theme.textTheme.titleMedium),
+            if (goal.identity.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Tôi là người ${goal.identity}',
+                style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.tertiary),
+              ),
+            ],
             const SizedBox(height: AppSpacing.xs),
             Text(goal.reason, style: theme.textTheme.bodySmall),
+            if (hasHabits) ...[
+              const SizedBox(height: AppSpacing.md),
+              Semantics(
+                container: true,
+                label: 'Sức mạnh thói quen trung bình ${(strength * 100).round()}%',
+                excludeSemantics: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(AppIcons.strength, size: 18, color: theme.colorScheme.tertiary),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: Text('Sức mạnh thói quen', style: theme.textTheme.bodySmall),
+                        ),
+                        Text(
+                          '${(strength * 100).round()}%',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.tertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    GradientProgressBar(value: strength, height: 6),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -165,15 +205,16 @@ class _TodayHabitsCard extends ConsumerWidget {
                   TextButton.icon(
                     icon: const Icon(AppIcons.add),
                     label: const Text('Thêm thói quen'),
-                    onPressed: () => showHabitSheet(context, ref, goalId: goal.id),
+                    onPressed: () => context.push(AppRoutes.habitForm(goal.id)),
                   ),
                 ],
               ),
             ),
-          for (var i = 0; i < habits.length; i++) ...[
-            if (i > 0) const Divider(),
-            HabitTile(key: ValueKey(habits[i].id), habit: habits[i]),
-          ],
+          for (final habit in habits)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.sm, 0, AppSpacing.sm, AppSpacing.sm),
+              child: HabitCard(key: ValueKey(habit.id), habit: habit, compact: true),
+            ),
         ],
       ),
     );

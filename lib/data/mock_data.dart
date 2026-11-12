@@ -1,4 +1,4 @@
-// 6.2, 8.2 Dữ liệu mẫu cho nút "Tạo dữ liệu mẫu" trong Cài đặt, ghi dữ liệu như người dùng thật.
+// 4.2, 6.2, 8.2 Dữ liệu mẫu cho nút "Tạo dữ liệu mẫu" trong Cài đặt, ghi dữ liệu như người dùng thật.
 import 'date_utils.dart';
 import 'models/event.dart';
 import 'models/goal.dart';
@@ -14,6 +14,18 @@ import 'repositories/session_repository.dart';
 /// Một phiên học mẫu của thói quen "Làm bài tập", tính từ hôm nay lùi về trước.
 typedef _DemoSession = ({int focusMinutes, int plannedMinutes, List<int> awaySeconds});
 
+/// Lịch sử tick tay mẫu của một thói quen, tính bằng số ngày trước hôm nay.
+/// Ngày trong [firstDay, lastDay] mặc định là "đã làm", trừ các ngày có trong
+/// missed (bỏ), minimal (làm bản 2 phút) hoặc freeze (nghỉ phép).
+typedef _DemoHistory = ({
+  int firstDay,
+  int lastDay,
+  Set<int> missed,
+  Set<int> minimal,
+  Set<int> freeze,
+  Map<int, String> notes,
+});
+
 class MockData {
   MockData._();
 
@@ -27,44 +39,127 @@ class MockData {
     (focusMinutes: 15, plannedMinutes: 25, awaySeconds: [90, 120, 90]),
   ];
 
-  /// Tạo 1 mục tiêu, 2 thói quen và lịch sử 5 ngày để demo streak:
-  /// - "Ôn bài" tick đủ 5 ngày trước hôm nay: streak 5. Hôm nay để trống, để khi demo
-  ///   học xong một phiên thì thấy streak tăng lên 6.
-  /// - "Làm bài tập" học bằng Focus: 3 ngày trước đủ 30 phút, ngày thứ 5 thiếu,
-  ///   hôm nay mới 10 phút: streak 3, tiến độ hôm nay 10/30.
-  /// Kèm phiên học và sự kiện mẫu (8.2) để màn Thống kê có số liệu.
+  static const Goal goal = Goal(
+    id: 'demo_goal',
+    title: 'Đạt điểm A môn Tư Duy Tính Toán',
+    reason: 'Có kết quả tốt để tự tin xin thực tập.',
+    identity: 'học đều mỗi ngày, không học dồn',
+  );
+
+  static const Habit reviewHabit = Habit(
+    id: 'demo_habit_review',
+    goalId: 'demo_goal',
+    name: 'Ôn bài Tư Duy Tính Toán',
+    minMinutesPerDay: 25,
+    cue: 'ăn tối',
+    place: 'bàn học',
+    minimalVersion: 'Đọc lại 1 trang ghi chú',
+    icon: 'book',
+  );
+
+  static const Habit exerciseHabit = Habit(
+    id: 'demo_habit_exercise',
+    goalId: 'demo_goal',
+    name: 'Làm bài tập về nhà',
+    minMinutesPerDay: 30,
+    cue: 'đi học về',
+    place: 'thư viện',
+    minimalVersion: 'Làm 1 câu dễ nhất',
+    icon: 'edit',
+  );
+
+  static const Habit readingHabit = Habit(
+    id: 'demo_habit_reading',
+    goalId: 'demo_goal',
+    name: 'Đọc sách 10 trang',
+    minMinutesPerDay: 15,
+    cue: 'đánh răng buổi tối',
+    place: 'góc đọc sách',
+    minimalVersion: 'Đọc 1 trang',
+    icon: 'reading',
+  );
+
+  /// "Ôn bài": 44 ngày, bỏ 2 ngày, 2 ngày bản 2 phút, 2 ngày nghỉ phép (cách nhau 14 ngày nên
+  /// luôn ở hai tuần khác nhau). Đủ 40 ngày hoàn thành: đạt huy hiệu "Vững vàng".
+  /// Bỏ ngày thứ 6 nên chuỗi hiện tại là 5.
+  static const _DemoHistory _reviewHistory = (
+    firstDay: 1,
+    lastDay: 44,
+    missed: {6, 30},
+    minimal: {12, 26},
+    freeze: {20, 34},
+    notes: {
+      1: 'Ôn xong chương 4, mai làm đề.',
+      3: 'Học nhóm, hiểu đệ quy hơn hẳn.',
+      9: 'Làm lại đề năm ngoái được 8/10.',
+      12: 'Mệt nên chỉ đọc lại ghi chú.',
+    },
+  );
+
+  /// "Làm bài tập": 5 ngày gần nhất học bằng Focus (xem _sessions), trước đó tick tay
+  /// từ ngày thứ 5 đến 35, có 2 lần bỏ liên tiếp (ngày 6, 7) để thấy điểm sức mạnh tụt.
+  static const _DemoHistory _exerciseHistory = (
+    firstDay: 5,
+    lastDay: 35,
+    missed: {6, 7, 11, 18, 25},
+    minimal: {14, 21, 28},
+    freeze: {16, 30},
+    notes: {5: 'Xong bài tập tuần 9.', 14: 'Chỉ kịp làm 1 câu.'},
+  );
+
+  /// "Đọc sách": mới bắt đầu 20 ngày trước, hôm qua bỏ nên thẻ hôm nay nhắc
+  /// "Đừng bỏ 2 lần liên tiếp".
+  static const _DemoHistory _readingHistory = (
+    firstDay: 2,
+    lastDay: 20,
+    missed: {6, 10},
+    minimal: {8, 15},
+    freeze: {13},
+    notes: {2: 'Đọc xong chương 1 "Atomic Habits".'},
+  );
+
+  /// Tạo 1 mục tiêu (có câu bản sắc), 3 thói quen (có "Sau khi… tại…" và bản 2 phút)
+  /// và lịch sử 45 ngày để mọi biểu đồ, lịch nhiệt và huy hiệu đều có số liệu:
+  /// - Streak chung là 5 (ngày thứ 6 không thói quen nào được làm). Hôm nay để trống, chỉ có
+  ///   "Làm bài tập" 10/30 phút, để khi demo học xong một phiên thì thấy streak tăng lên 6.
+  /// - Kèm phiên học và sự kiện mẫu (8.2) để màn Thống kê có số liệu.
   /// Dùng id cố định nên bấm nhiều lần cũng không sinh dữ liệu trùng.
   static Future<void> createDemoData({required DateTime now}) async {
     final today = dateOnly(now);
-    const goal = Goal(
-      id: 'demo_goal',
-      title: 'Đạt điểm A môn Tư Duy Tính Toán',
-      reason: 'Có kết quả tốt để tự tin xin thực tập.',
-    );
-    const reviewHabit = Habit(
-      id: 'demo_habit_review',
-      goalId: 'demo_goal',
-      name: 'Ôn bài Tư Duy Tính Toán',
-      minMinutesPerDay: 25,
-    );
-    const exerciseHabit = Habit(
-      id: 'demo_habit_exercise',
-      goalId: 'demo_goal',
-      name: 'Làm bài tập về nhà',
-      minMinutesPerDay: 30,
-    );
 
     await GoalRepository().save(goal);
     final habits = HabitRepository();
-    await habits.save(reviewHabit);
-    await habits.save(exerciseHabit);
+    for (final habit in [reviewHabit, exerciseHabit, readingHabit]) {
+      await habits.save(habit);
+    }
 
     final logs = HabitLogRepository();
-    for (var daysAgo = 1; daysAgo <= 5; daysAgo++) {
-      await logs.markDone(reviewHabit, _day(today, daysAgo));
-    }
+    await _createHistory(logs, reviewHabit, today, _reviewHistory);
+    await _createHistory(logs, exerciseHabit, today, _exerciseHistory);
+    await _createHistory(logs, readingHabit, today, _readingHistory);
     await _createSessions(exerciseHabit, now: now, today: today);
     await _createEvents(now);
+  }
+
+  /// 4.2 Ghi lịch sử tick tay, bản 2 phút, nghỉ phép và ghi chú của một thói quen.
+  static Future<void> _createHistory(
+    HabitLogRepository logs,
+    Habit habit,
+    DateTime today,
+    _DemoHistory history,
+  ) async {
+    for (var daysAgo = history.firstDay; daysAgo <= history.lastDay; daysAgo++) {
+      if (history.missed.contains(daysAgo)) continue;
+      final day = _day(today, daysAgo);
+      final source = history.minimal.contains(daysAgo)
+          ? HabitLogSource.minimal
+          : history.freeze.contains(daysAgo)
+          ? HabitLogSource.freeze
+          : HabitLogSource.manual;
+      await logs.setMark(habit, day, source);
+      final note = history.notes[daysAgo];
+      if (note != null) await logs.saveNote(habit.id, day, note);
+    }
   }
 
   static DateTime _day(DateTime today, int daysAgo) =>

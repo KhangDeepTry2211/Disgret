@@ -10,7 +10,8 @@ import 'package:focus_app/data/repositories/habit_log_repository.dart';
 import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/theme/app_theme.dart';
-import 'package:focus_app/widgets/gradient_progress_bar.dart';
+import 'package:focus_app/widgets/habit_check_ring.dart';
+import 'package:focus_app/widgets/progress_ring.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -29,6 +30,27 @@ Future<void> _tap(WidgetTester tester, Finder finder) => tapAndSettle(tester, fi
 Future<void> _tapSettingsItem(WidgetTester tester, String label) async {
   await tester.scrollUntilVisible(find.text(label), 200);
   await _tap(tester, find.text(label));
+}
+
+/// Vòng tick của thói quen đầu tiên đang hiện trên màn hình.
+Finder get _ring => find.byType(HabitCheckRing).first;
+
+bool _isTicked(WidgetTester tester) => tester.widget<HabitCheckRing>(_ring).done;
+
+/// Đi qua 4 bước tạo thói quen: bản sắc → tên và phút → khi nào, ở đâu → bản 2 phút.
+/// [setMinutes] chạy ở bước 2 để chọn số phút.
+Future<void> _createHabitInWizard(
+  WidgetTester tester,
+  String name, {
+  Future<void> Function()? setMinutes,
+}) async {
+  expect(find.text('Bước 1/4 · Bản sắc'), findsOneWidget);
+  await _tap(tester, find.text('Tiếp'));
+  await _enterField(tester, 'Tên thói quen', name);
+  if (setMinutes != null) await setMinutes();
+  await _tap(tester, find.text('Tiếp'));
+  await _tap(tester, find.text('Tiếp'));
+  await _tap(tester, find.text('Lưu thói quen'));
 }
 
 Future<void> _enterField(WidgetTester tester, String label, String text) async {
@@ -256,8 +278,7 @@ void main() {
       expect(find.text('Chưa có thói quen nào.'), findsOneWidget);
 
       await _tap(tester, find.text('Thêm thói quen'));
-      await _enterField(tester, 'Tên thói quen', 'Thói quen mới tạo');
-      await _tap(tester, find.text('Lưu'));
+      await _createHabitInWizard(tester, 'Thói quen mới tạo');
 
       expect(find.text('Thói quen mới tạo'), findsOneWidget);
       expect(find.text('0/25 phút hôm nay'), findsOneWidget);
@@ -276,19 +297,32 @@ void main() {
       expect(find.text('Bắt đầu'), findsOneWidget);
     });
 
-    testWidgets('Thanh tiến độ tô đúng tỉ lệ và nhìn thấy được', (tester) async {
+    testWidgets('Vòng tiến độ phút chạy đúng tỉ lệ', (tester) async {
       await _seedGoalAndHabit();
       await _addFocusLog(10);
       await _pumpApp(tester);
 
-      final bar = find.byType(GradientProgressBar);
-      final fill = find.descendant(of: bar, matching: find.byType(DecoratedBox));
-
-      // Đã học 10/25 phút nên phần tô phải dài 40% và cao bằng cả thanh.
+      // Đã học 10/25 phút nên vòng chạy 40%.
       expect(find.text('10/25 phút hôm nay'), findsOneWidget);
-      expect(tester.getSize(fill).width, closeTo(tester.getSize(bar).width * 0.4, 0.01));
-      expect(tester.getSize(fill).height, tester.getSize(bar).height);
-      expect(tester.getSize(fill).height, greaterThan(0));
+      final ring = tester.widget<ProgressRing>(
+        find.descendant(of: _ring, matching: find.byType(ProgressRing)),
+      );
+      expect(ring.progress, closeTo(0.4, 0.001));
+      expect(_isTicked(tester), isFalse);
+    });
+
+    testWidgets('Hiện câu bản sắc và điểm sức mạnh trung bình', (tester) async {
+      await _completeOnboarding();
+      await GoalRepository().save(_goal.copyWith(identity: 'học đều mỗi ngày'));
+      await HabitRepository().save(_habit);
+      await _pumpApp(tester);
+
+      expect(find.text('Tôi là người học đều mỗi ngày'), findsOneWidget);
+      expect(find.bySemanticsLabel('Sức mạnh thói quen trung bình 0%'), findsOneWidget);
+
+      await _tap(tester, _ring);
+      expect(find.bySemanticsLabel('Sức mạnh thói quen trung bình 4%'), findsOneWidget);
+      expect(find.bySemanticsLabel('Chuỗi 1 ngày học liên tiếp'), findsOneWidget);
     });
   });
 
@@ -300,7 +334,7 @@ void main() {
       await _pumpApp(tester);
       expect(find.text('0/25 phút hôm nay'), findsOneWidget);
 
-      await _tap(tester, find.byType(Checkbox));
+      await _tap(tester, _ring);
 
       expect(find.text('25/25 phút hôm nay'), findsOneWidget);
       expect(find.bySemanticsLabel('Chuỗi 1 ngày học liên tiếp'), findsOneWidget);
@@ -311,14 +345,14 @@ void main() {
 
       // Sang tab Thói quen thấy đã tick, bỏ tick tại đó.
       await _tap(tester, find.text('Thói quen'));
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
-      await _tap(tester, find.byType(Checkbox));
+      expect(_isTicked(tester), isTrue);
+      await _tap(tester, _ring);
       expect(HabitLogRepository().getAll(), isEmpty);
 
       // Về Trang chủ thấy đã bỏ tick.
       await _tap(tester, find.text('Trang chủ'));
       expect(find.text('0/25 phút hôm nay'), findsOneWidget);
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+      expect(_isTicked(tester), isFalse);
       expect(find.bySemanticsLabel('Chuỗi 0 ngày học liên tiếp'), findsOneWidget);
     });
 
@@ -327,7 +361,7 @@ void main() {
       await _pumpApp(tester);
       expect(find.text('Thêm ghi chú'), findsNothing);
 
-      await _tap(tester, find.byType(Checkbox));
+      await _tap(tester, _ring);
 
       // Bỏ qua thì không có ghi chú nào được lưu.
       await _tap(tester, find.text('Thêm ghi chú'));
@@ -341,7 +375,7 @@ void main() {
       expect(HabitLogRepository().getAll().single.note, 'Làm xong chương 3');
 
       // Bỏ tick thì ghi chú biến mất cùng log.
-      await _tap(tester, find.byType(Checkbox));
+      await _tap(tester, _ring);
       expect(find.text('Làm xong chương 3'), findsNothing);
     });
 
@@ -352,9 +386,10 @@ void main() {
       await _addFocusLog(25);
       await _pumpApp(tester);
 
-      final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
-      expect(checkbox.value, isTrue);
-      expect(checkbox.onChanged, isNull);
+      final ring = tester.widget<HabitCheckRing>(_ring);
+      expect(ring.done, isTrue);
+      expect(ring.onTap, isNull);
+      expect(ring.onLongPress, isNull);
       expect(find.text('Đã đủ phút từ phiên Focus'), findsOneWidget);
       expect(find.text('25/25 phút hôm nay'), findsOneWidget);
       expect(find.bySemanticsLabel('Chuỗi 1 ngày học liên tiếp'), findsOneWidget);
@@ -366,12 +401,12 @@ void main() {
       await _seedGoalAndHabit();
       await _addFocusLog(10);
       await _pumpApp(tester);
-      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+      expect(_isTicked(tester), isFalse);
 
-      await _tap(tester, find.byType(Checkbox));
+      await _tap(tester, _ring);
       expect(find.text('25/25 phút hôm nay'), findsOneWidget);
 
-      await _tap(tester, find.byType(Checkbox));
+      await _tap(tester, _ring);
       expect(find.text('10/25 phút hôm nay'), findsOneWidget);
       expect(HabitLogRepository().getAll().single.source, HabitLogSource.focus);
     });
@@ -469,9 +504,11 @@ void main() {
       await openHabits(tester);
 
       await _tap(tester, find.text('Thêm thói quen'));
-      await _enterField(tester, 'Tên thói quen', 'Đọc sách');
-      await _tap(tester, find.text('45 phút'));
-      await _tap(tester, find.text('Lưu'));
+      await _createHabitInWizard(
+        tester,
+        'Đọc sách',
+        setMinutes: () => _tap(tester, find.text('45 phút')),
+      );
 
       expect(find.text('Đọc sách'), findsOneWidget);
       expect(find.text('0/45 phút hôm nay'), findsOneWidget);
@@ -484,18 +521,25 @@ void main() {
       await openHabits(tester);
 
       await _tap(tester, find.text('Thêm thói quen'));
+      await _tap(tester, find.text('Tiếp'));
+
+      // Bước 2 chưa có tên thì không qua được bước sau.
+      await _tap(tester, find.text('Tiếp'));
+      expect(find.text('Hãy đặt tên cho thói quen'), findsOneWidget);
+
       await _enterField(tester, 'Tên thói quen', 'Chạy bộ');
       await _tap(tester, find.text('Tự nhập'));
-
       for (final invalid in ['', '0', '1441']) {
         await _enterField(tester, 'Số phút', invalid);
-        await _tap(tester, find.text('Lưu'));
+        await _tap(tester, find.text('Tiếp'));
         expect(find.text('Nhập số phút từ 1 đến 1440'), findsOneWidget, reason: 'nhập "$invalid"');
-        expect(HabitRepository().getAll(), isEmpty);
+        expect(find.text('Bước 2/4 · Thói quen'), findsOneWidget);
       }
 
       await _enterField(tester, 'Số phút', '37');
-      await _tap(tester, find.text('Lưu'));
+      await _tap(tester, find.text('Tiếp'));
+      await _tap(tester, find.text('Tiếp'));
+      await _tap(tester, find.text('Lưu thói quen'));
       expect(HabitRepository().getAll().single.minMinutesPerDay, 37);
       expect(find.text('0/37 phút hôm nay'), findsOneWidget);
     });
@@ -511,10 +555,14 @@ void main() {
       await _tap(tester, find.byTooltip('Tuỳ chọn thói quen'));
       await _tap(tester, find.text('Sửa'));
       expect(find.text('Sửa thói quen'), findsOneWidget);
+      await _tap(tester, find.text('Tiếp'));
+      expect(find.widgetWithText(TextFormField, 'Ôn bài'), findsOneWidget);
       expect(find.widgetWithText(TextFormField, '37'), findsOneWidget);
 
       await _tap(tester, find.text('15 phút'));
-      await _tap(tester, find.text('Lưu'));
+      await _tap(tester, find.text('Tiếp'));
+      await _tap(tester, find.text('Tiếp'));
+      await _tap(tester, find.text('Lưu thói quen'));
       expect(find.text('0/15 phút hôm nay'), findsOneWidget);
       expect(HabitRepository().getById('h1')?.minMinutesPerDay, 15);
     });
@@ -669,9 +717,9 @@ void main() {
       );
       await _pumpApp(tester);
 
-      // Trang chủ: thẻ mục tiêu rất dài đẩy ô tick xuống dưới nên phải cuộn tới.
-      await tester.scrollUntilVisible(find.byType(Checkbox), 200);
-      await _tap(tester, find.byType(Checkbox));
+      // Trang chủ: thẻ mục tiêu rất dài đẩy vòng tick xuống dưới nên phải cuộn tới.
+      await tester.scrollUntilVisible(find.byType(HabitCheckRing), 200);
+      await _tap(tester, _ring);
       expect(tester.takeException(), isNull);
 
       // Màn Thói quen có thêm menu Sửa/Xoá trên cùng một hàng.

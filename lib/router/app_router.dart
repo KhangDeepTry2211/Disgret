@@ -8,6 +8,8 @@ import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../screens/blocked_apps_screen.dart';
 import '../screens/focus_screen.dart';
+import '../screens/habit_detail_screen.dart';
+import '../screens/habit_form_screen.dart';
 import '../screens/habits_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/main_shell.dart';
@@ -33,9 +35,18 @@ class AppRoutes {
   static const String resetBreakPermissions = '/reset-break-permissions';
   static const String blockedApps = '/blocked-apps';
   static const String stats = '/stats';
+  static const String habitDetailPath = '/habit/:id';
+  static const String habitFormPath = '/habit-form';
 
   /// 1.4 Mở Reels với ngữ cảnh cho trước; không có tham số thì mặc định là "start".
   static String reelsFor(String reelContext) => '$reels?context=$reelContext';
+
+  /// 4.2 Màn chi tiết một thói quen.
+  static String habitDetail(String habitId) => '/habit/$habitId';
+
+  /// 4.1 Tạo thói quen mới trong mục tiêu [goalId], hoặc sửa nếu có [habitId].
+  static String habitForm(String goalId, [String? habitId]) =>
+      Uri(path: habitFormPath, queryParameters: {'goal': goalId, 'habit': ?habitId}).toString();
 
   /// Mở Focus với số phút cho trước.
   static String focusFor(int minutes) => '$focus?minutes=$minutes';
@@ -115,6 +126,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.blockedApps, builder: (context, state) => const BlockedAppsScreen()),
       GoRoute(path: AppRoutes.stats, builder: (context, state) => const StatsScreen()),
+      GoRoute(
+        path: AppRoutes.habitDetailPath,
+        builder: (context, state) => HabitDetailScreen(habitId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: AppRoutes.habitFormPath,
+        builder: (context, state) => HabitFormScreen(
+          goalId: state.uri.queryParameters['goal'] ?? '',
+          habitId: state.uri.queryParameters['habit'],
+        ),
+      ),
     ],
   );
 
