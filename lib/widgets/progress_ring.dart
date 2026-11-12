@@ -1,9 +1,7 @@
-// 5.2 Vòng tiến độ gradient quanh đồng hồ đếm ngược (3.1).
+// 5.2 Vòng tiến độ quanh đồng hồ đếm ngược (3.1), tô màu nhấn (tertiary) đặc.
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
-
-import '../theme/app_theme.dart';
 
 class ProgressRing extends StatelessWidget {
   const ProgressRing({
@@ -35,9 +33,7 @@ class ProgressRing extends StatelessWidget {
             progress: progress.clamp(0.0, 1.0),
             strokeWidth: strokeWidth,
             trackColor: theme.colorScheme.outlineVariant,
-            gradient: theme.brightness == Brightness.dark
-                ? AppColors.focusRingGradientDark
-                : AppColors.focusRingGradient,
+            color: theme.colorScheme.tertiary,
           ),
           child: Center(child: child),
         ),
@@ -51,13 +47,13 @@ class _RingPainter extends CustomPainter {
     required this.progress,
     required this.strokeWidth,
     required this.trackColor,
-    required this.gradient,
+    required this.color,
   });
 
   final double progress;
   final double strokeWidth;
   final Color trackColor;
-  final Gradient gradient;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -72,7 +68,7 @@ class _RingPainter extends CustomPainter {
     if (progress > 0) {
       paint
         ..strokeCap = StrokeCap.round
-        ..shader = gradient.createShader(rect);
+        ..color = color;
       // Vẽ từ đỉnh vòng tròn, theo chiều kim đồng hồ.
       canvas.drawArc(ringRect, -math.pi / 2, 2 * math.pi * progress, false, paint);
     }
@@ -83,5 +79,5 @@ class _RingPainter extends CustomPainter {
       progress != oldDelegate.progress ||
       strokeWidth != oldDelegate.strokeWidth ||
       trackColor != oldDelegate.trackColor ||
-      gradient != oldDelegate.gradient;
+      color != oldDelegate.color;
 }

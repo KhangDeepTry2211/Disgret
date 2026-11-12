@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 5.2 Màu DisGret cho phần giao diện viết bằng Kotlin. Flutter không đọc được file này,
-     nên khi đổi màu thương hiệu phải sửa cả ở đây và trong lib/theme/app_theme.dart. -->
+     nên khi đổi màu thương hiệu phải sửa cả ở đây và trong lib/theme/app_theme.dart.
+     Bảng màu Ocean (chế độ tối A): tên màu giữ nguyên để không phải sửa code Kotlin. -->
 <resources>
-    <color name="disgret_navy">#0A2A6B</color>
-    <color name="disgret_cyan">#22D3EE</color>
+    <color name="disgret_navy">#06090F</color>
+    <color name="disgret_cyan">#4CC9F0</color>
     <color name="disgret_white">#FFFFFF</color>
-    <color name="intervention_button_ripple">#330A2A6B</color>
+    <color name="intervention_button_ripple">#3306090F</color>
     <color name="intervention_secondary_ripple">#33FFFFFF</color>
     <!-- Nền của icon adaptive, do flutter_launcher_icons ghi. -->
     <color name="ic_launcher_background">#0A2A6B</color>

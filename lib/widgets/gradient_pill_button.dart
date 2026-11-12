@@ -1,4 +1,5 @@
-// 5.2 Nút viên thuốc gradient, chỉ dùng cho nút nổi bật "Bắt đầu".
+// 5.2 Nút viên thuốc nổi bật "Bắt đầu". Bảng màu Ocean không dùng gradient nên nút tô màu
+// đặc (màu chính của theme); giữ tên cũ để không phải sửa các màn đang dùng.
 import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_theme.dart';
@@ -17,7 +18,8 @@ class GradientPillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(color: AppColors.white);
+    final scheme = Theme.of(context).colorScheme;
+    final textStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(color: scheme.onPrimary);
 
     return Semantics(
       button: true,
@@ -25,10 +27,7 @@ class GradientPillButton extends StatelessWidget {
         type: MaterialType.transparency,
         child: Ink(
           height: height,
-          decoration: const BoxDecoration(
-            gradient: AppColors.accentGradient,
-            borderRadius: AppRadius.pillBorder,
-          ),
+          decoration: BoxDecoration(color: scheme.primary, borderRadius: AppRadius.pillBorder),
           child: InkWell(
             onTap: onPressed,
             customBorder: const StadiumBorder(),

@@ -657,8 +657,8 @@ void main() {
       await _pumpApp(tester);
 
       final context = tester.element(find.text('Bắt đầu'));
-      expect(Theme.of(context).scaffoldBackgroundColor, const Color(0xFF07142F));
-      expect(Theme.of(context).colorScheme.surfaceContainer, const Color(0xFF0F2350));
+      expect(Theme.of(context).scaffoldBackgroundColor, AppColors.darkBackground);
+      expect(Theme.of(context).colorScheme.surfaceContainer, AppColors.darkSurface);
     });
 
     testWidgets('Tên rất dài trên màn hình nhỏ không gây tràn giao diện', (tester) async {

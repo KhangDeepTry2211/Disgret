@@ -21,15 +21,12 @@ Nhánh phụ: đang học mà mở TikTok → Reset break (màn can thiệp) →
 Tên app: **DisGret**. Logo: chữ D trắng và cyan trên nền vuông bo góc xanh navy.
 Phong cách: bố cục hiện đại, tối giản kiểu mạng xã hội (lấy cảm hứng từ Instagram) nhưng màu sắc theo thương hiệu DisGret:
 KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
-- Bảng màu thương hiệu (từ logo):
-  - Xanh dương đậm (primary): #0A2A6B
-  - Trắng: #FFFFFF
-  - Cyan nhấn (accent): #22D3EE
-  - Teal (cyan đậm, dùng cho chữ/link trên nền trắng vì cyan nhạt khó đọc): #0891B2
-- Nền sáng: nền #FFFFFF, bề mặt thẻ #F4F7FC, chữ chính #0A2A6B, chữ phụ #5B6B8C, đường kẻ mảnh #E0E4EC.
-- Chế độ tối: nền #07142F, bề mặt #0F2350, chữ #F4F7FC, chữ phụ #9FB0CF; accent vẫn #22D3EE.
-- Gradient nhấn: #0A2A6B → #0891B2 → #22D3EE. Chỉ dùng cho điểm nhấn: nút "Bắt đầu", vòng streak, viền avatar, thanh tiến độ. Phần còn lại giữ nền trắng sạch sẽ.
-- Nút chính: nền #0A2A6B chữ trắng; nút nổi bật (Bắt đầu): gradient. Link và trạng thái đang chọn: #0891B2.
+- Bảng màu "Ocean" – xanh nước biển + đen (logo vẫn giữ màu navy #0A2A6B / cyan #22D3EE riêng của nó):
+  - Chế độ TỐI (A – "Biển đêm"): nền #06090F, bề mặt thẻ #0E1726, đường kẻ #1C2940, chữ #E8F1FF, chữ phụ #8A9BB5, màu chính (nút) #1F7AE0 chữ trắng, màu nhấn (vòng tiến độ, streak, điểm sức mạnh, link, tab đang chọn) #4CC9F0.
+  - Chế độ SÁNG (B – "Mực & đại dương"): nền #F4F7FB, bề mặt thẻ #FFFFFF, đường kẻ #DCE3EE, chữ #0B0F17, chữ phụ #5A6B85, màu chính #0B4F9C chữ trắng, màu nhấn #1E9BD7 (link và trạng thái đang chọn dùng #0B4F9C vì #1E9BD7 hơi nhạt trên nền trắng).
+  - Lịch nhiệt 4 mức – tối: #12233D → #163E6E → #1F7AE0 → #4CC9F0; sáng: #E3ECF7 → #A9C8EA → #3D86D1 → #0B4F9C. Lấy bằng `AppColors.heatOf(context)`.
+  - Trong ColorScheme: primary = nút chính; secondary = chữ link, tab/chip/ô tick đang chọn; tertiary = màu nhấn cho vòng/thanh tiến độ, vòng streak.
+- KHÔNG dùng gradient trang trí: nút "Bắt đầu" (GradientPillButton), thanh tiến độ (GradientProgressBar), vòng streak, vòng tiến độ Focus đều tô màu đặc (giữ tên widget cũ). Chỉ còn lớp phủ đen mờ trên video Reels để chữ dễ đọc.
 - Logo: assets/branding/logo_tam.png (bản tạm 512×512, cắt từ ảnh chụp; sẽ thay bằng file gốc cùng tên khi nhóm có). Hiện trên màn onboarding và AppBar trang chủ.
 - Icon app và màn khởi động: tạo bằng flutter_launcher_icons và flutter_native_splash (cấu hình cuối pubspec.yaml), nền #0A2A6B. assets/launcher/logo_foreground.png là logo có khoảng đệm (chiếm 72% khung) cho icon adaptive và màn khởi động Android 12+, vì launcher cắt icon theo hình tròn; file này không đóng gói vào app. Đổi logo thì chạy lại `dart run flutter_launcher_icons` và `dart run flutter_native_splash:create`.
 - Font: Be Vietnam Pro (google_fonts), hỗ trợ tiếng Việt tốt. Tiêu đề đậm 600–700, nội dung 400. File .ttf (400, 500, 600, 700) và giấy phép OFL nằm trong assets/fonts/; main.dart tắt `GoogleFonts.config.allowRuntimeFetching` nên không cần mạng. Dùng độ đậm mới thì phải thêm file .ttf tương ứng.
@@ -38,7 +35,7 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Màn Reels: vuốt dọc, video hiện trọn vẹn không bị cắt (co vừa khung), phía sau là chính video đó làm mờ (tắt bằng `AppReels.blurBackground`; trên web nền chỉ là màu đen). Chữ và nút nổi ở đáy, có lớp mờ gradient đen để chữ dễ đọc.
 - Thanh điều hướng dưới cùng 4 tab: Trang chủ, Reels, Focus, Thói quen.
 - TẤT CẢ màu, font, bo góc, khoảng cách đặt trong MỘT file lib/theme/app_theme.dart (kèm class AppColors, AppSpacing, AppRadius). Màn hình không được viết mã màu cứng, phải lấy từ theme, để sau này đổi giao diện chỉ cần sửa một chỗ.
-- Riêng màn can thiệp (2.3) viết bằng Kotlin nên không đọc được file trên: màu của nó nằm trong android/app/src/main/res/values/colors.xml. Đổi màu thương hiệu thì phải sửa cả hai nơi.
+- Riêng màn can thiệp (2.3) viết bằng Kotlin nên không đọc được file trên: màu của nó nằm trong android/app/src/main/res/values/colors.xml (hiện dùng màu chế độ tối A: disgret_navy = #06090F làm nền, disgret_cyan = #4CC9F0 làm nút; tên màu giữ nguyên). Đổi màu thương hiệu thì phải sửa cả hai nơi.
 
 ## Mô hình dữ liệu (6.2)
 - UserProfile: motivationTypes (tiền bạc, gia đình, sự nghiệp, chứng minh bản thân, tự do), preferredReelLength, demoMode

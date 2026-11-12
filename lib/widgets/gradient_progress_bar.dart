@@ -1,4 +1,4 @@
-// 5.2 Thanh tiến độ gradient.
+// 5.2 Thanh tiến độ, tô màu nhấn (tertiary) đặc. Giữ tên cũ để không phải sửa nơi dùng.
 import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_theme.dart';
@@ -31,8 +31,8 @@ class GradientProgressBar extends StatelessWidget {
             // Bắt buộc có: alignment của Container nới lỏng chiều cao,
             // thiếu dòng này phần tô sẽ cao 0 và không nhìn thấy.
             heightFactor: 1,
-            child: const DecoratedBox(
-              decoration: BoxDecoration(gradient: AppColors.accentGradient),
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.tertiary),
             ),
           ),
         ),

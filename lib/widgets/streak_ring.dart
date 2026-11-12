@@ -1,4 +1,4 @@
-// 5.2 Vòng streak gradient: số ngày học liên tiếp nằm giữa vòng.
+// 5.2 Vòng streak tô màu nhấn (tertiary): số ngày học liên tiếp nằm giữa vòng.
 import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_theme.dart';
@@ -14,7 +14,7 @@ class StreakRing extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Hai hình tròn lồng nhau: hình ngoài tô gradient, hình trong tô màu nền.
+    // Hai hình tròn lồng nhau: hình ngoài tô màu nhấn, hình trong tô màu nền.
     return Semantics(
       label: 'Chuỗi $days ngày học liên tiếp',
       excludeSemantics: true,
@@ -22,7 +22,7 @@ class StreakRing extends StatelessWidget {
         width: size,
         height: size,
         padding: EdgeInsets.all(ringWidth),
-        decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.streakGradient),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: theme.colorScheme.tertiary),
         child: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.all(AppSpacing.md),

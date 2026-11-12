@@ -1,36 +1,54 @@
 // 5.2 Design system
 // MỘT file duy nhất chứa màu, font, bo góc, khoảng cách và icon của DisGret.
 // Màn hình chỉ lấy giá trị từ đây hoặc từ Theme.of(context), không viết mã màu cứng.
-import 'dart:math' as math;
-
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// 5.2 Bảng màu.
+/// 5.2 Bảng màu "Ocean": xanh nước biển + đen.
+/// Chế độ tối = phương án A "Biển đêm", chế độ sáng = phương án B "Mực & đại dương".
+/// Không dùng gradient: nút, vòng và thanh tiến độ đều tô màu đặc.
 class AppColors {
   AppColors._();
 
-  // Màu thương hiệu (lấy từ logo).
-  static const Color navy = Color(0xFF0A2A6B);
   static const Color white = Color(0xFFFFFFFF);
-  static const Color cyan = Color(0xFF22D3EE);
-  static const Color teal = Color(0xFF0891B2);
 
-  // Chế độ sáng.
-  static const Color lightBackground = white;
-  static const Color lightSurface = Color(0xFFF4F7FC);
-  static const Color lightText = navy;
-  static const Color lightTextSecondary = Color(0xFF5B6B8C);
-  static const Color lightDivider = Color(0xFFE0E4EC);
+  // Chế độ tối (A – Biển đêm).
+  static const Color darkBackground = Color(0xFF06090F);
+  static const Color darkSurface = Color(0xFF0E1726);
+  static const Color darkDivider = Color(0xFF1C2940);
+  static const Color darkText = Color(0xFFE8F1FF);
+  static const Color darkTextSecondary = Color(0xFF8A9BB5);
+  static const Color darkPrimary = Color(0xFF1F7AE0);
+  static const Color darkAccent = Color(0xFF4CC9F0);
+  static const Color darkError = Color(0xFFF2B8B5);
+
+  // Chế độ sáng (B – Mực & đại dương).
+  static const Color lightBackground = Color(0xFFF4F7FB);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightDivider = Color(0xFFDCE3EE);
+  static const Color lightText = Color(0xFF0B0F17);
+  static const Color lightTextSecondary = Color(0xFF5A6B85);
+  static const Color lightPrimary = Color(0xFF0B4F9C);
+  static const Color lightAccent = Color(0xFF1E9BD7);
   static const Color lightError = Color(0xFFB3261E);
 
-  // Chế độ tối.
-  static const Color darkBackground = Color(0xFF07142F);
-  static const Color darkSurface = Color(0xFF0F2350);
-  static const Color darkText = Color(0xFFF4F7FC);
-  static const Color darkTextSecondary = Color(0xFF9FB0CF);
-  static const Color darkDivider = Color(0xFF24386A);
-  static const Color darkError = Color(0xFFF2B8B5);
+  // Lịch nhiệt 4 mức (heat0 = ít nhất, heat3 = nhiều nhất).
+  static const List<Color> darkHeat = [
+    Color(0xFF12233D),
+    Color(0xFF163E6E),
+    Color(0xFF1F7AE0),
+    Color(0xFF4CC9F0),
+  ];
+  static const List<Color> lightHeat = [
+    Color(0xFFE3ECF7),
+    Color(0xFFA9C8EA),
+    Color(0xFF3D86D1),
+    Color(0xFF0B4F9C),
+  ];
+
+  /// Lấy 4 màu lịch nhiệt theo chế độ sáng/tối hiện tại.
+  static List<Color> heatOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkHeat : lightHeat;
 
   // Màn Reels: chữ và nút nổi trên video, luôn sáng dù app đang ở chế độ nào.
   static const Color videoBackground = Color(0xFF000000);
@@ -45,37 +63,7 @@ class AppColors {
   /// Phủ lên nền mờ của video (đen 45%) để video chính nổi bật.
   static const Color reelBlurScrim = Color(0x73000000);
 
-  /// Gradient nhấn: chỉ dùng cho nút "Bắt đầu", viền avatar, thanh tiến độ.
-  /// Đặt teal ở 60% để chữ trắng giữa nút luôn đủ tương phản (cyan quá sáng).
-  static const LinearGradient accentGradient = LinearGradient(
-    colors: [navy, teal, cyan],
-    stops: [0, 0.6, 1],
-  );
-
-  /// Gradient của vòng streak: chạy quanh vòng tròn và khép kín, không bị vết nối.
-  static const SweepGradient streakGradient = SweepGradient(
-    colors: [navy, teal, cyan, teal, navy],
-    transform: GradientRotation(-math.pi / 2),
-  );
-
-  /// Gradient của vòng tiến độ quanh đồng hồ: bắt đầu từ đỉnh, sáng dần theo thời gian.
-  /// Đoạn cuối quay về navy vì đầu tròn của nét vẽ lấn ra sau điểm đầu, tức là phần cuối của
-  /// gradient; nếu vẫn là cyan thì sẽ hiện một chấm sáng ngay đỉnh vòng tròn.
-  static const SweepGradient focusRingGradient = SweepGradient(
-    colors: [navy, teal, cyan, navy],
-    stops: [0, 0.5, 0.98, 0.99],
-    transform: GradientRotation(-math.pi / 2),
-  );
-
-  /// Bản cho chế độ tối: navy còn tối hơn cả vạch nền nên đầu phiên gần như không thấy tiến độ,
-  /// vì vậy bắt đầu từ teal.
-  static const SweepGradient focusRingGradientDark = SweepGradient(
-    colors: [teal, cyan, teal],
-    stops: [0, 0.98, 0.99],
-    transform: GradientRotation(-math.pi / 2),
-  );
-
-  /// Lớp mờ đen ở đáy màn Reels để chữ dễ đọc.
+  /// Lớp mờ đen ở đáy màn Reels để chữ dễ đọc (lớp phủ chức năng, không phải trang trí).
   static const LinearGradient reelScrimGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
@@ -172,15 +160,18 @@ class AppTheme {
   static final ThemeData light = _build(_lightScheme);
   static final ThemeData dark = _build(_darkScheme);
 
+  // primary: nút chính. secondary: chữ link, tab/chip/ô tick đang chọn (cần đủ tương phản
+  // để đọc). tertiary: màu nhấn cho vòng streak, vòng/thanh tiến độ, điểm sức mạnh.
   static const ColorScheme _lightScheme = ColorScheme(
     brightness: Brightness.light,
-    primary: AppColors.navy,
+    primary: AppColors.lightPrimary,
     onPrimary: AppColors.white,
-    // Link và trạng thái đang chọn.
-    secondary: AppColors.teal,
+    // Xanh nhấn #1E9BD7 hơi nhạt để làm chữ trên nền trắng, nên chữ và trạng thái đang chọn
+    // dùng xanh biển đậm.
+    secondary: AppColors.lightPrimary,
     onSecondary: AppColors.white,
-    tertiary: AppColors.cyan,
-    onTertiary: AppColors.navy,
+    tertiary: AppColors.lightAccent,
+    onTertiary: AppColors.white,
     error: AppColors.lightError,
     onError: AppColors.white,
     surface: AppColors.lightBackground,
@@ -198,14 +189,12 @@ class AppTheme {
 
   static const ColorScheme _darkScheme = ColorScheme(
     brightness: Brightness.dark,
-    // Nền tối cũng là xanh navy nên nút #0A2A6B sẽ chìm mất:
-    // ở chế độ tối, nút chính dùng cyan chữ tối để vẫn nổi rõ.
-    primary: AppColors.cyan,
-    onPrimary: AppColors.darkBackground,
-    secondary: AppColors.cyan,
+    primary: AppColors.darkPrimary,
+    onPrimary: AppColors.white,
+    secondary: AppColors.darkAccent,
     onSecondary: AppColors.darkBackground,
-    tertiary: AppColors.teal,
-    onTertiary: AppColors.white,
+    tertiary: AppColors.darkAccent,
+    onTertiary: AppColors.darkBackground,
     error: AppColors.darkError,
     onError: AppColors.darkBackground,
     surface: AppColors.darkBackground,
