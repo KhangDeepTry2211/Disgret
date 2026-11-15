@@ -1,6 +1,9 @@
-// 4.2 Màn chi tiết một thói quen:
+// 4.2 Màn chi tiết một thói quen (bố cục theo design/habit_kit/ ảnh 16):
+// - AppBar có nút Sửa và Xoá;
 // - đầu trang: icon, tên, câu "Sau khi…, tôi sẽ… tại…", bản 2 phút, câu bản sắc;
-// - lưới 4 ô số liệu: chuỗi hiện tại, dài nhất, tỉ lệ 30 ngày, thứ hay bỏ nhất;
+// - lưới 6 ô số liệu: chuỗi hiện tại, dài nhất, tỉ lệ 30 ngày, thứ hay bỏ nhất,
+//   số lần hoàn thành, điểm sức mạnh;
+// - lịch tháng: ngày đã xong tô màu của thói quen;
 // - biểu đồ đường điểm sức mạnh 60 ngày (fl_chart);
 // - Hành trình 66 ngày với 4 huy hiệu;
 // - lịch nhiệt 16 tuần kiểu GitHub;
@@ -12,6 +15,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/date_utils.dart';
+import '../data/habit_schedule.dart';
 import '../data/habit_science.dart';
 import '../data/models/goal.dart';
 import '../data/models/habit.dart';
@@ -19,10 +23,11 @@ import '../data/models/habit_log.dart';
 import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
-import '../widgets/edit_delete_menu.dart';
 import '../widgets/goal_habit_sheets.dart';
 import '../widgets/gradient_progress_bar.dart';
 import '../widgets/habit_heat_map.dart';
+import '../widgets/habit_icon_view.dart';
+import '../widgets/month_calendar.dart';
 
 class HabitDetailScreen extends ConsumerWidget {
   const HabitDetailScreen({required this.habitId, super.key});
@@ -60,10 +65,15 @@ class HabitDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(habit.name, overflow: TextOverflow.ellipsis),
         actions: [
-          EditDeleteMenu(
-            tooltip: 'Tuỳ chọn thói quen',
-            onEdit: () => context.push(AppRoutes.habitForm(habit.goalId, habit.id)),
-            onDelete: () async {
+          IconButton(
+            icon: const Icon(AppIcons.editValue),
+            tooltip: 'Sửa thói quen',
+            onPressed: () => context.push(AppRoutes.habitForm(habit.goalId, habit.id)),
+          ),
+          IconButton(
+            icon: Icon(AppIcons.deleteAll, color: Theme.of(context).colorScheme.error),
+            tooltip: 'Xoá thói quen',
+            onPressed: () async {
               final deleted = await confirmDeleteHabit(context, ref, habit);
               if (deleted && context.mounted) context.pop();
             },
@@ -75,7 +85,16 @@ class HabitDetailScreen extends ConsumerWidget {
         children: [
           _Header(habit: habit, goal: goal),
           const SizedBox(height: AppSpacing.md),
-          _StatGrid(history: history, today: today),
+          _StatGrid(history: history, today: today, strength: strength.last),
+          const SizedBox(height: AppSpacing.md),
+          _Section(
+            title: 'Lịch tháng',
+            child: MonthCalendar(
+              today: today,
+              dayBuilder: (context, day, isFuture) =>
+                  _HabitDay(history: history, day: day, isFuture: isFuture),
+            ),
+          ),
           const SizedBox(height: AppSpacing.md),
           _Section(
             title: 'Sức mạnh thói quen · $chartDays ngày',
@@ -132,7 +151,6 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final identity = goal?.identity ?? '';
 
     return Column(
@@ -140,22 +158,17 @@ class _Header extends StatelessWidget {
       children: [
         Row(
           children: [
-            Container(
-              width: AppHabit.iconTile,
-              height: AppHabit.iconTile,
-              decoration: BoxDecoration(
-                color: scheme.tertiary.withValues(alpha: 0.14),
-                borderRadius: AppRadius.cardBorder,
-              ),
-              child: Icon(AppIcons.habitIcon(habit.icon), color: scheme.tertiary),
-            ),
+            HabitIconTile(icon: habit.icon, colorIndex: habit.colorIndex),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(habit.name, style: theme.textTheme.titleLarge),
-                  if (goal != null) Text(goal!.title, style: theme.textTheme.bodySmall),
+                  Text(
+                    [HabitSchedule.describe(habit), ?goal?.title].join(' · '),
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),
@@ -245,17 +258,20 @@ class _Section extends StatelessWidget {
   }
 }
 
-/// Lưới 2×2 ô số liệu.
+/// Lưới 2×3 ô số liệu.
 class _StatGrid extends StatelessWidget {
-  const _StatGrid({required this.history, required this.today});
+  const _StatGrid({required this.history, required this.today, required this.strength});
 
   final HabitHistory history;
   final DateTime today;
 
+  /// Điểm sức mạnh hôm nay, 0–1.
+  final double strength;
+
   @override
   Widget build(BuildContext context) {
-    final current = HabitScience.currentStreakOf(history.doneDays, history.freezeDays, today);
-    final longest = HabitScience.longestStreakOf(history.doneDays, history.freezeDays);
+    final current = HabitScience.currentStreak(history, today);
+    final longest = HabitScience.longestStreak(history, today);
     final rate = HabitScience.completionRate(history, addDays(today, -29), today, today: today);
     final weekday = HabitScience.mostMissedWeekday(history, today: today);
 
@@ -296,6 +312,26 @@ class _StatGrid extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: _StatTile(
+                icon: AppIcons.done,
+                label: 'Lần hoàn thành',
+                value: '${history.doneDays.length}',
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _StatTile(
+                icon: AppIcons.strength,
+                label: 'Sức mạnh',
+                value: '${(strength * 100).round()}%',
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -326,6 +362,61 @@ class _StatTile extends StatelessWidget {
               Text(value, style: theme.textTheme.titleLarge, maxLines: 1),
               Text(label, style: theme.textTheme.bodySmall),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Một ngày trong lịch tháng: đã xong thì tô màu pastel của thói quen; bỏ qua có gạch;
+/// không có lịch thì mờ.
+class _HabitDay extends StatelessWidget {
+  const _HabitDay({required this.history, required this.day, required this.isFuture});
+
+  final HabitHistory history;
+  final DateTime day;
+  final bool isFuture;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final color = AppHabitColors.of(history.habit.colorIndex);
+    final done = history.isDone(day);
+    final skipped = history.marks[day] == HabitLogSource.skip;
+    final restDay = !done && !history.isScheduled(day);
+    final state = done
+        ? 'đã xong'
+        : skipped
+        ? 'bỏ qua'
+        : isFuture
+        ? 'chưa tới'
+        : restDay
+        ? 'không có lịch'
+        : 'chưa làm';
+
+    return Semantics(
+      container: true,
+      label: '${day.day}/${day.month}: $state',
+      excludeSemantics: true,
+      child: Opacity(
+        opacity: isFuture || restDay ? 0.4 : 1,
+        child: Container(
+          width: AppHabit.calendarDay,
+          height: AppHabit.calendarDay,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: done ? color.background : null,
+            border: done ? null : Border.all(color: scheme.outlineVariant),
+          ),
+          child: Text(
+            '${day.day}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: done ? color.foreground : scheme.onSurface,
+              decoration: skipped ? TextDecoration.lineThrough : null,
+            ),
           ),
         ),
       ),

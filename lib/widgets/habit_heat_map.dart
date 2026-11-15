@@ -1,7 +1,5 @@
 // 4.2 Lịch nhiệt (heat map) tự vẽ bằng widget, màu lấy từ AppColors.heatOf(context):
-// - MiniHeatStrip: 4 tuần gần nhất trên thẻ thói quen.
 // - HabitHeatCalendar: 16 tuần kiểu GitHub trong màn chi tiết (cột = tuần, hàng = thứ).
-// - WeekStrip: dải 7 ngày của tuần này, mỗi ngày một vòng nhỏ theo % hoàn thành.
 // - HeatLegend: chú thích 4 mức màu.
 import 'dart:math' as math;
 
@@ -10,7 +8,6 @@ import 'package:material_ui/material_ui.dart';
 import '../data/date_utils.dart';
 import '../data/habit_science.dart';
 import '../theme/app_theme.dart';
-import 'progress_ring.dart';
 
 /// Một ô lịch nhiệt. [level] null nghĩa là ngày chưa tới (chỉ có viền).
 class HeatCell extends StatelessWidget {
@@ -50,44 +47,12 @@ class HeatCell extends StatelessWidget {
   }
 }
 
-/// Mức màu của một thói quen trong một ngày; null nếu ngày chưa tới.
-int? habitHeatLevel(HabitHistory history, DateTime day, DateTime today) =>
-    day.isAfter(today) ? null : HabitScience.heatLevel(history.valueOn(day));
-
-/// Lịch nhiệt mini: [days] ngày gần nhất trên một hàng, ngày cũ nhất bên trái.
-class MiniHeatStrip extends StatelessWidget {
-  const MiniHeatStrip({required this.history, required this.today, this.days = 28, super.key});
-
-  final HabitHistory history;
-  final DateTime today;
-  final int days;
-
-  @override
-  Widget build(BuildContext context) {
-    final dayList = [for (var i = days - 1; i >= 0; i--) addDays(today, -i)];
-    final doneCount = dayList.where(history.isDone).length;
-
-    return Semantics(
-      label: 'Lịch ${days ~/ 7} tuần: hoàn thành $doneCount/$days ngày',
-      excludeSemantics: true,
-      child: SizedBox(
-        height: AppHabit.miniHeatHeight,
-        child: Row(
-          children: [
-            for (var i = 0; i < dayList.length; i++) ...[
-              if (i > 0) const SizedBox(width: AppHabit.heatGap),
-              Expanded(
-                child: HeatCell(
-                  level: habitHeatLevel(history, dayList[i], today),
-                  freeze: history.isFreeze(dayList[i]),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+/// Mức màu của một thói quen trong một ngày; null (ô chỉ có viền) nếu ngày chưa tới,
+/// hoặc ngày không có trong lịch mà cũng không làm (ví dụ thói quen hằng tuần).
+int? habitHeatLevel(HabitHistory history, DateTime day, DateTime today) {
+  if (day.isAfter(today)) return null;
+  if (!history.isScheduled(day) && !history.isDone(day)) return null;
+  return HabitScience.heatLevel(history.valueOn(day));
 }
 
 /// Lịch nhiệt [weeks] tuần kiểu GitHub: mỗi cột một tuần (T2 ở trên, CN ở dưới),
@@ -205,82 +170,6 @@ class HeatLegend extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-/// Dải 7 ngày (T2–CN) của tuần này: vòng nhỏ theo % hoàn thành chung của mọi thói quen,
-/// hôm nay được nhấn mạnh bằng nền màu nhấn nhạt và chữ đậm.
-class WeekStrip extends StatelessWidget {
-  const WeekStrip({required this.histories, required this.today, super.key});
-
-  final List<HabitHistory> histories;
-  final DateTime today;
-
-  @override
-  Widget build(BuildContext context) {
-    final monday = weekStart(today);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        for (var i = 0; i < 7; i++)
-          _WeekDay(day: addDays(monday, i), histories: histories, today: today),
-      ],
-    );
-  }
-}
-
-class _WeekDay extends StatelessWidget {
-  const _WeekDay({required this.day, required this.histories, required this.today});
-
-  final DateTime day;
-  final List<HabitHistory> histories;
-  final DateTime today;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isToday = day == today;
-    final isFuture = day.isAfter(today);
-    final completion = isFuture ? 0.0 : HabitScience.dayCompletion(histories, day) ?? 0;
-
-    return Semantics(
-      container: true,
-      label: '${weekdayLong[day.weekday - 1]} ${day.day}/${day.month}',
-      value: isFuture ? 'chưa tới' : '${(completion * 100).round()}%',
-      selected: isToday,
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: 2),
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.pillBorder,
-          color: isToday ? scheme.tertiary.withValues(alpha: 0.14) : null,
-        ),
-        child: Column(
-          children: [
-            Text(
-              weekdayShort[day.weekday - 1],
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: isToday ? scheme.onSurface : scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Opacity(
-              opacity: isFuture ? 0.4 : 1,
-              child: ProgressRing(
-                progress: completion,
-                size: AppHabit.dayRing,
-                strokeWidth: AppHabit.dayRingStroke,
-                child: Text(
-                  '${day.day}',
-                  style: isToday ? theme.textTheme.labelLarge : theme.textTheme.bodySmall,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

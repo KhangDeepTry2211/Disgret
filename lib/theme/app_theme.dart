@@ -78,6 +78,42 @@ class AppColors {
   );
 }
 
+/// Một màu thẻ thói quen: nền pastel và màu chữ/icon đậm cùng tông để đọc rõ.
+typedef HabitColor = ({Color background, Color foreground});
+
+/// 5.2 Bảng 12 màu pastel cho thẻ thói quen, hài hoà với bảng Ocean (xanh biển, ngọc, bạc hà,
+/// tím nhạt, hồng, đào, vàng kem...). Dùng chung cho chế độ sáng và tối: nền pastel luôn sáng
+/// nên chữ luôn dùng màu đậm đi kèm, không dùng màu chữ của theme.
+class AppHabitColors {
+  AppHabitColors._();
+
+  static const List<HabitColor> palette = [
+    (background: Color(0xFFCFE6FF), foreground: Color(0xFF0B4F9C)), // Xanh trời
+    (background: Color(0xFFBFD3F2), foreground: Color(0xFF163E6E)), // Xanh biển
+    (background: Color(0xFFC6F1FA), foreground: Color(0xFF0A6680)), // Xanh nước
+    (background: Color(0xFFC4EFE9), foreground: Color(0xFF0F6B63)), // Ngọc
+    (background: Color(0xFFCFF4DD), foreground: Color(0xFF1E6B45)), // Bạc hà
+    (background: Color(0xFFE5F3C4), foreground: Color(0xFF4F6512)), // Chanh non
+    (background: Color(0xFFFCEFC0), foreground: Color(0xFF7A5A00)), // Vàng kem
+    (background: Color(0xFFFDDCC6), foreground: Color(0xFF94441A)), // Đào
+    (background: Color(0xFFFBD5E3), foreground: Color(0xFF9C2F5E)), // Hồng
+    (background: Color(0xFFE6DBFB), foreground: Color(0xFF4B3A9E)), // Tím nhạt
+    (background: Color(0xFFD7DEFB), foreground: Color(0xFF2F3F9E)), // Xanh oải hương
+    (background: Color(0xFFE2E8F0), foreground: Color(0xFF34465F)), // Bạc
+  ];
+
+  /// Màu theo vị trí; số ngoài bảng (dữ liệu hỏng) thì quay vòng thay vì báo lỗi.
+  static HabitColor of(int index) => palette[index % palette.length];
+
+  /// Màu chấm của lưới Tổng thể theo mức hoàn thành 1–3 (xem HabitScience.heatLevel):
+  /// pha nền pastel với màu đậm cùng tông, mức càng cao càng đậm.
+  static Color levelColor(int index, int level) {
+    const mix = [0.0, 0.2, 0.4, 0.6];
+    final color = of(index);
+    return Color.lerp(color.background, color.foreground, mix[level.clamp(0, 3)])!;
+  }
+}
+
 /// 5.2 Khoảng cách.
 class AppSpacing {
   AppSpacing._();
@@ -136,6 +172,41 @@ class AppHabit {
 
   /// Ô icon trên màn chi tiết và nút chọn icon.
   static const double iconTile = 48;
+
+  /// Ô icon nhỏ cạnh tên thói quen trên thẻ.
+  static const double smallIconTile = 28;
+
+  /// Thẻ tab "Hôm nay": cỡ emoji/icon và độ dày vạch tiến độ phút.
+  static const double todayIcon = 32;
+  static const double todayProgress = 4;
+
+  /// Ô tròn T2–CN của tab "Tuần".
+  static const double weekCircle = 36;
+
+  /// Chấm lớn nhất của lưới tab "Tổng thể" và số tuần hiển thị.
+  static const double overallDotMax = 12;
+  static const int overallWeeks = 20;
+
+  /// Thời gian hiệu ứng khi thẻ được đánh dấu xong và khi thẻ xuất hiện ở mục mới.
+  static const Duration cardAnimation = Duration(milliseconds: 320);
+
+  /// Ô tròn chọn màu, chọn số ngày/thứ trong tuần, chọn ngày trong tháng (màn tạo thói quen).
+  static const double colorDot = 44;
+  static const double dayDot = 40;
+
+  /// Chiều cao nút viên thuốc chọn một trong nhiều lựa chọn (Hằng ngày / Hằng tuần...).
+  static const double pillChoice = 44;
+
+  /// Ô ngày trong lịch tháng (Báo cáo, màn chi tiết).
+  static const double calendarDay = 36;
+  static const double calendarRingStroke = 3;
+
+  /// Biểu đồ cột "Đã hoàn thành" trong màn Báo cáo.
+  static const double barChartHeight = 200;
+
+  /// Huy hiệu lục giác của màn Thành tích: trong lưới và trong hộp thoại chúc mừng.
+  static const double levelBadge = 72;
+  static const double levelBadgeLarge = 104;
 
   /// Biểu đồ đường điểm sức mạnh.
   static const double chartHeight = 180;
@@ -209,6 +280,7 @@ class AppIcons {
 
   /// Icon chọn cho thói quen. Thói quen chỉ lưu tên (khoá) để bản release lược được font icon;
   /// khoá "book" là icon mặc định (Habit.defaultIcon).
+  /// Thói quen cũng có thể dùng emoji thay cho icon, xem lib/data/habit_icon_catalog.dart.
   static const Map<String, IconData> habitIcons = {
     'book': Icons.menu_book_rounded,
     'edit': Icons.edit_outlined,
@@ -218,15 +290,63 @@ class AppIcons {
     'math': Icons.calculate_outlined,
     'science': Icons.science_outlined,
     'idea': Icons.lightbulb_outline_rounded,
+    'school': Icons.school_outlined,
+    'laptop': Icons.laptop_mac_rounded,
+    'brush': Icons.brush_outlined,
+    'camera': Icons.photo_camera_outlined,
     'music': Icons.music_note_outlined,
+    'headphones': Icons.headphones_rounded,
     'fitness': Icons.fitness_center_rounded,
     'run': Icons.directions_run_rounded,
+    'bike': Icons.directions_bike_rounded,
+    'walk': Icons.directions_walk_rounded,
     'meditation': Icons.self_improvement_rounded,
     'water': Icons.water_drop_outlined,
+    'food': Icons.restaurant_outlined,
     'sleep': Icons.bedtime_outlined,
+    'sun': Icons.wb_sunny_outlined,
+    'heart': Icons.favorite_outline_rounded,
+    'money': Icons.savings_outlined,
+    'clean': Icons.cleaning_services_outlined,
+    'plant': Icons.local_florist_outlined,
+    'phone_off': Icons.phonelink_erase_rounded,
+    'call': Icons.call_outlined,
+    'task': Icons.task_alt_rounded,
   };
 
   static IconData habitIcon(String key) => habitIcons[key] ?? habitIcons['book']!;
+
+  // Màn tạo/sửa thói quen (4.1).
+  static const IconData calendar = Icons.calendar_month_outlined;
+  static const IconData repeatDays = Icons.autorenew_rounded;
+  static const IconData alarm = Icons.alarm_rounded;
+  static const IconData search = Icons.search_rounded;
+  static const IconData arrowForward = Icons.arrow_forward_rounded;
+  static const IconData archive = Icons.inventory_2_outlined;
+  static const IconData deleteHistory = Icons.delete_sweep_outlined;
+  static const IconData skip = Icons.skip_next_rounded;
+  static const IconData editValue = Icons.edit_outlined;
+  static const IconData skipDash = Icons.remove_rounded;
+  static const IconData report = Icons.insert_chart_outlined_rounded;
+  static const IconData dragHandle = Icons.drag_indicator_rounded;
+  static const IconData lock = Icons.lock_outline_rounded;
+  static const IconData trophy = Icons.emoji_events_outlined;
+  static const IconData myHabits = Icons.format_list_bulleted_rounded;
+  static const IconData dropdown = Icons.keyboard_arrow_down_rounded;
+
+  /// Icon trên huy hiệu của 9 cấp thành tích (màn Thành tích, 4.2).
+  static const List<IconData> levelIcons = [
+    Icons.eco_outlined,
+    Icons.local_florist_outlined,
+    Icons.park_outlined,
+    Icons.directions_run_rounded,
+    Icons.bolt_rounded,
+    Icons.local_fire_department_outlined,
+    Icons.diamond_outlined,
+    Icons.workspace_premium_outlined,
+    Icons.emoji_events_outlined,
+  ];
+  static const IconData details = Icons.insights_rounded;
 }
 
 /// 5.2 ThemeData sáng và tối (Material 3, font Be Vietnam Pro).
@@ -446,6 +566,16 @@ class AppTheme {
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.cardBorder, side: thinLine),
         labelTextStyle: WidgetStatePropertyAll(text.bodyMedium),
+      ),
+      // 4.1 Nút tròn "+" nổi ở tab Thói quen: màu chính, bóng rất nhẹ.
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        elevation: 2,
+        focusElevation: 2,
+        hoverElevation: 3,
+        highlightElevation: 3,
+        shape: const CircleBorder(),
       ),
       // 4 tab dưới cùng: không có nền chỉ báo, tab đang chọn đổi sang màu nhấn.
       navigationBarTheme: NavigationBarThemeData(

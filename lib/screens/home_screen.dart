@@ -213,7 +213,7 @@ class _TodayHabitsCard extends ConsumerWidget {
           for (final habit in habits)
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.sm, 0, AppSpacing.sm, AppSpacing.sm),
-              child: HabitCard(key: ValueKey(habit.id), habit: habit, compact: true),
+              child: HabitCard(key: ValueKey(habit.id), habit: habit),
             ),
         ],
       ),

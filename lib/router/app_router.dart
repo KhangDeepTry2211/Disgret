@@ -10,7 +10,10 @@ import '../screens/blocked_apps_screen.dart';
 import '../screens/focus_screen.dart';
 import '../screens/habit_detail_screen.dart';
 import '../screens/habit_form_screen.dart';
+import '../screens/achievements_screen.dart';
 import '../screens/habits_screen.dart';
+import '../screens/my_habits_screen.dart';
+import '../screens/report_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/onboarding_screen.dart';
@@ -37,6 +40,9 @@ class AppRoutes {
   static const String stats = '/stats';
   static const String habitDetailPath = '/habit/:id';
   static const String habitFormPath = '/habit-form';
+  static const String report = '/report';
+  static const String myHabits = '/my-habits';
+  static const String achievements = '/achievements';
 
   /// 1.4 Mở Reels với ngữ cảnh cho trước; không có tham số thì mặc định là "start".
   static String reelsFor(String reelContext) => '$reels?context=$reelContext';
@@ -126,6 +132,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.blockedApps, builder: (context, state) => const BlockedAppsScreen()),
       GoRoute(path: AppRoutes.stats, builder: (context, state) => const StatsScreen()),
+      GoRoute(path: AppRoutes.report, builder: (context, state) => const ReportScreen()),
+      GoRoute(path: AppRoutes.myHabits, builder: (context, state) => const MyHabitsScreen()),
+      GoRoute(
+        path: AppRoutes.achievements,
+        builder: (context, state) => const AchievementsScreen(),
+      ),
       GoRoute(
         path: AppRoutes.habitDetailPath,
         builder: (context, state) => HabitDetailScreen(habitId: state.pathParameters['id']!),

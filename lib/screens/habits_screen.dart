@@ -1,29 +1,40 @@
-// 5.1 Màn Thói quen, có SegmentedButton "Hôm nay / Tuần / Tháng".
-// - Hôm nay: dải 7 ngày, rồi từng mục tiêu (câu bản sắc) với các thẻ thói quen (4.2).
-// - Tuần: bảng thói quen × 7 ngày, cuối hàng là % tuần (4.2).
-// - Tháng: lịch nhiệt cả tháng, chạm vào ngày để xem chi tiết (4.2).
-// 4.1 Đặt mục tiêu: thêm, sửa, xoá mục tiêu bằng bottom sheet; thêm thói quen bằng màn 4 bước.
+// 5.1 Màn Thói quen (bố cục theo design/habit_kit/ ảnh 01–06):
+// - Đầu màn: logo nhỏ, tiêu đề, nút Báo cáo, menu (Thói quen của tôi, Thành tích,
+//   Thêm mục tiêu, Quản lý mục tiêu); 3 tab
+//   "Hôm nay / Tuần / Tổng thể"; chip lọc "Tất cả / Sáng / Chiều / Tối" theo buổi (timeOfDay).
+// - Hôm nay: thẻ pastel cho thói quen đến hạn; mục "Đã xong" và "Đã bỏ qua" ở dưới (4.2).
+// - Tuần: thẻ có 7 ô T2–CN chạm để đổi trạng thái (4.2).
+// - Tổng thể: thẻ có lưới chấm 20 tuần (4.2).
+// - Nút tròn "+" nổi góc dưới phải mở màn Tạo thói quen (4.1).
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../data/date_utils.dart';
-import '../data/habit_progress.dart';
 import '../data/habit_science.dart';
 import '../data/models/goal.dart';
 import '../data/models/habit.dart';
-import '../data/models/habit_log.dart';
 import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_dialogs.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/edit_delete_menu.dart';
 import '../widgets/empty_goal_view.dart';
 import '../widgets/goal_habit_sheets.dart';
-import '../widgets/habit_card.dart';
-import '../widgets/habit_heat_map.dart';
+import '../widgets/habit_today_card.dart';
+import '../widgets/habit_week_card.dart';
 
-enum _HabitsView { today, week, month }
+enum _HabitsView { today, week, overall }
+
+enum _MenuAction { myHabits, achievements, addGoal, manageGoals }
+
+/// Bộ lọc theo buổi; null là "Tất cả".
+const Map<HabitTimeOfDay?, String> _timeFilters = {
+  null: 'Tất cả',
+  HabitTimeOfDay.morning: 'Sáng',
+  HabitTimeOfDay.afternoon: 'Chiều',
+  HabitTimeOfDay.evening: 'Tối',
+};
 
 class HabitsScreen extends ConsumerStatefulWidget {
   const HabitsScreen({super.key});
@@ -34,56 +45,180 @@ class HabitsScreen extends ConsumerStatefulWidget {
 
 class _HabitsScreenState extends ConsumerState<HabitsScreen> {
   _HabitsView _view = _HabitsView.today;
+  HabitTimeOfDay? _filter;
+
+  void _onMenu(_MenuAction action) {
+    switch (action) {
+      case _MenuAction.myHabits:
+        context.push(AppRoutes.myHabits);
+      case _MenuAction.achievements:
+        context.push(AppRoutes.achievements);
+      case _MenuAction.addGoal:
+        showGoalSheet(context, ref);
+      case _MenuAction.manageGoals:
+        showAppBottomSheet<void>(context, builder: (_) => const _GoalsSheet());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final goals = ref.watch(goalsProvider);
+    final habits = ref.watch(habitsProvider);
+    final histories = ref.watch(habitHistoriesProvider);
+    final filtered = [
+      for (final habit in habits)
+        if (_filter == null || habit.timeOfDay == _filter) habit,
+    ];
+
+    final Widget body;
+    if (goals.isEmpty) {
+      body = const EmptyGoalView();
+    } else if (habits.isEmpty) {
+      body = _EmptyState(
+        emoji: '🌱',
+        title: 'Chưa có thói quen nào',
+        message: 'Bắt đầu với một việc thật nhỏ, ví dụ đọc 1 trang sách mỗi tối.',
+        actionLabel: 'Tạo thói quen đầu tiên',
+        onAction: () => context.push(AppRoutes.habitForm(goals.first.id)),
+      );
+    } else {
+      body = Column(
+        children: [
+          _Header(
+            view: _view,
+            filter: _filter,
+            onView: (view) => setState(() => _view = view),
+            onFilter: (filter) => setState(() => _filter = filter),
+          ),
+          Expanded(
+            child: switch (_view) {
+              _HabitsView.today => _TodayView(
+                habits: filtered,
+                histories: histories,
+                filter: _filter,
+                onClearFilter: () => setState(() => _filter = null),
+              ),
+              _HabitsView.week || _HabitsView.overall =>
+                filtered.isEmpty
+                    ? _FilterEmpty(filter: _filter, onClear: () => setState(() => _filter = null))
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.sm,
+                          AppSpacing.md,
+                          AppSpacing.xxl * 2,
+                        ),
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+                        itemBuilder: (context, i) => _view == _HabitsView.week
+                            ? HabitWeekCard(
+                                key: ValueKey('week_${filtered[i].id}'),
+                                habit: filtered[i],
+                                history: histories[filtered[i].id]!,
+                              )
+                            : HabitOverallCard(
+                                key: ValueKey('overall_${filtered[i].id}'),
+                                habit: filtered[i],
+                                history: histories[filtered[i].id]!,
+                              ),
+                      ),
+            },
+          ),
+        ],
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
+        leading: const Padding(
+          padding: EdgeInsets.all(AppSpacing.md - 2),
+          child: AppLogo(size: 28),
+        ),
         title: const Text('Thói quen'),
         actions: [
           IconButton(
-            icon: const Icon(AppIcons.add),
-            tooltip: 'Thêm mục tiêu',
-            onPressed: () => showGoalSheet(context, ref),
+            icon: const Icon(AppIcons.report),
+            tooltip: 'Báo cáo',
+            onPressed: () => context.push(AppRoutes.report),
+          ),
+          PopupMenuButton<_MenuAction>(
+            icon: const Icon(AppIcons.more),
+            tooltip: 'Tuỳ chọn',
+            onSelected: _onMenu,
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: _MenuAction.myHabits, child: Text('Thói quen của tôi')),
+              PopupMenuItem(value: _MenuAction.achievements, child: Text('Thành tích')),
+              PopupMenuItem(value: _MenuAction.addGoal, child: Text('Thêm mục tiêu')),
+              PopupMenuItem(value: _MenuAction.manageGoals, child: Text('Quản lý mục tiêu')),
+            ],
           ),
         ],
       ),
-      body: goals.isEmpty
-          ? const EmptyGoalView()
-          : Column(
+      body: body,
+      floatingActionButton: goals.isEmpty
+          ? null
+          : FloatingActionButton(
+              tooltip: 'Tạo thói quen',
+              onPressed: () => context.push(AppRoutes.habitForm(goals.first.id)),
+              child: const Icon(AppIcons.add),
+            ),
+    );
+  }
+}
+
+/// 3 tab và hàng chip lọc theo buổi.
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.view,
+    required this.filter,
+    required this.onView,
+    required this.onFilter,
+  });
+
+  final _HabitsView view;
+  final HabitTimeOfDay? filter;
+  final ValueChanged<_HabitsView> onView;
+  final ValueChanged<HabitTimeOfDay?> onFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<_HabitsView>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(value: _HabitsView.today, label: Text('Hôm nay')),
+                ButtonSegment(value: _HabitsView.week, label: Text('Tuần')),
+                ButtonSegment(value: _HabitsView.overall, label: Text('Tổng thể')),
+              ],
+              selected: {view},
+              onSelectionChanged: (selected) => onView(selected.first),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    0,
+                for (final entry in _timeFilters.entries) ...[
+                  ChoiceChip(
+                    label: Text(entry.value),
+                    showCheckmark: false,
+                    selected: filter == entry.key,
+                    onSelected: (_) => onFilter(entry.key),
                   ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: SegmentedButton<_HabitsView>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment(value: _HabitsView.today, label: Text('Hôm nay')),
-                        ButtonSegment(value: _HabitsView.week, label: Text('Tuần')),
-                        ButtonSegment(value: _HabitsView.month, label: Text('Tháng')),
-                      ],
-                      selected: {_view},
-                      onSelectionChanged: (selected) => setState(() => _view = selected.first),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: switch (_view) {
-                    _HabitsView.today => _TodayView(goals: goals),
-                    _HabitsView.week => const _WeekView(),
-                    _HabitsView.month => const _MonthView(),
-                  },
-                ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
               ],
             ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -91,464 +226,262 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
 // ---------- Hôm nay ----------
 
 class _TodayView extends ConsumerWidget {
-  const _TodayView({required this.goals});
+  const _TodayView({
+    required this.habits,
+    required this.histories,
+    required this.filter,
+    required this.onClearFilter,
+  });
 
-  final List<Goal> goals;
+  final List<Habit> habits;
+  final Map<String, HabitHistory> histories;
+  final HabitTimeOfDay? filter;
+  final VoidCallback onClearFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final habits = ref.watch(habitsProvider);
-    final histories = ref.watch(habitHistoriesProvider);
     final today = ref.watch(todayProvider);
+    final pending = <Habit>[];
+    final done = <Habit>[];
+    final skipped = <Habit>[];
+
+    for (final habit in habits) {
+      final history = histories[habit.id]!;
+      final status = todayStatusOf(history, today);
+      // Thói quen không đến hạn hôm nay vẫn hiện nếu hôm nay đã làm hoặc đã đánh dấu.
+      if (status == TodayStatus.pending && !history.isDueOn(today)) continue;
+      switch (status) {
+        case TodayStatus.pending:
+          pending.add(habit);
+        case TodayStatus.done:
+          done.add(habit);
+        case TodayStatus.skipped:
+          skipped.add(habit);
+      }
+    }
+
+    if (pending.isEmpty && done.isEmpty && skipped.isEmpty) {
+      return filter == null
+          ? const _EmptyState(
+              emoji: '🎉',
+              title: 'Hôm nay không có thói quen nào đến hạn',
+              message: 'Nghỉ ngơi một chút, hoặc bấm + để thêm việc mới.',
+            )
+          : _FilterEmpty(filter: filter, onClear: onClearFilter);
+    }
+
+    Widget cardOf(Habit habit, String section) => Padding(
+      key: ValueKey('${section}_${habit.id}'),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppearAnimation(
+        child: HabitTodayCard(habit: habit, history: histories[habit.id]!),
+      ),
+    );
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.xxl * 2,
+      ),
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
-            child: WeekStrip(histories: histories.values.toList(), today: today),
+        for (final habit in pending) cardOf(habit, 'pending'),
+        if (pending.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: _AllDoneBanner(),
           ),
-        ),
-        for (final goal in goals) ...[
-          const SizedBox(height: AppSpacing.lg),
-          _GoalHeader(key: ValueKey(goal.id), goal: goal),
-          const SizedBox(height: AppSpacing.sm),
-          for (final habit in habits.where((habit) => habit.goalId == goal.id)) ...[
-            HabitCard(key: ValueKey(habit.id), habit: habit),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              icon: const Icon(AppIcons.add),
-              label: const Text('Thêm thói quen'),
-              onPressed: () => context.push(AppRoutes.habitForm(goal.id)),
-            ),
-          ),
+        if (done.isNotEmpty) ...[
+          _SectionDivider(label: 'Đã xong (${done.length})'),
+          for (final habit in done) cardOf(habit, 'done'),
+        ],
+        if (skipped.isNotEmpty) ...[
+          _SectionDivider(label: 'Đã bỏ qua (${skipped.length})'),
+          for (final habit in skipped) cardOf(habit, 'skipped'),
         ],
       ],
     );
   }
 }
 
-/// Tên mục tiêu, câu bản sắc, lý do và menu Sửa/Xoá.
-class _GoalHeader extends ConsumerWidget {
-  const _GoalHeader({required this.goal, super.key});
+class _AllDoneBanner extends StatelessWidget {
+  const _AllDoneBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      'Xong hết việc hôm nay rồi! 💪',
+      textAlign: TextAlign.center,
+      style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.tertiary),
+    );
+  }
+}
+
+/// Dòng "Đã xong ———" ngăn các mục.
+class _SectionDivider extends StatelessWidget {
+  const _SectionDivider({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Text(label, style: theme.textTheme.bodySmall),
+          const SizedBox(width: AppSpacing.sm),
+          const Expanded(child: Divider()),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------- Trạng thái trống ----------
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({
+    required this.emoji,
+    required this.title,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String emoji;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(emoji, style: theme.textTheme.displayMedium),
+            const SizedBox(height: AppSpacing.md),
+            Text(title, textAlign: TextAlign.center, style: theme.textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (actionLabel != null) ...[
+              const SizedBox(height: AppSpacing.lg),
+              FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bộ lọc theo buổi không có kết quả.
+class _FilterEmpty extends StatelessWidget {
+  const _FilterEmpty({required this.filter, required this.onClear});
+
+  final HabitTimeOfDay? filter;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final part = _timeFilters[filter]!.toLowerCase();
+    return _EmptyState(
+      emoji: '🔍',
+      title: 'Không có thói quen nào vào buổi $part',
+      message: 'Khi tạo hoặc sửa thói quen, chọn "Làm vào" để xếp nó vào buổi $part.',
+      actionLabel: 'Xem tất cả',
+      onAction: onClear,
+    );
+  }
+}
+
+// ---------- Quản lý mục tiêu ----------
+
+/// 4.1 Danh sách mục tiêu: tên, câu bản sắc, lý do và menu Sửa/Xoá.
+class _GoalsSheet extends ConsumerWidget {
+  const _GoalsSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final goals = ref.watch(goalsProvider);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Mục tiêu', style: theme.textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.sm),
+        if (goals.isEmpty) Text('Chưa có mục tiêu nào.', style: theme.textTheme.bodyMedium),
+        for (final goal in goals) _GoalTile(key: ValueKey(goal.id), goal: goal),
+        const SizedBox(height: AppSpacing.sm),
+        OutlinedButton.icon(
+          icon: const Icon(AppIcons.add),
+          label: const Text('Thêm mục tiêu'),
+          onPressed: () => showGoalSheet(context, ref),
+        ),
+      ],
+    );
+  }
+}
+
+class _GoalTile extends ConsumerWidget {
+  const _GoalTile({required this.goal, super.key});
 
   final Goal goal;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(goal.title, style: theme.textTheme.titleMedium),
-                if (goal.identity.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Row(
-                    children: [
-                      Icon(AppIcons.identity, size: 16, color: theme.colorScheme.tertiary),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          'Tôi là người ${goal.identity}',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.tertiary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.xs),
-                Text(goal.reason, style: theme.textTheme.bodySmall),
-              ],
-            ),
-          ),
-        ),
-        EditDeleteMenu(
-          tooltip: 'Tuỳ chọn mục tiêu',
-          onEdit: () => showGoalSheet(context, ref, goal: goal),
-          onDelete: () => confirmDeleteGoal(context, ref, goal),
-        ),
-      ],
-    );
-  }
-}
-
-// ---------- Tuần ----------
-
-class _WeekView extends ConsumerWidget {
-  const _WeekView();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final habits = ref.watch(habitsProvider);
-    final histories = ref.watch(habitHistoriesProvider);
-    final today = ref.watch(todayProvider);
-    final monday = weekStart(today);
-    final sunday = addDays(monday, 6);
-    final days = [for (var i = 0; i < 7; i++) addDays(monday, i)];
-
-    if (habits.isEmpty) {
-      return const _EmptyHabits();
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
-        Text(
-          'Tuần ${monday.day}/${monday.month} – ${sunday.day}/${sunday.month}',
-          style: theme.textTheme.titleMedium,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              children: [
-                // Hàng tiêu đề: T2 ... CN, hôm nay in đậm màu nhấn.
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    for (final day in days)
-                      SizedBox(
-                        width: AppHabit.weekCell,
-                        child: Text(
-                          weekdayShort[day.weekday - 1],
-                          textAlign: TextAlign.center,
-                          style: day == today
-                              ? theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.secondary,
-                                )
-                              : theme.textTheme.bodySmall,
-                        ),
-                      ),
-                  ],
-                ),
-                for (final habit in habits) ...[
-                  const Divider(height: AppSpacing.lg),
-                  _WeekRow(
-                    habit: habit,
-                    history: histories[habit.id]!,
-                    days: days,
-                    today: today,
-                    rate: HabitScience.completionRate(
-                      histories[habit.id]!,
-                      monday,
-                      sunday,
-                      today: today,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        const HeatLegend(),
-      ],
-    );
-  }
-}
-
-class _WeekRow extends StatelessWidget {
-  const _WeekRow({
-    required this.habit,
-    required this.history,
-    required this.days,
-    required this.today,
-    required this.rate,
-  });
-
-  final Habit habit;
-  final HabitHistory history;
-  final List<DateTime> days;
-  final DateTime today;
-  final double rate;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final percent = (rate * 100).round();
-
-    return InkWell(
-      onTap: () => context.push(AppRoutes.habitDetail(habit.id)),
-      borderRadius: AppRadius.smallBorder,
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(AppIcons.habitIcon(habit.icon), size: 18, color: scheme.onSurfaceVariant),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Text(
-                  habit.name,
-                  style: theme.textTheme.titleSmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Semantics(
-                container: true,
-                label: 'Tuần này ${habit.name} đạt $percent%',
-                excludeSemantics: true,
-                child: Text(
-                  '$percent%',
-                  style: theme.textTheme.labelLarge?.copyWith(color: scheme.tertiary),
-                ),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Icon(AppIcons.goal, color: theme.colorScheme.tertiary),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (final day in days)
-                HeatCell(
-                  size: AppHabit.weekCell,
-                  level: habitHeatLevel(history, day, today),
-                  freeze: history.isFreeze(day),
-                  child: _cellIcon(context, day),
-                ),
-            ],
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(goal.title, style: theme.textTheme.titleMedium),
+                  if (goal.identity.isNotEmpty)
+                    Text(
+                      'Tôi là người ${goal.identity}',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.tertiary,
+                      ),
+                    ),
+                  Text(goal.reason, style: theme.textTheme.bodySmall),
+                ],
+              ),
+            ),
+          ),
+          EditDeleteMenu(
+            tooltip: 'Tuỳ chọn mục tiêu',
+            onEdit: () => showGoalSheet(context, ref, goal: goal),
+            onDelete: () => confirmDeleteGoal(context, ref, goal),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget? _cellIcon(BuildContext context, DateTime day) {
-    final scheme = Theme.of(context).colorScheme;
-    if (history.isFreeze(day)) return Icon(AppIcons.freeze, size: 14, color: scheme.tertiary);
-    if (history.marks[day] == HabitLogSource.minimal) {
-      return Icon(AppIcons.minimal, size: 14, color: scheme.onPrimary);
-    }
-    if (history.isDone(day)) return Icon(AppIcons.done, size: 16, color: scheme.onTertiary);
-    return null;
-  }
-}
-
-// ---------- Tháng ----------
-
-class _MonthView extends ConsumerStatefulWidget {
-  const _MonthView();
-
-  @override
-  ConsumerState<_MonthView> createState() => _MonthViewState();
-}
-
-class _MonthViewState extends ConsumerState<_MonthView> {
-  /// Ngày 1 của tháng đang xem.
-  late DateTime _month;
-
-  @override
-  void initState() {
-    super.initState();
-    final today = ref.read(todayProvider);
-    _month = DateTime(today.year, today.month);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final habits = ref.watch(habitsProvider);
-    final histories = ref.watch(habitHistoriesProvider).values.toList();
-    final today = ref.watch(todayProvider);
-    final isCurrentMonth = _month.year == today.year && _month.month == today.month;
-    final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
-    final leadingBlanks = _month.weekday - 1;
-    final doneDays = [for (var d = 1; d <= daysInMonth; d++) DateTime(_month.year, _month.month, d)]
-        .where((day) => histories.any((history) => history.isDone(day)))
-        .length;
-
-    if (habits.isEmpty) return const _EmptyHabits();
-
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(AppIcons.previous),
-              tooltip: 'Tháng trước',
-              onPressed: () => setState(() => _month = DateTime(_month.year, _month.month - 1)),
-            ),
-            Expanded(
-              child: Text(
-                'Tháng ${_month.month}/${_month.year}',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(AppIcons.next),
-              tooltip: 'Tháng sau',
-              onPressed: isCurrentMonth
-                  ? null
-                  : () => setState(() => _month = DateTime(_month.year, _month.month + 1)),
-            ),
-          ],
-        ),
-        Text(
-          'Có thói quen hoàn thành $doneDays ngày trong tháng',
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: GridView.count(
-              crossAxisCount: 7,
-              mainAxisSpacing: AppSpacing.xs,
-              crossAxisSpacing: AppSpacing.xs,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                for (final label in weekdayShort)
-                  Center(child: Text(label, style: theme.textTheme.bodySmall)),
-                for (var i = 0; i < leadingBlanks; i++) const SizedBox.shrink(),
-                for (var d = 1; d <= daysInMonth; d++)
-                  _MonthDay(
-                    day: DateTime(_month.year, _month.month, d),
-                    histories: histories,
-                    today: today,
-                  ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        const HeatLegend(),
-      ],
-    );
-  }
-}
-
-class _MonthDay extends StatelessWidget {
-  const _MonthDay({required this.day, required this.histories, required this.today});
-
-  final DateTime day;
-  final List<HabitHistory> histories;
-  final DateTime today;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isFuture = day.isAfter(today);
-    final completion = isFuture ? null : HabitScience.dayCompletion(histories, day);
-    final level = isFuture ? null : HabitScience.heatLevel(completion ?? 0);
-    final allFrozen = !isFuture && completion == null && histories.isNotEmpty;
-
-    final Color textColor = switch (level) {
-      3 => scheme.onTertiary,
-      2 => scheme.onPrimary,
-      _ => scheme.onSurface,
-    };
-
-    return Semantics(
-      button: !isFuture,
-      label: '${day.day}/${day.month}',
-      value: isFuture ? 'chưa tới' : '${((completion ?? 0) * 100).round()}%',
-      excludeSemantics: true,
-      child: InkWell(
-        borderRadius: AppRadius.heatCellBorder,
-        onTap: isFuture ? null : () => _showDaySheet(context, day),
-        child: HeatCell(
-          level: level,
-          freeze: allFrozen,
-          child: Text(
-            '${day.day}',
-            style: (day == today ? theme.textTheme.labelLarge : theme.textTheme.bodySmall)
-                ?.copyWith(color: isFuture ? scheme.onSurfaceVariant : textColor),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Chi tiết một ngày trong lịch tháng: trạng thái từng thói quen và ghi chú.
-Future<void> _showDaySheet(BuildContext context, DateTime day) {
-  return showAppBottomSheet<void>(context, builder: (_) => _DaySheet(day: day));
-}
-
-class _DaySheet extends ConsumerWidget {
-  const _DaySheet({required this.day});
-
-  final DateTime day;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final habits = ref.watch(habitsProvider);
-    final logs = ref.watch(habitLogsProvider);
-    final histories = ref.watch(habitHistoriesProvider);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          '${weekdayLong[day.weekday - 1]}, ${day.day}/${day.month}/${day.year}',
-          style: theme.textTheme.titleLarge,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        for (final habit in habits)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(AppIcons.habitIcon(habit.icon)),
-            title: Text(habit.name),
-            subtitle: Text(_dayStatus(habit, histories[habit.id]!, logs)),
-          ),
-      ],
-    );
-  }
-
-  String _dayStatus(Habit habit, HabitHistory history, List<HabitLog> logs) {
-    final note = HabitProgress.markLogOn(habit, day, logs)?.note ?? '';
-    final String status;
-    if (history.isFreeze(day)) {
-      status = 'Nghỉ phép';
-    } else if (history.marks[day] == HabitLogSource.minimal) {
-      status = 'Làm bản 2 phút';
-    } else if (history.isDone(day)) {
-      status = 'Hoàn thành';
-    } else {
-      final minutes = HabitProgress.minutesOn(habit, day, logs);
-      status = minutes == 0 ? 'Chưa làm' : '$minutes/${habit.minMinutesPerDay} phút';
-    }
-    return note.isEmpty ? status : '$status · $note';
-  }
-}
-
-class _EmptyHabits extends StatelessWidget {
-  const _EmptyHabits();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Text(
-          'Chưa có thói quen nào. Vào "Hôm nay" và bấm "Thêm thói quen" để bắt đầu.',
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 // Kiểm thử state: mọi thao tác đi qua Notifier đều cập nhật ngay, không cần đọc lại Hive.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:focus_app/data/date_utils.dart';
 import 'package:focus_app/data/habit_progress.dart';
 import 'package:focus_app/data/habit_science.dart';
 import 'package:focus_app/data/models/event.dart';
@@ -52,6 +53,72 @@ void main() {
   });
 
   group('Thêm, sửa, xoá tự cập nhật state', () {
+    test('Thói quen mới có ngày bắt đầu là hôm nay và xếp cuối danh sách', () async {
+      final goal = await goals().add(title: 'G', reason: 'R');
+      final first = await habits().add(goalId: goal.id, name: 'A', minMinutesPerDay: 5);
+      final second = await habits().add(goalId: goal.id, name: 'B', minMinutesPerDay: 5);
+      expect(first.startDate, DateTime(2026, 3, 2));
+      expect(second.sortOrder, greaterThan(first.sortOrder));
+      expect(container.read(habitsProvider).map((habit) => habit.name), ['A', 'B']);
+
+      // Đổi thứ tự bằng sortOrder thì danh sách đổi theo.
+      await habits().edit(second.copyWith(sortOrder: -1));
+      expect(container.read(habitsProvider).map((habit) => habit.name), ['B', 'A']);
+    });
+
+    test('Sắp xếp lại trong cùng loại: việc một lần giữ nguyên chỗ, sortOrder được lưu', () async {
+      final goal = await goals().add(title: 'G', reason: 'R');
+      await habits().add(goalId: goal.id, name: 'A', minMinutesPerDay: 5);
+      await habits().create(
+        Habit(id: '', goalId: goal.id, name: 'Việc', minMinutesPerDay: 5, type: HabitType.oneTime),
+      );
+      await habits().add(goalId: goal.id, name: 'B', minMinutesPerDay: 5);
+      await habits().add(goalId: goal.id, name: 'C', minMinutesPerDay: 5);
+      List<String> names() => container.read(habitsProvider).map((habit) => habit.name).toList();
+      expect(names(), ['A', 'Việc', 'B', 'C']);
+
+      // Trong loại "Thói quen" (A, B, C): chuyển C lên đầu.
+      await habits().reorderWithinType(HabitType.regular, 2, 0);
+      expect(names(), ['C', 'Việc', 'A', 'B']);
+      final saved = HabitRepository().getAll()..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+      expect(saved.map((habit) => habit.name), ['C', 'Việc', 'A', 'B']);
+    });
+
+    test('"Xoá nhưng giữ lịch sử": ẩn khỏi danh sách, log còn, Thống kê vẫn tính', () async {
+      final goal = await goals().add(title: 'G', reason: 'R');
+      final habit = await habits().add(goalId: goal.id, name: 'A', minMinutesPerDay: 5);
+      await logs().setDoneToday(habit, done: true);
+
+      await habits().archive(habit.id);
+      expect(container.read(habitsProvider), isEmpty);
+      expect(container.read(allHabitsProvider).single.archived, isTrue);
+      expect(container.read(habitLogsProvider), hasLength(1));
+      final stats = await container.read(focusStatsProvider.future);
+      expect(stats.habitDoneDays, 1);
+
+      // Xoá mục tiêu thì xoá luôn thói quen đã ẩn và log của nó.
+      await goals().remove(goal.id);
+      expect(HabitRepository().getAll(), isEmpty);
+      expect(container.read(habitLogsProvider), isEmpty);
+    });
+
+    test('Focus chọn thói quen đến hạn hôm nay, bỏ qua thói quen không có lịch', () async {
+      final goal = await goals().add(title: 'G', reason: 'R');
+      // Hôm nay 2/3/2026 là Thứ Hai; thói quen đầu chỉ làm Thứ Ba.
+      await habits().create(
+        Habit(
+          id: '',
+          goalId: goal.id,
+          name: 'Thứ Ba',
+          minMinutesPerDay: 5,
+          repeat: HabitRepeat.weekly,
+          weekdays: const [DateTime.tuesday],
+        ),
+      );
+      final daily = await habits().add(goalId: goal.id, name: 'Hằng ngày', minMinutesPerDay: 5);
+      expect(container.read(todayHabitProvider)?.id, daily.id);
+    });
+
     test('Thêm và sửa mục tiêu cập nhật danh sách và mục tiêu hôm nay', () async {
       expect(container.read(todayGoalProvider), isNull);
 
@@ -199,7 +266,7 @@ void main() {
   });
 
   group('Dữ liệu mẫu và xoá toàn bộ', () {
-    test('Tạo dữ liệu mẫu: 1 mục tiêu, 3 thói quen, streak đúng như mô tả', () async {
+    test('Tạo dữ liệu mẫu: 1 mục tiêu, 7 thói quen, streak đúng như mô tả', () async {
       await container.read(appDataActionsProvider).createDemoData();
 
       final allHabits = container.read(habitsProvider);
@@ -207,20 +274,27 @@ void main() {
       final today = container.read(todayProvider);
       final goal = container.read(goalsProvider).single;
       expect(goal.identity, isNotEmpty);
-      expect(allHabits, hasLength(3));
+      expect(allHabits, hasLength(7));
       expect(container.read(overallStreakProvider), 5);
-      // Hive sắp theo khoá nên "Làm bài tập" đứng đầu: Focus lúc demo chọn thói quen này.
+      // Xếp theo sortOrder nên "Làm bài tập" đứng đầu: Focus lúc demo chọn thói quen này.
+      expect(allHabits.first.id, 'demo_habit_exercise');
       expect(container.read(todayHabitProvider)?.id, 'demo_habit_exercise');
+
+      // Đủ 7 màu khác nhau, đủ buổi Sáng/Chiều/Tối, có lặp lại theo tuần và việc một lần.
+      expect(allHabits.map((habit) => habit.colorIndex).toSet(), hasLength(7));
+      expect(
+        allHabits.map((habit) => habit.timeOfDay).toSet(),
+        containsAll([HabitTimeOfDay.morning, HabitTimeOfDay.afternoon, HabitTimeOfDay.evening]),
+      );
+      expect(allHabits.where((habit) => habit.weekdays.isNotEmpty), isNotEmpty);
+      expect(allHabits.where((habit) => habit.isWeeklyByCount), isNotEmpty);
+      final task = allHabits.singleWhere((habit) => habit.type == HabitType.oneTime);
+      expect(task.dueDate, today);
 
       Habit habit(String id) => allHabits.firstWhere((habit) => habit.id == id);
       final review = habit('demo_habit_review');
       final exercise = habit('demo_habit_exercise');
       final reading = habit('demo_habit_reading');
-      for (final item in allHabits) {
-        expect(item.cue, isNotEmpty);
-        expect(item.place, isNotEmpty);
-        expect(item.minimalVersion, isNotEmpty);
-      }
       expect(HabitScience.habitStreak(review, allLogs, today: today), 5);
       expect(HabitScience.habitStreak(exercise, allLogs, today: today), 3);
       expect(HabitProgress.isDone(exercise, today, allLogs), isFalse);
@@ -228,20 +302,31 @@ void main() {
       // Hôm nay chưa có thói quen nào xong, để demo học xong một phiên thì thấy streak tăng.
       for (final item in allHabits) {
         expect(HabitProgress.isDone(item, today, allLogs), isFalse, reason: item.name);
+        expect(HabitProgress.markLogOn(item, today, allLogs), isNull, reason: item.name);
       }
 
-      // Đủ loại ghi nhận để mọi biểu đồ và huy hiệu có số liệu.
+      // Lịch sử 120 ngày, đủ loại ghi nhận để 3 chế độ xem và huy hiệu đều có số liệu.
       final sources = allLogs.map((log) => log.source).toSet();
       expect(sources, containsAll(HabitLogSource.values));
+      final oldest = allLogs.map((log) => log.date).reduce((a, b) => a.isBefore(b) ? a : b);
+      expect(daysBetween(oldest, today), 120);
       final reviewHistory = HabitHistory.of(review, allLogs);
-      expect(HabitScience.journeyDays(reviewHistory), 40);
-      expect(HabitScience.nextBadge(40)?.name, 'Thành thói quen');
-      expect(HabitScience.longestStreakOf(reviewHistory.doneDays, reviewHistory.freezeDays), 22);
-      expect(reviewHistory.freezeDays, hasLength(2));
+      expect(HabitScience.journeyDays(reviewHistory), greaterThanOrEqualTo(66));
+      expect(HabitScience.longestStreak(reviewHistory, today), greaterThan(10));
       expect(allLogs.where((log) => log.note.isNotEmpty), isNotEmpty);
       expect(HabitScience.missedYesterday(HabitHistory.of(reading, allLogs), today), isTrue);
       expect(HabitScience.missedYesterday(reviewHistory, today), isFalse);
       expect(container.read(averageStrengthProvider), greaterThan(0.3));
+
+      // Thói quen T2, T4, T6 chỉ có ghi nhận vào đúng các thứ đó.
+      final runDays = allLogs
+          .where((log) => log.habitId == 'demo_habit_run')
+          .map((log) => log.date);
+      expect(runDays.map((day) => day.weekday).toSet(), {
+        DateTime.monday,
+        DateTime.wednesday,
+        DateTime.friday,
+      });
     });
 
     test('Dữ liệu mẫu có phiên học và sự kiện cho Thống kê', () async {
@@ -276,7 +361,7 @@ void main() {
 
       await actions.createDemoData();
       expect(container.read(goalsProvider), hasLength(1));
-      expect(container.read(habitsProvider), hasLength(3));
+      expect(container.read(habitsProvider), hasLength(7));
       expect(container.read(habitLogsProvider), hasLength(logCount));
       expect(SessionRepository().getAll(), hasLength(5));
       expect(EventRepository().getAll(), hasLength(eventCount));

@@ -1,5 +1,5 @@
 // 4.1 Đặt mục tiêu – bottom sheet thêm/sửa mục tiêu, xoá mục tiêu và thói quen có xác nhận.
-// Thêm/sửa thói quen dùng màn 4 bước (habit_form_screen.dart).
+// Thêm/sửa thói quen dùng màn Tạo thói quen (habit_form_screen.dart).
 // 4.2 Ghi nhận – bottom sheet ghi chú ngắn sau khi tick.
 // Sheet chỉ thu thập dữ liệu rồi trả về; việc lưu do Notifier làm để màn hình tự cập nhật.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,17 +61,98 @@ Future<void> confirmDeleteGoal(BuildContext context, WidgetRef ref, Goal goal) a
   if (confirmed) await notifier.remove(goal.id);
 }
 
+enum _DeleteChoice { keepHistory, clearHistory }
+
+/// 4.1 Xoá thói quen bằng bottom sheet "Xoá thói quen này?" với 2 lựa chọn:
+/// - "Xoá nhưng giữ lịch sử": ẩn thói quen, log vẫn còn để Thống kê tính;
+/// - "Xoá cả lịch sử": xoá thói quen và mọi log của nó.
 /// Trả về true nếu đã xoá, để màn chi tiết biết mà đóng lại.
 Future<bool> confirmDeleteHabit(BuildContext context, WidgetRef ref, Habit habit) async {
   final notifier = ref.read(habitsProvider.notifier);
-  final confirmed = await showConfirmDialog(
+  final choice = await showAppBottomSheet<_DeleteChoice>(
     context,
-    title: 'Xoá thói quen?',
-    message: '"${habit.name}" cùng lịch sử ghi nhận của nó sẽ bị xoá. Không thể hoàn tác.',
-    confirmLabel: 'Xoá',
+    builder: (_) => _DeleteHabitSheet(habit: habit),
   );
-  if (confirmed) await notifier.remove(habit.id);
-  return confirmed;
+  switch (choice) {
+    case _DeleteChoice.keepHistory:
+      await notifier.archive(habit.id);
+    case _DeleteChoice.clearHistory:
+      await notifier.remove(habit.id);
+    case null:
+      return false;
+  }
+  return true;
+}
+
+class _DeleteHabitSheet extends StatelessWidget {
+  const _DeleteHabitSheet({required this.habit});
+
+  final Habit habit;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    Widget option({
+      required IconData icon,
+      required Color iconColor,
+      required String title,
+      required String subtitle,
+      required _DeleteChoice value,
+    }) {
+      return Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.sm),
+        child: Material(
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.cardBorder,
+            side: BorderSide(color: scheme.outlineVariant),
+          ),
+          color: scheme.surfaceContainer,
+          child: ListTile(
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.cardBorder),
+            leading: Icon(icon, color: iconColor),
+            title: Text(title),
+            subtitle: Text(subtitle),
+            onTap: () => Navigator.of(context).pop(value),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Xoá thói quen này?',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleLarge?.copyWith(color: scheme.error),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          habit.name,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+        const Divider(height: AppSpacing.lg),
+        option(
+          icon: AppIcons.archive,
+          iconColor: scheme.tertiary,
+          title: 'Xoá nhưng giữ lịch sử',
+          subtitle: 'Ẩn thói quen, các ngày đã làm vẫn được tính trong Thống kê.',
+          value: _DeleteChoice.keepHistory,
+        ),
+        option(
+          icon: AppIcons.deleteHistory,
+          iconColor: scheme.error,
+          title: 'Xoá cả lịch sử',
+          subtitle: 'Xoá hẳn thói quen và mọi ngày đã ghi nhận. Không thể hoàn tác.',
+          value: _DeleteChoice.clearHistory,
+        ),
+      ],
+    );
+  }
 }
 
 class _GoalSheet extends StatefulWidget {

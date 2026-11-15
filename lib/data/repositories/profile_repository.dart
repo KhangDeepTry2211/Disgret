@@ -7,6 +7,7 @@ import '../models/user_profile.dart';
 class ProfileRepository {
   static const String _profileKey = 'user';
   static const String _onboardingDoneKey = 'onboarding_done';
+  static const String _celebratedLevelKey = 'celebrated_level';
 
   Box<dynamic> get _box => Hive.box<dynamic>(HiveBoxes.profile);
 
@@ -28,4 +29,9 @@ class ProfileRepository {
 
   /// Cho phép xem lại onboarding, hồ sơ đã lưu vẫn được giữ.
   Future<void> resetOnboarding() => _box.put(_onboardingDoneKey, false);
+
+  /// 4.2 Cấp thành tích cao nhất đã hiện hộp thoại chúc mừng, để mỗi cấp chỉ chúc mừng một lần.
+  int get celebratedLevel => _box.get(_celebratedLevelKey, defaultValue: 0) as int;
+
+  Future<void> saveCelebratedLevel(int level) => _box.put(_celebratedLevelKey, level);
 }

@@ -1,8 +1,7 @@
-// 4.2 Ghi nhận – thẻ một thói quen, dùng ở tab Thói quen (đầy đủ) và Trang chủ (gọn):
-// - vòng tiến độ phút: chạm để tick, giữ lâu để chọn "Làm bản 2 phút" / "Nghỉ phép";
-// - icon, tên, "Sau khi… · tại…", streak và điểm sức mạnh (4.2);
+// 4.2 Ghi nhận – thẻ một thói quen ở Trang chủ (tab Thói quen dùng habit_today_card.dart):
+// - vòng tiến độ phút: chạm để tick, giữ lâu để chọn bản 2 phút / nghỉ phép / bỏ qua;
+// - icon, tên, lịch lặp lại, "Sau khi… · tại…", streak và điểm sức mạnh (4.2);
 // - nhắc "Đừng bỏ 2 lần liên tiếp" khi hôm qua bỏ;
-// - lịch nhiệt mini 4 tuần và nút "Focus" (bản đầy đủ);
 // - ghi chú sau khi tick. Chạm vào thẻ để mở màn chi tiết.
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
@@ -11,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/habit_progress.dart';
+import '../data/habit_schedule.dart';
 import '../data/habit_science.dart';
 import '../data/models/habit.dart';
 import '../data/models/habit_log.dart';
@@ -18,18 +18,14 @@ import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import 'app_dialogs.dart';
-import 'edit_delete_menu.dart';
 import 'goal_habit_sheets.dart';
 import 'habit_check_ring.dart';
-import 'habit_heat_map.dart';
+import 'habit_icon_view.dart';
 
 class HabitCard extends ConsumerWidget {
-  const HabitCard({required this.habit, this.compact = false, super.key});
+  const HabitCard({required this.habit, super.key});
 
   final Habit habit;
-
-  /// Bản gọn cho Trang chủ: không có menu, lịch nhiệt mini và nút Focus.
-  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,7 +38,7 @@ class HabitCard extends ConsumerWidget {
     final mark = markLog?.source;
     final isDone = history.isDone(today);
     final minutes = HabitProgress.minutesOn(habit, today, logs);
-    final streak = HabitScience.currentStreakOf(history.doneDays, history.freezeDays, today);
+    final streak = HabitScience.currentStreak(history, today);
     final strength = HabitScience.strengthHistory(history, today, days: 1).last;
     final missedYesterday = HabitScience.missedYesterday(history, today);
 
@@ -60,12 +56,19 @@ class HabitCard extends ConsumerWidget {
       if (habit.cue.isNotEmpty) 'Sau khi ${habit.cue}',
       if (habit.place.isNotEmpty) 'tại ${habit.place}',
     ].join(' · ');
+    // Lịch lặp lại; thói quen hằng ngày, làm lúc nào cũng được thì không cần ghi.
+    final schedule = HabitSchedule.describe(habit);
+    final showSchedule = schedule != 'Hằng ngày';
+    final dueToday = history.isDueOn(today);
 
     // Dòng phút luôn hiện; thêm một dòng trạng thái khi hôm nay có đánh dấu đặc biệt.
     final String? status = switch (mark) {
       HabitLogSource.freeze => 'Hôm nay nghỉ phép',
       HabitLogSource.minimal => 'Đã làm bản 2 phút',
-      _ => lockedByFocus ? 'Đã đủ phút từ phiên Focus' : null,
+      HabitLogSource.skip => 'Hôm nay bỏ qua',
+      _ when lockedByFocus => 'Đã đủ phút từ phiên Focus',
+      _ when !dueToday && !isDone => 'Hôm nay không có lịch',
+      _ => null,
     };
 
     return Card(
@@ -97,12 +100,12 @@ class HabitCard extends ConsumerWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              AppIcons.habitIcon(habit.icon),
-                              size: 18,
-                              color: theme.colorScheme.onSurfaceVariant,
+                            HabitIconTile(
+                              icon: habit.icon,
+                              colorIndex: habit.colorIndex,
+                              size: AppHabit.smallIconTile,
                             ),
-                            const SizedBox(width: AppSpacing.xs),
+                            const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: Text(
                                 habit.name,
@@ -113,6 +116,15 @@ class HabitCard extends ConsumerWidget {
                             ),
                           ],
                         ),
+                        if (showSchedule)
+                          Text(
+                            schedule,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.secondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         if (subtitle.isNotEmpty)
                           Text(
                             subtitle,
@@ -144,14 +156,7 @@ class HabitCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  if (!compact)
-                    EditDeleteMenu(
-                      tooltip: 'Tuỳ chọn thói quen',
-                      onEdit: () => context.push(AppRoutes.habitForm(habit.goalId, habit.id)),
-                      onDelete: () => confirmDeleteHabit(context, ref, habit),
-                    )
-                  else
-                    const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.md),
                 ],
               ),
               Padding(
@@ -160,18 +165,6 @@ class HabitCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (missedYesterday) _MissedTwiceNudge(habit: habit),
-                    if (!compact) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: MiniHeatStrip(history: history, today: today),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          _FocusButton(habit: habit),
-                        ],
-                      ),
-                    ],
                     if (markLog != null && mark != HabitLogSource.freeze)
                       _NoteRow(habit: habit, log: markLog),
                   ],
@@ -242,6 +235,14 @@ class _DayMarkSheet extends ConsumerWidget {
           enabled: canFreeze,
           selected: mark == HabitLogSource.freeze,
           onTap: () => choose(() => notifier.setMarkToday(habit, HabitLogSource.freeze)),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(AppIcons.skip),
+          title: const Text('Bỏ qua hôm nay'),
+          subtitle: const Text('Ghi lại là chủ động bỏ; vẫn tính là chưa làm.'),
+          selected: mark == HabitLogSource.skip,
+          onTap: () => choose(() => notifier.setMarkToday(habit, HabitLogSource.skip)),
         ),
         if (mark != null)
           ListTile(
@@ -349,30 +350,6 @@ class _MissedTwiceNudge extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Mở màn Focus với thói quen này được chọn sẵn.
-class _FocusButton extends ConsumerWidget {
-  const _FocusButton({required this.habit});
-
-  final Habit habit;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(0, 36),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        visualDensity: VisualDensity.compact,
-      ),
-      icon: const Icon(AppIcons.focus, size: 18),
-      label: const Text('Focus'),
-      onPressed: () {
-        ref.read(focusHabitChoiceProvider.notifier).choose(habit.id);
-        context.go(AppRoutes.focus);
-      },
     );
   }
 }

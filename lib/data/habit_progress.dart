@@ -31,11 +31,12 @@ class HabitProgress {
 
   /// Các ngày một thói quen được tính là HOÀN THÀNH (giữ chuỗi):
   /// có tick "đã làm", có làm bản 2 phút, hoặc tổng phút Focus trong ngày >= minMinutesPerDay.
-  /// Ngày nghỉ phép KHÔNG phải ngày hoàn thành; việc nó giữ chuỗi do habit_science.dart xử lý.
+  /// Ngày nghỉ phép và ngày bỏ (skip) KHÔNG phải ngày hoàn thành; nghỉ phép giữ chuỗi
+  /// do habit_science.dart xử lý.
   static Set<DateTime> doneDays(Habit habit, Iterable<HabitLog> logs) {
     final done = <DateTime>{};
     for (final entry in marksByDay(habit, logs).entries) {
-      if (entry.value.source != HabitLogSource.freeze) done.add(entry.key);
+      if (entry.value.source.countsAsDone) done.add(entry.key);
     }
     for (final entry in focusMinutesByDay(habit, logs).entries) {
       if (entry.value >= habit.minMinutesPerDay) done.add(entry.key);

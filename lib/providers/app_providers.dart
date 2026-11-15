@@ -3,8 +3,8 @@
 // đều đi qua Notifier: ghi xuống Hive rồi gán lại state, nên màn hình tự cập nhật ngay.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/achievements.dart';
 import '../data/date_utils.dart';
-import '../data/habit_progress.dart';
 import '../data/habit_science.dart';
 import '../data/hive_boxes.dart';
 import '../data/mock_data.dart';
@@ -129,9 +129,40 @@ final goalsProvider = NotifierProvider<GoalsNotifier, List<Goal>>(GoalsNotifier.
 class HabitsNotifier extends Notifier<List<Habit>> {
   HabitRepository get _repository => ref.read(habitRepositoryProvider);
 
+  /// Chỉ các thói quen đang dùng (bỏ thói quen đã "xoá nhưng giữ lịch sử"),
+  /// sắp theo sortOrder; bằng nhau thì giữ thứ tự trong Hive.
   @override
-  List<Habit> build() => ref.watch(habitRepositoryProvider).getAll();
+  List<Habit> build() => _active(ref.watch(habitRepositoryProvider).getAll());
 
+  static List<Habit> _active(List<Habit> all) {
+    final active = all.where((habit) => !habit.archived).toList();
+    // Dart không đảm bảo sort giữ thứ tự cũ khi bằng nhau nên so thêm vị trí ban đầu.
+    final position = {for (var i = 0; i < active.length; i++) active[i].id: i};
+    active.sort((a, b) {
+      final byOrder = a.sortOrder.compareTo(b.sortOrder);
+      return byOrder != 0 ? byOrder : position[a.id]!.compareTo(position[b.id]!);
+    });
+    return active;
+  }
+
+  void _reload() => state = _active(_repository.getAll());
+
+  /// Lưu thói quen mới từ bản nháp của màn tạo thói quen: gán id mới, ngày bắt đầu là hôm nay
+  /// (nếu bản nháp chưa có) và xếp xuống cuối danh sách.
+  Future<Habit> create(Habit draft) async {
+    final orders = _repository.getAll().map((habit) => habit.sortOrder);
+    final habit = Habit.fromMap({
+      ...draft.toMap(),
+      'id': newId(),
+      'startDate': dateKey(draft.startDate ?? ref.read(todayProvider)),
+      'sortOrder': orders.isEmpty ? 0 : orders.reduce((a, b) => a > b ? a : b) + 1,
+    });
+    await _repository.save(habit);
+    _reload();
+    return habit;
+  }
+
+  /// Cách tạo nhanh (onboarding): chỉ cần tên và số phút, các trường khác lấy mặc định.
   Future<Habit> add({
     required String goalId,
     required String name,
@@ -140,9 +171,9 @@ class HabitsNotifier extends Notifier<List<Habit>> {
     String place = '',
     String minimalVersion = '',
     String icon = Habit.defaultIcon,
-  }) async {
-    final habit = Habit(
-      id: newId(),
+  }) => create(
+    Habit(
+      id: '',
       goalId: goalId,
       name: name,
       minMinutesPerDay: minMinutesPerDay,
@@ -150,32 +181,66 @@ class HabitsNotifier extends Notifier<List<Habit>> {
       place: place,
       minimalVersion: minimalVersion,
       icon: icon,
-    );
-    await _repository.save(habit);
-    state = _repository.getAll();
-    return habit;
-  }
+    ),
+  );
 
   Future<void> edit(Habit habit) async {
     await _repository.save(habit);
-    state = _repository.getAll();
+    _reload();
   }
 
-  /// Xoá thói quen kéo theo nhật ký của nó.
+  /// 4.1 Kéo thả trong màn "Thói quen của tôi": chuyển thói quen ở vị trí [oldIndex] sang
+  /// [newIndex] trong danh sách cùng loại [type]. Các thói quen loại kia giữ nguyên chỗ; sau đó
+  /// đánh lại sortOrder = vị trí cho cả danh sách và lưu những thói quen đổi chỗ.
+  Future<void> reorderWithinType(HabitType type, int oldIndex, int newIndex) async {
+    final all = [...state];
+    final sameType = all.where((habit) => habit.type == type).toList();
+    if (oldIndex < 0 || oldIndex >= sameType.length) return;
+    final moved = sameType.removeAt(oldIndex);
+    sameType.insert(newIndex.clamp(0, sameType.length), moved);
+
+    // Đặt lại các thói quen loại [type] vào đúng những chỗ chúng đang chiếm.
+    var next = 0;
+    final reordered = [for (final habit in all) habit.type == type ? sameType[next++] : habit];
+    for (var i = 0; i < reordered.length; i++) {
+      if (reordered[i].sortOrder != i) {
+        await _repository.save(reordered[i].copyWith(sortOrder: i));
+      }
+    }
+    _reload();
+  }
+
+  /// 4.1 "Xoá nhưng giữ lịch sử": ẩn thói quen, log vẫn còn để Thống kê tính.
+  Future<void> archive(String habitId) async {
+    final habit = _repository.getById(habitId);
+    if (habit == null) return;
+    await _repository.save(habit.copyWith(archived: true));
+    _reload();
+  }
+
+  /// "Xoá cả lịch sử": xoá thói quen kéo theo nhật ký của nó.
   Future<void> remove(String habitId) async {
     await ref.read(habitLogsProvider.notifier).removeByHabit(habitId);
     await _repository.delete(habitId);
-    state = _repository.getAll();
+    _reload();
   }
 
+  /// Xoá mục tiêu thì xoá hết thói quen của nó, kể cả thói quen đã ẩn.
   Future<void> removeByGoal(String goalId) async {
-    for (final habit in state.where((habit) => habit.goalId == goalId).toList()) {
+    for (final habit in _repository.getByGoal(goalId)) {
       await remove(habit.id);
     }
   }
 }
 
 final habitsProvider = NotifierProvider<HabitsNotifier, List<Habit>>(HabitsNotifier.new);
+
+/// Mọi thói quen kể cả đã "xoá nhưng giữ lịch sử", dùng cho Thống kê (8.2).
+/// Theo dõi habitsProvider để tự tính lại mỗi khi thói quen thay đổi.
+final allHabitsProvider = Provider<List<Habit>>((ref) {
+  ref.watch(habitsProvider);
+  return ref.read(habitRepositoryProvider).getAll();
+});
 
 // ---------- 4.2 Ghi nhận ----------
 
@@ -196,9 +261,19 @@ class HabitLogsNotifier extends Notifier<List<HabitLog>> {
     state = _repository.getAll();
   }
 
-  /// Giữ lâu vòng tiến độ: "Làm bản 2 phút" (minimal) hoặc "Nghỉ phép" (freeze) cho hôm nay.
-  Future<void> setMarkToday(Habit habit, HabitLogSource source) async {
-    await _repository.setMark(habit, ref.read(todayProvider), source);
+  /// Đánh dấu hôm nay: làm bản 2 phút, nghỉ phép, bỏ qua (skip)...
+  Future<void> setMarkToday(Habit habit, HabitLogSource source) =>
+      setMarkOn(habit, ref.read(todayProvider), source);
+
+  /// Đánh dấu một ngày bất kỳ (bảng Tuần cho sửa các ngày đã qua). Mỗi ngày chỉ một loại.
+  Future<void> setMarkOn(Habit habit, DateTime day, HabitLogSource source) async {
+    await _repository.setMark(habit, day, source);
+    state = _repository.getAll();
+  }
+
+  /// Bỏ đánh dấu của một ngày; phút Focus thật vẫn giữ.
+  Future<void> clearMarksOn(Habit habit, DateTime day) async {
+    await _repository.clearMarks(habit.id, day);
     state = _repository.getAll();
   }
 
@@ -265,8 +340,8 @@ class TodayGoalNotifier extends Notifier<Goal?> {
 
 final todayGoalProvider = NotifierProvider<TodayGoalNotifier, Goal?>(TodayGoalNotifier.new);
 
-/// Thói quen nên làm tiếp: thói quen đầu tiên chưa hoàn thành hôm nay;
-/// làm hết rồi thì lấy thói quen đầu tiên. Màn Focus dùng giá trị này.
+/// Thói quen nên làm tiếp: thói quen đầu tiên đến hạn hôm nay (habit_schedule.dart) mà chưa
+/// hoàn thành; không còn thì lấy thói quen đầu tiên. Màn Focus dùng giá trị này.
 class TodayHabitNotifier extends Notifier<Habit?> {
   @override
   Habit? build() {
@@ -275,7 +350,8 @@ class TodayHabitNotifier extends Notifier<Habit?> {
     final today = ref.watch(todayProvider);
 
     for (final habit in habits) {
-      if (!HabitProgress.isDone(habit, today, logs)) return habit;
+      final history = HabitHistory.of(habit, logs);
+      if (history.isDueOn(today) && !history.isDone(today)) return habit;
     }
     return habits.isEmpty ? null : habits.first;
   }
@@ -298,6 +374,22 @@ final habitHistoriesProvider = Provider<Map<String, HabitHistory>>((ref) {
   final logs = ref.watch(habitLogsProvider);
   return {for (final habit in ref.watch(habitsProvider)) habit.id: HabitHistory.of(habit, logs)};
 });
+
+/// 4.2 Báo cáo và Thành tích dùng lịch sử của MỌI thói quen, kể cả thói quen đã ẩn
+/// ("xoá nhưng giữ lịch sử"), để số lần hoàn thành không bị mất.
+final allHabitHistoriesProvider = Provider<List<HabitHistory>>((ref) {
+  final logs = ref.watch(habitLogsProvider);
+  return [for (final habit in ref.watch(allHabitsProvider)) HabitHistory.of(habit, logs)];
+});
+
+/// 4.2 Tổng số lần hoàn thành và cấp thành tích hiện tại.
+final completionTotalProvider = Provider<int>(
+  (ref) => Achievements.totalCompletions(ref.watch(allHabitHistoriesProvider)),
+);
+
+final achievementLevelProvider = Provider<int>(
+  (ref) => Achievements.levelFor(ref.watch(completionTotalProvider)),
+);
 
 /// 4.2 Điểm sức mạnh trung bình của các thói quen, hiện ở Trang chủ.
 final averageStrengthProvider = Provider<double>((ref) {
@@ -330,7 +422,8 @@ final focusStatsProvider = FutureProvider.autoDispose<FocusStats>((ref) async {
   return FocusStats.from(
     events: ref.read(eventRepositoryProvider).getAll(),
     sessions: ref.read(sessionRepositoryProvider).getAll(),
-    habits: ref.watch(habitsProvider),
+    // Tính cả thói quen đã "xoá nhưng giữ lịch sử" để số ngày hoàn thành không bị mất.
+    habits: ref.watch(allHabitsProvider),
     logs: ref.watch(habitLogsProvider),
     today: ref.watch(todayProvider),
   );
@@ -345,6 +438,15 @@ class AppDataActions {
 
   Future<void> createDemoData() async {
     await MockData.createDemoData(now: _ref.read(clockProvider)());
+    // Dữ liệu mẫu không phải công sức thật: lưu luôn cấp hiện tại là "đã chúc mừng" TRƯỚC khi
+    // các màn tải lại, để hộp thoại chúc mừng lên cấp không bật lên.
+    final logs = _ref.read(habitLogRepositoryProvider).getAll();
+    final histories = [
+      for (final habit in _ref.read(habitRepositoryProvider).getAll()) HabitHistory.of(habit, logs),
+    ];
+    await _ref
+        .read(profileRepositoryProvider)
+        .saveCelebratedLevel(Achievements.levelFor(Achievements.totalCompletions(histories)));
     _reloadAll();
   }
 

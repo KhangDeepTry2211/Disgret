@@ -1,10 +1,13 @@
 // 5.1 Khung chính: thanh điều hướng dưới cùng với 4 tab.
+// 4.2 Theo dõi cấp thành tích: lên cấp mới thì hiện hộp thoại chúc mừng, mỗi cấp một lần.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/level_badge.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({required this.navigationShell, super.key});
@@ -42,9 +45,19 @@ class _MainShellState extends ConsumerState<MainShell> {
     });
   }
 
+  /// 4.2 Lên cấp thành tích mới (cao hơn cấp đã chúc mừng) thì chúc mừng và lưu lại cấp đó,
+  /// để mỗi cấp chỉ chúc mừng một lần, kể cả khi mở lại app.
+  void _onLevelChanged(int? previous, int level) {
+    final profile = ref.read(profileRepositoryProvider);
+    if (level <= profile.celebratedLevel) return;
+    profile.saveCelebratedLevel(level);
+    showLevelUpDialog(context, level: level, total: ref.read(completionTotalProvider));
+  }
+
   @override
   Widget build(BuildContext context) {
     final navigationShell = widget.navigationShell;
+    ref.listen<int>(achievementLevelProvider, _onLevelChanged);
 
     return Scaffold(
       body: navigationShell,

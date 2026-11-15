@@ -171,7 +171,7 @@ void main() {
       expect(find.text('Bắt đầu'), findsNothing);
 
       await tapAndSettle(tester, find.text('Tạo thói quen'));
-      expect(find.byTooltip('Thêm mục tiêu'), findsOneWidget);
+      expect(find.text('Chưa có thói quen nào'), findsOneWidget);
     });
 
     testWidgets('Đồng hồ chạy theo mốc thời gian, vòng tiến độ tăng dần', (tester) async {

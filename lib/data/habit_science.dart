@@ -9,15 +9,31 @@
 // 3. "Không bỏ 2 lần liên tiếp": hôm qua bỏ thì hôm nay nhắc làm bản 2 phút.
 // 4. Hành trình 66 ngày: tổng số ngày hoàn thành, không cần liên tiếp, có 4 huy hiệu.
 // 5. Thống kê: chuỗi hiện tại, dài nhất, tỉ lệ 30 ngày, ngày trong tuần hay bỏ nhất.
+// 6. Báo cáo: "ngày hoàn hảo" (mọi thói quen đến hạn đều xong) và số lần hoàn thành theo kỳ.
+//
+// Ngày NGHỈ (isRest) = ngày nghỉ phép được tính, hoặc ngày không có trong lịch của thói quen
+// (ví dụ thói quen hằng tuần vào T2, T4, T6 thì T3 là ngày nghỉ, xem habit_schedule.dart).
+// Ngày nghỉ không làm đứt chuỗi, không cộng vào chuỗi và giữ nguyên điểm sức mạnh.
 import 'dart:math' as math;
 
 import 'date_utils.dart';
 import 'habit_progress.dart';
+import 'habit_schedule.dart';
 import 'models/habit.dart';
 import 'models/habit_log.dart';
 
 /// Một huy hiệu trên Hành trình 66 ngày.
 typedef HabitBadge = ({int days, String name});
+
+/// 6. Kỳ của biểu đồ trong màn Báo cáo.
+enum ReportPeriod { thisWeek, lastWeek, thisMonth, lastMonth, sixMonths, thisYear, allTime }
+
+/// Số liệu của một cột (một kỳ con) trên biểu đồ Báo cáo:
+/// [completed] lần hoàn thành, [due] lần phải làm (để tính tỉ lệ completed / due).
+typedef ReportBucket = ({String label, DateTime from, DateTime to, int completed, int due});
+
+/// Tổng số lần hoàn thành và số lần phải làm trong một khoảng ngày.
+typedef ReportTally = ({int completed, int due});
 
 /// Lịch sử của MỘT thói quen, dựng một lần từ danh sách log rồi dùng cho mọi phép tính.
 class HabitHistory {
@@ -65,6 +81,19 @@ class HabitHistory {
 
   bool isDone(DateTime day) => doneDays.contains(dateOnly(day));
   bool isFreeze(DateTime day) => freezeDays.contains(dateOnly(day));
+
+  /// Ngày có trong lịch của thói quen (xem habit_schedule.dart).
+  bool isScheduled(DateTime day) => HabitSchedule.isScheduledOn(habit, day);
+
+  /// Ngày nghỉ: nghỉ phép, hoặc không có trong lịch mà cũng không làm.
+  bool isRest(DateTime day) => isFreeze(day) || (!isScheduled(day) && !isDone(day));
+
+  /// Thói quen đến hạn vào [day] (hằng tuần theo số ngày thì xét cả số ngày đã làm trong tuần).
+  bool isDueOn(DateTime day) => HabitSchedule.isDueOn(
+    habit,
+    day,
+    doneDaysThisWeek: HabitSchedule.doneDaysInWeekExcept(doneDays, day),
+  );
 
   /// Mức hoàn thành của một ngày, từ 0 đến 1:
   /// tick "đã làm" = 1; bản 2 phút = 0.5; Focus = min(1, phút đã làm / minMinutesPerDay).
@@ -135,16 +164,36 @@ class HabitScience {
 
   /// Đếm lùi từ hôm nay: ngày hoàn thành cộng 1, ngày nghỉ phép bỏ qua (không cộng, không đứt),
   /// ngày khác thì dừng. Hôm nay chưa làm thì chuỗi vẫn giữ, tính từ hôm qua.
-  static int currentStreakOf(Set<DateTime> done, Set<DateTime> freezes, DateTime today) {
+  static int currentStreakOf(Set<DateTime> done, Set<DateTime> freezes, DateTime today) =>
+      _countBack(done.contains, freezes.contains, today, earliest: _earliest(done, freezes));
+
+  /// Như [currentStreakOf] nhưng cho một thói quen, có tính cả ngày nghỉ theo lịch.
+  static int currentStreak(HabitHistory history, DateTime today) =>
+      _countBack(history.isDone, history.isRest, today, earliest: history.start);
+
+  /// Phần chung của các hàm đếm chuỗi: đếm lùi, dừng ở ngày không làm mà cũng không nghỉ,
+  /// hoặc khi đã lùi quá ngày [earliest] (trước đó không có dữ liệu).
+  static int _countBack(
+    bool Function(DateTime) isDone,
+    bool Function(DateTime) isRest,
+    DateTime today, {
+    required DateTime? earliest,
+  }) {
+    if (earliest == null) return 0;
     var day = dateOnly(today);
-    if (!done.contains(day)) day = previousDay(day);
+    if (!isDone(day)) day = previousDay(day);
 
     var streak = 0;
-    while (done.contains(day) || freezes.contains(day)) {
-      if (done.contains(day)) streak++;
+    while (!day.isBefore(earliest) && (isDone(day) || isRest(day))) {
+      if (isDone(day)) streak++;
       day = previousDay(day);
     }
     return streak;
+  }
+
+  static DateTime? _earliest(Set<DateTime> done, Set<DateTime> freezes) {
+    final all = [...done, ...freezes]..sort();
+    return all.isEmpty ? null : all.first;
   }
 
   /// Chuỗi dài nhất từng có, cùng luật với [currentStreakOf].
@@ -164,34 +213,57 @@ class HabitScience {
     return best;
   }
 
-  /// Streak riêng của một thói quen.
-  static int habitStreak(Habit habit, Iterable<HabitLog> logs, {required DateTime today}) {
-    final history = HabitHistory.of(habit, logs);
-    return currentStreakOf(history.doneDays, history.freezeDays, today);
+  /// Chuỗi dài nhất của một thói quen, có tính cả ngày nghỉ theo lịch.
+  static int longestStreak(HabitHistory history, DateTime today) {
+    final start = history.start;
+    if (start == null) return 0;
+    var best = 0;
+    var run = 0;
+    for (var day = start; !day.isAfter(today); day = addDays(day, 1)) {
+      if (history.isDone(day)) {
+        run++;
+      } else if (!history.isRest(day) && day != dateOnly(today)) {
+        run = 0;
+      }
+      best = math.max(best, run);
+    }
+    return best;
   }
 
+  /// Streak riêng của một thói quen.
+  static int habitStreak(Habit habit, Iterable<HabitLog> logs, {required DateTime today}) =>
+      currentStreak(HabitHistory.of(habit, logs), today);
+
   /// Streak chung (vòng streak ở Trang chủ): số ngày liên tiếp có ít nhất một thói quen
-  /// hoàn thành. Ngày nghỉ phép của các thói quen cũng giữ chuỗi, vẫn tối đa 1 ngày mỗi tuần.
+  /// hoàn thành. Giữ chuỗi qua ngày nghỉ phép của các thói quen (vẫn tối đa 1 ngày mỗi tuần)
+  /// và ngày không thói quen nào có lịch.
   static int overallStreak(
     Iterable<Habit> habits,
     Iterable<HabitLog> logs, {
     required DateTime today,
   }) {
+    final histories = [for (final habit in habits) HabitHistory.of(habit, logs)];
     final done = <DateTime>{};
     final freezes = <DateTime>{};
-    for (final habit in habits) {
-      final history = HabitHistory.of(habit, logs);
+    for (final history in histories) {
       done.addAll(history.doneDays);
       freezes.addAll(history.freezeDays);
     }
-    return currentStreakOf(done, validFreezeDays(freezes, done), today);
+    final validFreezes = validFreezeDays(freezes, done);
+    return _countBack(
+      done.contains,
+      (day) =>
+          validFreezes.contains(day) || histories.every((history) => !history.isScheduled(day)),
+      today,
+      earliest: _earliest(done, validFreezes),
+    );
   }
 
   // ---------- 1. Điểm sức mạnh ----------
 
   /// Điểm sức mạnh của từng ngày trong [days] ngày gần nhất (phần tử cuối là hôm nay).
   /// Tính từ ngày đầu tiên có ghi nhận, điểm khởi đầu là 0:
-  /// - ngày nghỉ phép: giữ nguyên điểm;
+  /// - ngày nghỉ (nghỉ phép hoặc không có lịch): giữ nguyên điểm;
   /// - ngày khác: điểm = điểm × (1 − α) + α × mức hoàn thành.
   /// Hôm nay chưa hết ngày nên chỉ được cộng, không bị trừ khi chưa làm.
   static List<double> strengthHistory(HabitHistory history, DateTime today, {int days = 60}) {
@@ -206,7 +278,7 @@ class HabitScience {
     var day = start.isBefore(firstShown) ? start : firstShown;
     while (!day.isAfter(end)) {
       final tracked = !day.isBefore(start);
-      if (tracked && !history.isFreeze(day)) {
+      if (tracked && !history.isRest(day)) {
         final next = score * (1 - alpha) + alpha * history.valueOn(day);
         score = day == end ? math.max(score, next) : next;
       }
@@ -233,14 +305,17 @@ class HabitScience {
 
   // ---------- 3. Không bỏ 2 lần liên tiếp ----------
 
-  /// Hôm qua bỏ (không làm, không nghỉ phép) và hôm nay chưa làm: nhắc làm bản 2 phút.
-  /// Thói quen mới (chưa có ghi nhận trước hôm qua) thì chưa nhắc.
+  /// Hôm qua bỏ (có lịch mà không làm, không nghỉ phép) và hôm nay có lịch mà chưa làm:
+  /// nhắc làm bản 2 phút. Thói quen mới (chưa có ghi nhận trước hôm qua) thì chưa nhắc.
   static bool missedYesterday(HabitHistory history, DateTime today) {
     final day = dateOnly(today);
     final yesterday = previousDay(day);
     final start = history.start;
     if (start == null || !start.isBefore(yesterday)) return false;
-    return !history.isDone(day) && !history.isDone(yesterday) && !history.isFreeze(yesterday);
+    return history.isScheduled(day) &&
+        !history.isDone(day) &&
+        !history.isDone(yesterday) &&
+        !history.isRest(yesterday);
   }
 
   // ---------- 4. Hành trình 66 ngày ----------
@@ -259,7 +334,7 @@ class HabitScience {
   // ---------- 5. Thống kê ----------
 
   /// Các ngày dùng để tính tỉ lệ, từ [from] đến [to]: bỏ các ngày trước khi bắt đầu theo dõi,
-  /// ngày nghỉ phép, và hôm nay nếu chưa làm (vì hôm nay chưa kết thúc).
+  /// ngày nghỉ (nghỉ phép hoặc không có lịch), và hôm nay nếu chưa làm (vì chưa hết ngày).
   static List<DateTime> trackedDays(
     HabitHistory history,
     DateTime from,
@@ -271,7 +346,7 @@ class HabitScience {
     final end = dateOnly(today);
     final days = <DateTime>[];
     for (var day = dateOnly(from); !day.isAfter(to); day = addDays(day, 1)) {
-      if (day.isBefore(start) || day.isAfter(end) || history.isFreeze(day)) continue;
+      if (day.isBefore(start) || day.isAfter(end) || history.isRest(day)) continue;
       if (day == end && !history.isDone(day)) continue;
       days.add(day);
     }
@@ -315,11 +390,179 @@ class HabitScience {
   }
 
   /// Mức hoàn thành trung bình của nhiều thói quen trong một ngày, từ 0 đến 1.
-  /// Thói quen đang nghỉ phép ngày đó không tính vào; null nếu không có thói quen nào để tính.
+  /// Thói quen đang nghỉ ngày đó (nghỉ phép hoặc không có lịch) không tính vào;
+  /// null nếu không có thói quen nào để tính.
   static double? dayCompletion(List<HabitHistory> histories, DateTime day) {
-    final counted = histories.where((history) => !history.isFreeze(day)).toList();
+    final counted = histories.where((history) => !history.isRest(day)).toList();
     if (counted.isEmpty) return null;
     return counted.fold(0.0, (sum, history) => sum + history.valueOn(day)) / counted.length;
+  }
+
+  // ---------- 6. Báo cáo ----------
+
+  /// Ngày bắt đầu tính báo cáo của một thói quen: ngày tạo (startDate) hoặc ngày ghi nhận đầu
+  /// tiên, lấy ngày sớm hơn. Chưa có cả hai thì null (thói quen chưa có gì để tính).
+  static DateTime? reportStart(HabitHistory history) {
+    final created = history.habit.startDate == null ? null : dateOnly(history.habit.startDate!);
+    final first = history.start;
+    if (created == null) return first;
+    if (first == null) return created;
+    return first.isBefore(created) ? first : created;
+  }
+
+  /// Thói quen có được tính vào báo cáo ngày [day] không: ngày đã làm luôn được tính (kể cả làm
+  /// thêm vào ngày không có lịch, để tỉ lệ không vượt 100%); ngày chưa làm chỉ tính khi đã bắt
+  /// đầu theo dõi, đến hạn và không nghỉ phép. Thói quen đã "xoá nhưng giữ lịch sử" chỉ còn
+  /// được tính các ngày đã làm (không biết ngày ẩn nên không tính ngày bỏ sau đó).
+  static bool countsOn(HabitHistory history, DateTime day) {
+    if (history.isDone(day)) return true;
+    if (history.habit.archived) return false;
+    final start = reportStart(history);
+    if (start == null || day.isBefore(start)) return false;
+    return history.isDueOn(day) && !history.isFreeze(day);
+  }
+
+  /// NGÀY HOÀN HẢO: có ít nhất một thói quen được tính vào ngày đó và tất cả đều xong.
+  /// Ngày không có thói quen nào đến hạn thì không tính là ngày hoàn hảo.
+  static bool isPerfectDay(List<HabitHistory> histories, DateTime day) {
+    final counted = histories.where((history) => countsOn(history, day)).toList();
+    return counted.isNotEmpty && counted.every((history) => history.isDone(day));
+  }
+
+  /// Số ngày hoàn hảo từ [from] đến [to] (không tính các ngày sau [today]).
+  static int perfectDays(
+    List<HabitHistory> histories,
+    DateTime from,
+    DateTime to, {
+    required DateTime today,
+  }) {
+    var count = 0;
+    for (final day in _days(from, to, today)) {
+      if (isPerfectDay(histories, day)) count++;
+    }
+    return count;
+  }
+
+  /// Cộng số lần hoàn thành và số lần phải làm của mọi thói quen từ [from] đến [to].
+  static ReportTally tally(
+    List<HabitHistory> histories,
+    DateTime from,
+    DateTime to, {
+    required DateTime today,
+  }) {
+    var completed = 0;
+    var due = 0;
+    for (final day in _days(from, to, today)) {
+      for (final history in histories) {
+        if (history.isDone(day)) completed++;
+        if (countsOn(history, day)) due++;
+      }
+    }
+    return (completed: completed, due: due);
+  }
+
+  /// Tỉ lệ hoàn thành của một ngày (0–1); null nếu ngày đó không có gì phải làm.
+  static double? dayRate(List<HabitHistory> histories, DateTime day, {required DateTime today}) {
+    final result = tally(histories, day, day, today: today);
+    return result.due == 0 ? null : result.completed / result.due;
+  }
+
+  /// Ngày sớm nhất có dữ liệu trong mọi thói quen; null nếu chưa có gì.
+  static DateTime? earliestStart(List<HabitHistory> histories) {
+    final starts = [for (final history in histories) ?reportStart(history)]..sort();
+    return starts.isEmpty ? null : starts.first;
+  }
+
+  /// Gom số lần hoàn thành theo kỳ để vẽ biểu đồ:
+  /// - Tuần này / Tuần trước: 7 cột, mỗi cột một ngày (nhãn là ngày trong tháng);
+  /// - Tháng này / Tháng trước: mỗi cột 7 ngày (1–7, 8–14, ...);
+  /// - 6 tháng / Năm nay: mỗi cột một tháng (nhãn "Th1"...);
+  /// - Tất cả: mỗi cột một tháng từ ngày có dữ liệu đầu tiên (quá 12 tháng thì mỗi cột một năm).
+  /// Ngày sau hôm nay không được tính.
+  static List<ReportBucket> buckets(
+    List<HabitHistory> histories,
+    ReportPeriod period,
+    DateTime today,
+  ) {
+    final day = dateOnly(today);
+    final ranges = <({String label, DateTime from, DateTime to})>[];
+
+    void addWeek(DateTime monday) {
+      for (var i = 0; i < 7; i++) {
+        final date = addDays(monday, i);
+        ranges.add((label: '${date.day}', from: date, to: date));
+      }
+    }
+
+    void addMonthInWeeks(DateTime first) {
+      final last = DateTime(first.year, first.month + 1, 0);
+      for (var start = 1; start <= last.day; start += 7) {
+        final end = math.min(start + 6, last.day);
+        ranges.add((
+          label: start == end ? '$start' : '$start–$end',
+          from: DateTime(first.year, first.month, start),
+          to: DateTime(first.year, first.month, end),
+        ));
+      }
+    }
+
+    void addMonths(DateTime first, DateTime last) {
+      for (var month = first; !month.isAfter(last); month = DateTime(month.year, month.month + 1)) {
+        ranges.add((
+          label: 'Th${month.month}',
+          from: month,
+          to: DateTime(month.year, month.month + 1, 0),
+        ));
+      }
+    }
+
+    final thisMonth = DateTime(day.year, day.month);
+    switch (period) {
+      case ReportPeriod.thisWeek:
+        addWeek(weekStart(day));
+      case ReportPeriod.lastWeek:
+        addWeek(addDays(weekStart(day), -7));
+      case ReportPeriod.thisMonth:
+        addMonthInWeeks(thisMonth);
+      case ReportPeriod.lastMonth:
+        addMonthInWeeks(DateTime(day.year, day.month - 1));
+      case ReportPeriod.sixMonths:
+        addMonths(DateTime(day.year, day.month - 5), thisMonth);
+      case ReportPeriod.thisYear:
+        addMonths(DateTime(day.year), thisMonth);
+      case ReportPeriod.allTime:
+        final start = earliestStart(histories) ?? day;
+        final first = DateTime(start.year, start.month);
+        final months = (day.year - first.year) * 12 + day.month - first.month + 1;
+        if (months <= 12) {
+          addMonths(first, thisMonth);
+        } else {
+          for (var year = first.year; year <= day.year; year++) {
+            ranges.add((label: '$year', from: DateTime(year), to: DateTime(year, 12, 31)));
+          }
+        }
+    }
+
+    final result = <ReportBucket>[];
+    for (final range in ranges) {
+      final counts = tally(histories, range.from, range.to, today: day);
+      result.add((
+        label: range.label,
+        from: range.from,
+        to: range.to,
+        completed: counts.completed,
+        due: counts.due,
+      ));
+    }
+    return result;
+  }
+
+  /// Các ngày từ [from] đến [to], bỏ những ngày sau [today].
+  static Iterable<DateTime> _days(DateTime from, DateTime to, DateTime today) sync* {
+    final end = to.isAfter(today) ? dateOnly(today) : dateOnly(to);
+    for (var day = dateOnly(from); !day.isAfter(end); day = addDays(day, 1)) {
+      yield day;
+    }
   }
 
   // ---------- Ý định thực hiện ----------

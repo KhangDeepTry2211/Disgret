@@ -6,11 +6,16 @@ import '../date_utils.dart';
 /// - focus: số phút thật từ một phiên Focus.
 /// - minimal: chỉ làm phiên bản 2 phút; vẫn giữ chuỗi nhưng điểm sức mạnh chỉ cộng một nửa.
 /// - freeze: ngày nghỉ phép; không làm đứt chuỗi, điểm sức mạnh giữ nguyên.
+/// - skip: chủ động bỏ hôm nay (vẫn tính là không làm); ghi lại để biết là bỏ có chủ đích.
 enum HabitLogSource {
   manual,
   focus,
   minimal,
-  freeze;
+  freeze,
+  skip;
+
+  /// Các nguồn được tính là ĐÃ LÀM khi đánh dấu cả ngày.
+  bool get countsAsDone => this == manual || this == minimal;
 
   /// Các nguồn do người dùng tự đánh dấu cho cả ngày; mỗi ngày chỉ có tối đa một loại.
   bool get isDayMark => this != focus;
