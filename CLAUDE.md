@@ -33,6 +33,9 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Bo góc 12 cho thẻ, 999 cho nút dạng viên thuốc. Bóng đổ rất nhẹ hoặc không có; phân tách bằng đường kẻ mảnh.
 - Icon nét mảnh (outline), dùng icon Material Symbols rounded.
 - Màn Reels: vuốt dọc, video hiện trọn vẹn không bị cắt (co vừa khung), phía sau là chính video đó làm mờ (tắt bằng `AppReels.blurBackground`; trên web nền chỉ là màu đen). Chữ và nút nổi ở đáy, có lớp mờ gradient đen để chữ dễ đọc.
+  - Tim / Bình luận / Chia sẻ (reel_action_column.dart): cột dọc bên phải, trên nút "Bắt đầu 5 phút"; icon Material, bóng mờ AppReels.onVideoShadows, màu đã thích AppColors.reelLiked. Tim đổi đặc/rỗng và nảy nhẹ; chạm ĐÚP vào video = thích (tim lớn BurstHeart bay lên, không bỏ thích). Chạm đơn tạm dừng/phát NGAY, không chờ: chạm thứ hai trong AppReels.doubleTapWindow thì hoàn lại lần đổi đó rồi thích (không dùng onDoubleTap vì nó làm chạm đơn trễ ~300ms). Số bình luận thật hiện dưới nút Bình luận, bằng 0 thì ẩn số; không có số lượt thích giả.
+  - Bình luận (reel_comments_sheet.dart): bottom sheet cao ~60%, mới nhất ở dưới, tối đa 300 ký tự, nhấn giữ bình luận của mình để xoá (có xác nhận). Mở sheet thì tạm dừng video, đóng thì phát lại.
+  - Chia sẻ (reel_share.dart): share_plus, chỉ chia sẻ đoạn chữ (không gửi video). Không mở được bảng chia sẻ thì chép clipboard + SnackBar "Đã chép nội dung chia sẻ".
 - Thanh điều hướng dưới cùng 4 tab: Trang chủ, Reels, Focus, Thói quen.
 - Bảng 12 màu pastel cho thẻ thói quen: AppHabitColors.palette trong app_theme.dart, mỗi màu có nền và màu chữ đậm cùng tông, dùng chung cho sáng và tối.
 - Màn Tạo/Sửa thói quen (habit_form_screen.dart, theo ảnh 07–11 trong design/habit_kit/): một trang cuộn, tab Thói quen / Việc một lần, tên, icon (5 chọn nhanh + "Xem tất cả" mở habit_icon_picker.dart: tìm kiếm không dấu, tab Icon / Emoji), 12 màu, Lặp lại, Làm vào, Kết thúc vào, Nhắc nhở, số phút, "Sau khi…", "Bản 2 phút", nút Lưu viên thuốc màu primary.
@@ -65,6 +68,10 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Event: type (reel_watched, intervention_shown, chose_study, chose_reel, chose_break, session_distracted), time, meta
   - reel_watched: meta gồm reelId, secondsWatched, completed, startedFocus
   - session_distracted: meta gồm awaySeconds, distractionIndex
+  - reel_liked, reel_unliked, reel_commented, reel_shared (1.4): meta gồm reelId
+- ReelReaction (box reel_reactions, id = reelId): reelId, liked, likedAt. Bỏ thích giữ bản ghi với liked = false.
+- ReelComment (box reel_comments): id, reelId, text, createdAt, updatedAt, deleted (xoá mềm), author (null = của người dùng, "Người dùng mẫu" cho dữ liệu mẫu). updatedAt/deleted có sẵn để sau này đồng bộ Firebase theo luật "bản mới hơn thắng".
+- Đề xuất reel (1.3) thêm luật +1 điểm nếu reel có tag trùng với tag của một reel đã thích (ReelRecommender.score, tham số likedTags).
   - intervention_shown: meta gồm packageName, appLabel, waitSeconds
   - chose_break: meta gồm minutes
 - Danh sách app cần nhắc (2.1): danh sách packageName, lưu trong box `profile` với khóa `blocked_packages`; chưa có thì dùng danh sách mặc định trong BlockedAppsRepository.
@@ -73,8 +80,8 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Màn Thống kê mở từ Cài đặt. Phần tính nằm ở lib/services/focus_stats.dart (hàm thuần, có unit test), màn hình chỉ hiển thị.
   - Phút tập trung 7 ngày gần nhất: cộng focusedSeconds của Session theo ngày bắt đầu; biểu đồ cột vẽ bằng widget. Kèm số phiên và số ngày hoàn thành thói quen (từ HabitLog).
   - Reset break: số intervention_shown, tỉ lệ chose_study / chose_reel / chose_break trên tổng số lần đã chọn. Chỉ tính lựa chọn trên màn can thiệp, không tính sheet nhắc trong app (3.3).
-  - Reels: số reel_watched và tỉ lệ có startedFocus. Thời gian quay lại: trung bình awaySeconds của session_distracted.
-- "Tạo dữ liệu mẫu" (lib/data/mock_data.dart) dùng id cố định nên bấm nhiều lần không trùng. 1 mục tiêu có câu bản sắc, 7 thói quen đủ 7 màu, đủ Sáng/Chiều/Tối (và 1 thói quen "lúc nào cũng được"), có hằng tuần theo thứ (Chạy bộ T2, T4, T6), hằng tuần theo số ngày (Thiền 5 ngày/tuần) và 1 việc một lần hạn hôm nay; lịch sử 120 ngày có ngày bỏ, bỏ qua (skip), bản 2 phút, nghỉ phép (các ngày nghỉ phép cách nhau ≥ 7 ngày để luôn khác tuần dù hôm nay là thứ mấy); "Ôn bài" đủ 66 ngày (đủ 4 huy hiệu), "Đọc sách" bỏ hôm qua để hiện lời nhắc. sortOrder của thói quen mẫu bắt đầu từ 1 để thói quen tạo lúc onboarding (sortOrder 0) đứng đầu và được Focus chọn sẵn. Ngày thứ 6 trước hôm nay không thói quen nào được làm nên streak chung là 5. Hôm nay để trống (chỉ có "Làm bài tập" 10/30 phút) để demo xong một phiên thì streak tăng từ 5 lên 6. Có 5 phiên học, 8 lượt xem reel, 6 lần chặn kèm lựa chọn, 7 lần xao nhãng; mọi lượt xem reel mẫu đều cũ hơn 24 giờ để không làm lệch thứ tự đề xuất lúc demo.
+  - Reels: số reel_watched và tỉ lệ có startedFocus; dòng "Reel đã thích" (số ReelReaction có liked). Thời gian quay lại: trung bình awaySeconds của session_distracted.
+- "Tạo dữ liệu mẫu" (lib/data/mock_data.dart) dùng id cố định nên bấm nhiều lần không trùng. 1 mục tiêu có câu bản sắc, 7 thói quen đủ 7 màu, đủ Sáng/Chiều/Tối (và 1 thói quen "lúc nào cũng được"), có hằng tuần theo thứ (Chạy bộ T2, T4, T6), hằng tuần theo số ngày (Thiền 5 ngày/tuần) và 1 việc một lần hạn hôm nay; lịch sử 120 ngày có ngày bỏ, bỏ qua (skip), bản 2 phút, nghỉ phép (các ngày nghỉ phép cách nhau ≥ 7 ngày để luôn khác tuần dù hôm nay là thứ mấy); "Ôn bài" đủ 66 ngày (đủ 4 huy hiệu), "Đọc sách" bỏ hôm qua để hiện lời nhắc. sortOrder của thói quen mẫu bắt đầu từ 1 để thói quen tạo lúc onboarding (sortOrder 0) đứng đầu và được Focus chọn sẵn. Ngày thứ 6 trước hôm nay không thói quen nào được làm nên streak chung là 5. Hôm nay để trống (chỉ có "Làm bài tập" 10/30 phút) để demo xong một phiên thì streak tăng từ 5 lên 6. Có 5 phiên học, 8 lượt xem reel, thích r1 và r3, 4 bình luận của "Người dùng mẫu" (r1, r3, r5), 6 lần chặn kèm lựa chọn, 7 lần xao nhãng; mọi lượt xem reel mẫu đều cũ hơn 24 giờ để không làm lệch thứ tự đề xuất lúc demo.
 
 ## MethodChannel focus/native
 Phần Kotlin nằm trong android/app/src/main/kotlin/com/nhom/focus/focus_app/. Phía Flutter mọi lời gọi đi qua lib/services/native_bridge.dart; trên web các hàm này không gọi gì và trả về giá trị mặc định.

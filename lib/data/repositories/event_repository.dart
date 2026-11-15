@@ -61,4 +61,8 @@ class EventRepository extends HiveRepository<Event> {
       },
     );
   }
+
+  /// 1.4 Ghi thích, bỏ thích, bình luận, chia sẻ reel (meta chỉ có reelId).
+  Future<void> logReelAction(EventType type, String reelId) =>
+      log(type, meta: {ReelActionMeta.reelId: reelId});
 }

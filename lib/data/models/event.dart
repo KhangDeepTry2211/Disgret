@@ -6,7 +6,11 @@ enum EventType {
   choseStudy('chose_study'),
   choseReel('chose_reel'),
   choseBreak('chose_break'),
-  sessionDistracted('session_distracted');
+  sessionDistracted('session_distracted'),
+  reelLiked('reel_liked'),
+  reelUnliked('reel_unliked'),
+  reelCommented('reel_commented'),
+  reelShared('reel_shared');
 
   const EventType(this.value);
 
@@ -26,6 +30,13 @@ class ReelWatchMeta {
 
   /// Chỉ có khi người dùng bấm "Bắt đầu 5 phút" ngay từ reel này.
   static const String startedFocus = 'startedFocus';
+}
+
+/// Meta của reel_liked, reel_unliked, reel_commented, reel_shared: chỉ có reelId.
+class ReelActionMeta {
+  ReelActionMeta._();
+
+  static const String reelId = 'reelId';
 }
 
 /// Tên các khoá trong meta của sự kiện session_distracted.

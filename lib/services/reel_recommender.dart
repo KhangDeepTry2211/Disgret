@@ -16,17 +16,20 @@ class ReelRecommender {
 
   final List<Reel> reels;
 
-  /// Điểm = 2 × số tag trùng động lực + 1 nếu chưa xem trong 24 giờ qua − 2 nếu vừa xem gần nhất.
+  /// Điểm = 2 × số tag trùng động lực + 1 nếu chưa xem trong 24 giờ qua − 2 nếu vừa xem gần nhất
+  /// + 1 nếu có tag trùng với tag của một reel người dùng đã thích ([likedTags]).
   static int score(
     Reel reel, {
     required List<MotivationType> motivationTypes,
     required Set<String> recentlyWatchedIds,
     required String? lastWatchedId,
+    Set<MotivationType> likedTags = const {},
   }) {
     final matchingTags = reel.tags.where(motivationTypes.contains).length;
     var points = 2 * matchingTags;
     if (!recentlyWatchedIds.contains(reel.id)) points += 1;
     if (reel.id == lastWatchedId) points -= 2;
+    if (reel.tags.any(likedTags.contains)) points += 1;
     return points;
   }
 
@@ -35,7 +38,17 @@ class ReelRecommender {
   /// Điểm bằng nhau thì giữ thứ tự trong reels.json.
   /// Reel ghim cho ngữ cảnh này (trường pinFirst) luôn đứng đầu, bỏ qua điểm và luật
   /// "vừa xem gần nhất"; các chỗ còn lại vẫn xếp theo điểm.
-  List<Reel> recommend(UserProfile? profile, String context, List<Event> history, {DateTime? now}) {
+  List<Reel> recommend(
+    UserProfile? profile,
+    String context,
+    List<Event> history, {
+    DateTime? now,
+    Set<String> likedReelIds = const {},
+  }) {
+    final likedTags = {
+      for (final reel in reels)
+        if (likedReelIds.contains(reel.id)) ...reel.tags,
+    };
     final currentTime = now ?? DateTime.now();
     final watched = history
         .where(
@@ -62,6 +75,7 @@ class ReelRecommender {
           motivationTypes: motivationTypes,
           recentlyWatchedIds: recentlyWatchedIds,
           lastWatchedId: lastWatchedId,
+          likedTags: likedTags,
         ),
     };
 

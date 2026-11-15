@@ -12,7 +12,10 @@ import '../data/models/goal.dart';
 import '../data/models/habit.dart';
 import '../data/models/habit_log.dart';
 import '../data/models/motivation_type.dart';
+import '../data/models/event.dart';
 import '../data/models/reel.dart';
+import '../data/models/reel_comment.dart';
+import '../data/models/reel_reaction.dart';
 import '../data/models/session.dart';
 import '../data/models/user_profile.dart';
 import '../data/repositories/blocked_apps_repository.dart';
@@ -22,6 +25,8 @@ import '../data/repositories/habit_log_repository.dart';
 import '../data/repositories/habit_repository.dart';
 import '../data/repositories/hive_repository.dart';
 import '../data/repositories/profile_repository.dart';
+import '../data/repositories/reel_comment_repository.dart';
+import '../data/repositories/reel_reaction_repository.dart';
 import '../data/repositories/reel_repository.dart';
 import '../data/repositories/session_repository.dart';
 import '../services/focus_stats.dart';
@@ -36,6 +41,8 @@ final habitLogRepositoryProvider = Provider((ref) => HabitLogRepository());
 final sessionRepositoryProvider = Provider((ref) => SessionRepository());
 final reelRepositoryProvider = Provider((ref) => ReelRepository());
 final eventRepositoryProvider = Provider((ref) => EventRepository());
+final reelReactionRepositoryProvider = Provider((ref) => ReelReactionRepository());
+final reelCommentRepositoryProvider = Provider((ref) => ReelCommentRepository());
 final blockedAppsRepositoryProvider = Provider((ref) => BlockedAppsRepository());
 
 /// Cầu nối sang phần Kotlin; tách thành provider để test thay bằng bản giả.
@@ -298,6 +305,82 @@ final habitLogsProvider = NotifierProvider<HabitLogsNotifier, List<HabitLog>>(
   HabitLogsNotifier.new,
 );
 
+// ---------- 1.4 Thích và bình luận reel ----------
+
+/// Id các reel người dùng đang thích.
+class ReelLikesNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => ref.watch(reelReactionRepositoryProvider).likedIds();
+
+  /// Đặt trạng thái thích. Trả về true nếu có thay đổi (chạm đúp vào reel đã thích thì không đổi).
+  Future<bool> setLiked(String reelId, {required bool liked}) async {
+    if (state.contains(reelId) == liked) return false;
+    // Đổi state trước khi chờ ghi xuống Hive, như BlockedAppsNotifier.
+    state = liked ? {...state, reelId} : ({...state}..remove(reelId));
+    await ref
+        .read(reelReactionRepositoryProvider)
+        .save(ReelReaction(reelId: reelId, liked: liked, likedAt: ref.read(clockProvider)()));
+    await ref
+        .read(eventRepositoryProvider)
+        .logReelAction(liked ? EventType.reelLiked : EventType.reelUnliked, reelId);
+    return true;
+  }
+
+  Future<void> toggle(String reelId) => setLiked(reelId, liked: !state.contains(reelId));
+}
+
+final reelLikesProvider = NotifierProvider<ReelLikesNotifier, Set<String>>(ReelLikesNotifier.new);
+
+/// Bình luận chưa xoá của mọi reel, cũ nhất trước.
+class ReelCommentsNotifier extends Notifier<List<ReelComment>> {
+  ReelCommentRepository get _repository => ref.read(reelCommentRepositoryProvider);
+
+  @override
+  List<ReelComment> build() =>
+      ref
+          .watch(reelCommentRepositoryProvider)
+          .getAll()
+          .where((comment) => !comment.deleted)
+          .toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  /// Thêm bình luận của người dùng. Chuỗi rỗng thì không thêm; quá dài thì cắt còn 300 ký tự.
+  Future<bool> add(String reelId, String text) async {
+    var trimmed = text.trim();
+    if (trimmed.isEmpty) return false;
+    if (trimmed.length > ReelComment.maxLength) {
+      trimmed = trimmed.substring(0, ReelComment.maxLength);
+    }
+    final now = ref.read(clockProvider)();
+    final comment = ReelComment(
+      id: newId(),
+      reelId: reelId,
+      text: trimmed,
+      createdAt: now,
+      updatedAt: now,
+    );
+    state = [...state, comment];
+    await _repository.save(comment);
+    await ref.read(eventRepositoryProvider).logReelAction(EventType.reelCommented, reelId);
+    return true;
+  }
+
+  /// Xoá mềm: giữ bản ghi với deleted = true để sau này đồng bộ.
+  Future<void> delete(String id) async {
+    final comment = state.where((item) => item.id == id).firstOrNull;
+    if (comment == null) return;
+    state = [
+      for (final item in state)
+        if (item.id != id) item,
+    ];
+    await _repository.save(comment.copyWith(deleted: true, updatedAt: ref.read(clockProvider)()));
+  }
+}
+
+final reelCommentsProvider = NotifierProvider<ReelCommentsNotifier, List<ReelComment>>(
+  ReelCommentsNotifier.new,
+);
+
 // ---------- 2.1 Danh sách app ----------
 
 /// Các app sẽ bị nhắc khi mở trong lúc đang học.
@@ -422,6 +505,7 @@ final focusStatsProvider = FutureProvider.autoDispose<FocusStats>((ref) async {
   return FocusStats.from(
     events: ref.read(eventRepositoryProvider).getAll(),
     sessions: ref.read(sessionRepositoryProvider).getAll(),
+    reactions: ref.read(reelReactionRepositoryProvider).getAll(),
     // Tính cả thói quen đã "xoá nhưng giữ lịch sử" để số ngày hoàn thành không bị mất.
     habits: ref.watch(allHabitsProvider),
     logs: ref.watch(habitLogsProvider),
@@ -461,6 +545,8 @@ class AppDataActions {
     _ref.invalidate(habitsProvider);
     _ref.invalidate(habitLogsProvider);
     _ref.invalidate(blockedAppsProvider);
+    _ref.invalidate(reelLikesProvider);
+    _ref.invalidate(reelCommentsProvider);
   }
 }
 

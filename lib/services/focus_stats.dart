@@ -6,6 +6,7 @@ import '../data/habit_progress.dart';
 import '../data/models/event.dart';
 import '../data/models/habit.dart';
 import '../data/models/habit_log.dart';
+import '../data/models/reel_reaction.dart';
 import '../data/models/session.dart';
 
 /// Số phút tập trung của một ngày.
@@ -29,6 +30,7 @@ class FocusStats {
     required this.reelsStartedFocus,
     required this.distractionCount,
     required this.averageReturn,
+    this.reelsLiked = 0,
   });
 
   /// Biểu đồ và các số liệu học tập tính trong chừng này ngày, tính cả hôm nay.
@@ -59,6 +61,9 @@ class FocusStats {
   final int reelsWatched;
   final int reelsStartedFocus;
 
+  /// 1.4 Số reel đang được thích.
+  final int reelsLiked;
+
   /// 3.2 Số lần xao nhãng trong phiên học.
   final int distractionCount;
 
@@ -82,6 +87,7 @@ class FocusStats {
     required Iterable<Habit> habits,
     required Iterable<HabitLog> logs,
     required DateTime today,
+    Iterable<ReelReaction> reactions = const [],
   }) {
     final lastDay = dateOnly(today);
     final dayList = [
@@ -125,6 +131,7 @@ class FocusStats {
       choseReel: countOf(EventType.choseReel),
       choseBreak: countOf(EventType.choseBreak),
       reelsWatched: watched.length,
+      reelsLiked: reactions.where((reaction) => reaction.liked).length,
       reelsStartedFocus: watched
           .where((event) => event.meta[ReelWatchMeta.startedFocus] == true)
           .length,

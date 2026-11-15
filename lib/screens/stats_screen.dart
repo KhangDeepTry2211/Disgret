@@ -314,6 +314,7 @@ class _ReelsCard extends StatelessWidget {
             count: stats.reelsStartedFocus,
             share: rate,
           ),
+        _Hint('Reel đã thích: ${stats.reelsLiked}'),
       ],
     );
   }

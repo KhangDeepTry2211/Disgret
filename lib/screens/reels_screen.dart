@@ -14,16 +14,20 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:video_player/video_player.dart';
 
+import '../data/models/event.dart';
 import '../data/models/reel.dart';
 import '../data/repositories/event_repository.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../router/app_router.dart';
 import '../services/reel_recommender.dart';
+import '../services/reel_share.dart';
 import '../services/reel_watch_tracker.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_pill_button.dart';
 import '../widgets/gradient_progress_bar.dart';
+import '../widgets/reel_action_column.dart';
+import '../widgets/reel_comments_sheet.dart';
 
 class ReelsScreen extends ConsumerWidget {
   const ReelsScreen({this.reelContext = ReelContext.start, super.key});
@@ -121,6 +125,7 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
       widget.reelContext,
       _events.getAll(),
       now: ref.read(clockProvider)(),
+      likedReelIds: ref.read(reelLikesProvider),
     );
     _currentPage = 0;
     _tracker = ReelWatchTracker();
@@ -223,6 +228,33 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
     context.go(AppRoutes.focus);
   }
 
+  /// Mở bình luận: tạm dừng video, đóng sheet thì phát lại nếu trước đó đang phát.
+  Future<void> _openComments(Reel reel) async {
+    final video = _controllers[_currentPage];
+    final wasPlaying = video?.value.isPlaying ?? false;
+    video?.pause();
+    await showReelCommentsSheet(context, reelId: reel.id);
+    if (wasPlaying && mounted && _isActive && _controllers[_currentPage] == video) video?.play();
+  }
+
+  Future<void> _share(Reel reel) async {
+    final outcome = await ReelShare.share(reel);
+    if (outcome != ReelShareOutcome.failed) {
+      await _events.logReelAction(EventType.reelShared, reel.id);
+    }
+    if (!mounted) return;
+    final message = switch (outcome) {
+      ReelShareOutcome.copiedToClipboard => 'Đã chép nội dung chia sẻ',
+      ReelShareOutcome.failed => 'Không chia sẻ được',
+      ReelShareOutcome.shared => null,
+    };
+    if (message != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isInSession = ref.watch(focusSessionProvider.select((session) => session.isRunning));
@@ -252,19 +284,28 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
               ? 'Quay lại học'
               : 'Bắt đầu ${ReelsScreen.quickStartMinutes} phút',
           onAction: isInSession ? _backToSession : _startFocus,
+          onToggleLike: () => ref.read(reelLikesProvider.notifier).toggle(_reels[page].id),
+          onDoubleTapLike: () =>
+              ref.read(reelLikesProvider.notifier).setLiked(_reels[page].id, liked: true),
+          onComments: () => _openComments(_reels[page]),
+          onShare: () => _share(_reels[page]),
         ),
       ),
     );
   }
 }
 
-class _ReelPage extends StatelessWidget {
+class _ReelPage extends StatefulWidget {
   const _ReelPage({
     required this.reel,
     required this.controller,
     required this.isCurrent,
     required this.actionLabel,
     required this.onAction,
+    required this.onToggleLike,
+    required this.onDoubleTapLike,
+    required this.onComments,
+    required this.onShare,
   });
 
   final Reel reel;
@@ -274,28 +315,69 @@ class _ReelPage extends StatelessWidget {
   /// Nút dưới video: "Bắt đầu 5 phút", hoặc "Quay lại học" khi đang có phiên.
   final String actionLabel;
   final VoidCallback onAction;
+  final VoidCallback onToggleLike;
+  final VoidCallback onDoubleTapLike;
+  final VoidCallback onComments;
+  final VoidCallback onShare;
 
-  void _togglePlay(VideoPlayerController video) {
-    if (!video.value.isInitialized) return;
+  @override
+  State<_ReelPage> createState() => _ReelPageState();
+}
+
+class _ReelPageState extends State<_ReelPage> {
+  /// Trái tim lớn đang bay, mỗi lần chạm đúp một trái.
+  final List<({int id, Offset center})> _hearts = [];
+  int _nextHeartId = 0;
+
+  DateTime? _lastTapAt;
+  Offset _lastTapPosition = Offset.zero;
+
+  void _togglePlay() {
+    final video = widget.controller;
+    if (video == null || !video.value.isInitialized) return;
     video.value.isPlaying ? video.pause() : video.play();
+  }
+
+  /// Phân biệt chạm đơn và chạm đúp mà KHÔNG chờ: chạm đầu tạm dừng/phát ngay (không trễ);
+  /// nếu chạm thứ hai tới kịp thì đổi lại trạng thái phát rồi thích video.
+  /// (GestureDetector.onDoubleTap bắt chạm đơn phải chờ ~300ms nên không dùng.)
+  void _onTapUp(TapUpDetails details) {
+    final now = DateTime.now();
+    final lastAt = _lastTapAt;
+    final isDoubleTap =
+        lastAt != null &&
+        now.difference(lastAt) <= AppReels.doubleTapWindow &&
+        (details.localPosition - _lastTapPosition).distance <= AppReels.doubleTapSlop;
+
+    if (isDoubleTap) {
+      _lastTapAt = null;
+      _togglePlay(); // Hoàn lại lần đổi của chạm đầu.
+      widget.onDoubleTapLike();
+      setState(() => _hearts.add((id: _nextHeartId++, center: details.localPosition)));
+    } else {
+      _lastTapAt = now;
+      _lastTapPosition = details.localPosition;
+      _togglePlay();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final video = controller;
+    final video = widget.controller;
+    final reel = widget.reel;
 
     return GestureDetector(
-      // Chạm vào bất cứ đâu để tạm dừng/phát; riêng nút bắt đầu tự xử lý phần của nó.
+      // Chạm vào bất cứ đâu để tạm dừng/phát, chạm đúp để thích; các nút tự xử lý phần của nó.
       behavior: HitTestBehavior.opaque,
-      onTap: video == null ? null : () => _togglePlay(video),
+      onTapUp: _onTapUp,
       child: Stack(
         fit: StackFit.expand,
         children: [
           if (video == null)
             const _LoadingIndicator()
           else
-            _VideoLayer(controller: video, isCurrent: isCurrent),
+            _VideoLayer(controller: video, isCurrent: widget.isCurrent),
           // Lớp mờ mỏng ở đỉnh để đồng hồ và thanh tiến độ vẫn rõ trên video sáng.
           const Align(
             alignment: Alignment.topCenter,
@@ -333,24 +415,58 @@ class _ReelPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        reel.title,
-                        style: textTheme.headlineSmall?.copyWith(color: AppColors.onVideo),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Wrap(
-                        spacing: AppSpacing.sm,
-                        runSpacing: AppSpacing.xs,
-                        children: [for (final tag in reel.tags) _TagChip(label: tag.label)],
+                      // Tiêu đề và chip tag bên trái, cột Tim / Bình luận / Chia sẻ bên phải.
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  reel.title,
+                                  style: textTheme.headlineSmall?.copyWith(
+                                    color: AppColors.onVideo,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                Wrap(
+                                  spacing: AppSpacing.sm,
+                                  runSpacing: AppSpacing.xs,
+                                  children: [
+                                    for (final tag in reel.tags) _TagChip(label: tag.label),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          ReelActionColumn(
+                            reelId: reel.id,
+                            onToggleLike: widget.onToggleLike,
+                            onComments: widget.onComments,
+                            onShare: widget.onShare,
+                          ),
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      GradientPillButton(label: actionLabel, height: 56, onPressed: onAction),
+                      GradientPillButton(
+                        label: widget.actionLabel,
+                        height: 56,
+                        onPressed: widget.onAction,
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+          for (final heart in _hearts)
+            BurstHeart(
+              key: ValueKey(heart.id),
+              center: heart.center,
+              onEnd: () => setState(() => _hearts.removeWhere((item) => item.id == heart.id)),
+            ),
         ],
       ),
     );

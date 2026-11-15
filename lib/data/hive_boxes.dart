@@ -10,9 +10,20 @@ class HiveBoxes {
   static const String habitLogs = 'habit_logs';
   static const String sessions = 'sessions';
   static const String events = 'events';
+  static const String reelReactions = 'reel_reactions';
+  static const String reelComments = 'reel_comments';
 
   /// Reel đọc từ asset (1.2) nên không có box riêng.
-  static const List<String> all = [profile, goals, habits, habitLogs, sessions, events];
+  static const List<String> all = [
+    profile,
+    goals,
+    habits,
+    habitLogs,
+    sessions,
+    events,
+    reelReactions,
+    reelComments,
+  ];
 
   /// Mở toàn bộ box; gọi một lần lúc khởi động, trước khi dùng repository.
   static Future<void> openAll() async {
