@@ -46,3 +46,10 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Claude Code personal settings
+.claude/settings.local.json
+
+# Graphify: generated knowledge graph (each developer rebuilds locally; see AGENTS.md)
+graphify-out/
+.claude/settings.json.graphify-bak

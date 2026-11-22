@@ -1,0 +1,21 @@
+# Graphify input exclusions (in addition to .gitignore).
+# The graph covers the app code that agents change: lib/, test/, android/ (Kotlin).
+
+# Unsupported platforms (ADR-0001) and generated Flutter scaffolding
+ios/
+macos/
+linux/
+windows/
+web/
+android/.gradle/
+android/app/build/
+**/GeneratedPluginRegistrant.*
+
+# Binary and media assets
+assets/
+design/
+
+# Tool-managed files, not project knowledge
+.specify/
+.claude/
+graphify-out/
