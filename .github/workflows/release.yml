@@ -1,0 +1,52 @@
+# Hand-off build: pushing a tag like v0.2.0 runs the full gate, builds a debug-signed APK and
+# publishes it as a GitHub Release (ADR-0001; internal testing only, not a store release).
+name: Release APK
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2.23.0
+        with:
+          channel: stable
+          flutter-version: 3.47.9
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Gate
+        run: |
+          dart format --output=none --set-exit-if-changed lib test
+          flutter analyze
+          flutter test
+
+      - name: Build debug APK
+        run: |
+          flutter build apk --debug
+          cp build/app/outputs/flutter-apk/app-debug.apk "disgret-${GITHUB_REF_NAME}-debug.apk"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "disgret-${GITHUB_REF_NAME}-debug.apk" \
+            --title "DisGret $GITHUB_REF_NAME" \
+            --notes "Debug-signed APK for internal testing on the Android emulator or a test phone. Install by opening the APK (allow installs from unknown sources)." \
+            --prerelease
