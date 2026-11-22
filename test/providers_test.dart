@@ -409,4 +409,29 @@ void main() {
       expect(ProfileRepository().isOnboardingDone, isTrue);
     });
   });
+
+  group('sessionPlanProvider', () {
+    test('follows the plan rule and the one-session override', () async {
+      final goal = await goals().add(title: 'G', reason: 'R');
+      final first = await habits().add(goalId: goal.id, name: 'A', minMinutesPerDay: 30);
+      final second = await habits().add(goalId: goal.id, name: 'B', minMinutesPerDay: 15);
+
+      var plan = container.read(sessionPlanProvider);
+      expect(plan.goal?.id, goal.id);
+      expect(plan.habit?.id, first.id);
+      expect(plan.plannedMinutes, 30);
+
+      final override = container.read(sessionPlanOverrideProvider.notifier);
+      override.choose(habitId: second.id, minutes: 45);
+      plan = container.read(sessionPlanProvider);
+      expect(plan.habit?.id, second.id);
+      expect(plan.plannedMinutes, 45);
+
+      override.chooseHabit(second.id);
+      expect(container.read(sessionPlanProvider).plannedMinutes, 15);
+
+      override.clear();
+      expect(container.read(sessionPlanProvider).habit?.id, first.id);
+    });
+  });
 }

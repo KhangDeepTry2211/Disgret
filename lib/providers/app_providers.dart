@@ -29,6 +29,7 @@ import '../data/repositories/reel_comment_repository.dart';
 import '../data/repositories/reel_reaction_repository.dart';
 import '../data/repositories/reel_repository.dart';
 import '../data/repositories/session_repository.dart';
+import '../data/session_plan.dart';
 import '../services/focus_stats.dart';
 import '../services/native_bridge.dart';
 
@@ -483,18 +484,49 @@ final averageStrengthProvider = Provider<double>((ref) {
   );
 });
 
-/// 3.1 Thói quen được chọn sẵn ở màn Focus, ví dụ khi bấm nút "Focus" trên thẻ thói quen.
-/// null nghĩa là dùng thói quen hôm nay (todayHabitProvider).
-class FocusHabitChoiceNotifier extends Notifier<String?> {
-  @override
-  String? build() => null;
+// ---------- 5.1 Kế hoạch phiên học tiếp theo (Hôm nay) ----------
 
-  void choose(String? habitId) => state = habitId;
+/// The user's choice for the next session only (data-model.md SessionPlanOverride).
+/// Empty means "use the plan rule"; cleared when a session starts.
+class SessionPlanOverride {
+  const SessionPlanOverride({this.habitId, this.minutes});
+
+  final String? habitId;
+  final int? minutes;
 }
 
-final focusHabitChoiceProvider = NotifierProvider<FocusHabitChoiceNotifier, String?>(
-  FocusHabitChoiceNotifier.new,
-);
+class SessionPlanOverrideNotifier extends Notifier<SessionPlanOverride> {
+  @override
+  SessionPlanOverride build() => const SessionPlanOverride();
+
+  /// Habit card "Bắt đầu Focus": pick the habit; its own minutes apply.
+  void chooseHabit(String? habitId) => state = SessionPlanOverride(habitId: habitId);
+
+  /// Plan sheet on Hôm nay: pick both habit and minutes.
+  void choose({required String? habitId, required int? minutes}) =>
+      state = SessionPlanOverride(habitId: habitId, minutes: minutes);
+
+  void clear() => state = const SessionPlanOverride();
+}
+
+final sessionPlanOverrideProvider =
+    NotifierProvider<SessionPlanOverrideNotifier, SessionPlanOverride>(
+      SessionPlanOverrideNotifier.new,
+    );
+
+/// What Hôm nay proposes: goal, next habit, planned minutes and screen state
+/// (pure rule in lib/data/session_plan.dart).
+final sessionPlanProvider = Provider<SessionPlan>((ref) {
+  final override = ref.watch(sessionPlanOverrideProvider);
+  return SessionPlan.next(
+    goals: ref.watch(goalsProvider),
+    habits: ref.watch(habitsProvider),
+    logs: ref.watch(habitLogsProvider),
+    today: ref.watch(todayProvider),
+    overrideHabitId: override.habitId,
+    overrideMinutes: override.minutes,
+  );
+});
 
 // ---------- 8.2 Thống kê ----------
 

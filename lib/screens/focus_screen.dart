@@ -107,16 +107,6 @@ class _SetupViewState extends ConsumerState<_SetupView> {
     super.dispose();
   }
 
-  /// Thói quen người dùng tự chọn (ở ô chọn hoặc nút "Focus" trên thẻ thói quen);
-  /// chưa chọn hoặc thói quen đó đã bị xoá thì dùng thói quen hôm nay.
-  Habit? _currentHabit(List<Habit> habits, Habit? todayHabit) {
-    final selectedId = ref.watch(focusHabitChoiceProvider);
-    for (final habit in habits) {
-      if (habit.id == selectedId) return habit;
-    }
-    return todayHabit;
-  }
-
   Future<void> _start(Habit habit) async {
     if (_isStarting || !_formKey.currentState!.validate()) return;
     final minutes = int.parse(_minutes.text);
@@ -134,7 +124,8 @@ class _SetupViewState extends ConsumerState<_SetupView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final habits = ref.watch(habitsProvider);
-    final habit = _currentHabit(habits, ref.watch(todayHabitProvider));
+    // Thói quen người dùng tự chọn, hoặc thói quen tiếp theo theo kế hoạch Hôm nay.
+    final habit = ref.watch(sessionPlanProvider).habit;
     final isDemo = ref.watch(profileProvider)?.demoMode ?? false;
 
     if (habit == null) {
@@ -181,7 +172,7 @@ class _SetupViewState extends ConsumerState<_SetupView> {
                     child: Text(item.name, overflow: TextOverflow.ellipsis),
                   ),
               ],
-              onChanged: (id) => ref.read(focusHabitChoiceProvider.notifier).choose(id),
+              onChanged: (id) => ref.read(sessionPlanOverrideProvider.notifier).chooseHabit(id),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text('Thời lượng', style: theme.textTheme.titleSmall),

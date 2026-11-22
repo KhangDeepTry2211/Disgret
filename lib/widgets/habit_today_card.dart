@@ -332,7 +332,7 @@ Future<void> showHabitActionsSheet(
     case _HabitAction.clear:
       await logs.clearMarksOn(habit, ref.read(todayProvider));
     case _HabitAction.focus:
-      ref.read(focusHabitChoiceProvider.notifier).choose(habit.id);
+      ref.read(sessionPlanOverrideProvider.notifier).chooseHabit(habit.id);
       context.go(AppRoutes.focus);
     case _HabitAction.details:
       await context.push(AppRoutes.habitDetail(habit.id));

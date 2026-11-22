@@ -38,7 +38,7 @@ and `flutter test` (0 failures) pass before the task is checked off.
       `minMinutesPerDay` within 5–480, else 25; states `noGoal`, `noHabit`, `ready`,
       `allDoneToday`, `restDay`. **Done when** tests exist and fail.
 - [X] T004 Implement `lib/data/session_plan.dart` (pure `SessionPlan.next(...)`) so T003 passes.
-- [ ] T005 Add `sessionPlanOverrideProvider` (data-model.md `SessionPlanOverride.habitId`,
+- [X] T005 Add `sessionPlanOverrideProvider` (data-model.md `SessionPlanOverride.habitId`,
       `.minutes`, cleared on start) and `sessionPlanProvider` in `lib/providers/app_providers.dart`;
       replace `focusHabitChoiceProvider` and update its users (`lib/screens/focus_screen.dart`,
       `lib/widgets/habit_today_card.dart`). **Done when** analyze is clean and existing tests pass.
