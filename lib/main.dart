@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'app.dart';
 import 'data/hive_boxes.dart';
+import 'services/firebase_setup.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,9 @@ Future<void> main() async {
 
   await Hive.initFlutter();
   await HiveBoxes.openAll();
+
+  // F1 Nối Firebase. Lỗi thì app vẫn chạy bằng Hive như trước.
+  await FirebaseSetup.init();
 
   runApp(const ProviderScope(child: DisGretApp()));
 }

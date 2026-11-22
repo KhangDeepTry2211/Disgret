@@ -165,6 +165,7 @@ Mỗi file ghi mã thành phần ở dòng đầu. `kotlin/` là
 | Mã | Thành phần | File chính |
 |---|---|---|
 | 1.1 | Hồ sơ động lực (quiz) | `lib/data/motivation_quiz.dart`, `lib/screens/quiz_screen.dart`, `lib/widgets/quiz_question_view.dart`, `lib/data/models/user_profile.dart` |
+| F1 | Nối Firebase (chưa có đăng nhập, đồng bộ) | `lib/services/firebase_setup.dart`, `lib/firebase_options.dart`, `android/app/google-services.json`, `firebase.json`, `firestore.rules` |
 | 1.2 | Kho nội dung reel | `assets/reels/reels.json`, `lib/data/models/reel.dart`, `lib/data/repositories/reel_repository.dart` |
 | 1.3 | Đề xuất reel theo luật, ghim reel | `lib/services/reel_recommender.dart` |
 | 1.4 | Màn Reels, ghi lượt xem, Tim / Bình luận / Chia sẻ | `lib/screens/reels_screen.dart`, `lib/services/reel_watch_tracker.dart`, `lib/services/reel_share.dart`, `lib/widgets/reel_action_column.dart`, `lib/widgets/reel_comments_sheet.dart`, `lib/data/models/reel_reaction.dart`, `lib/data/models/reel_comment.dart`, `lib/data/repositories/reel_reaction_repository.dart`, `lib/data/repositories/reel_comment_repository.dart` |

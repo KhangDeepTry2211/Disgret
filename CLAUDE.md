@@ -5,7 +5,7 @@ Vòng chính: Habit tracker (mục tiêu) → Anti-reel reels (động lực) �
 Nhánh phụ: đang học mà mở TikTok → Reset break (màn can thiệp) → quay lại học / xem reel / nghỉ có hẹn giờ.
 
 ## Ràng buộc MVP
-- Chỉ Android. Chỉ lưu local bằng Hive. KHÔNG dùng Firebase, KHÔNG làm đăng nhập.
+- Chỉ Android. Dữ liệu chính lưu local bằng Hive. Firebase đã được nối (F1, xem mục Firebase bên dưới) nhưng CHƯA có đăng nhập và đồng bộ: app phải luôn chạy được chỉ với Hive.
 - Flutter + Riverpod + go_router + Material 3. Toàn bộ chữ trên giao diện bằng tiếng Việt.
 - Phần theo dõi app khác viết bằng Kotlin native, gọi qua MethodChannel tên "focus/native".
 - Mỗi phần code ghi mã thành phần theo sơ đồ phân rã trong comment, ví dụ `// 2.3 Màn can thiệp`.
@@ -82,6 +82,25 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   - Reset break: số intervention_shown, tỉ lệ chose_study / chose_reel / chose_break trên tổng số lần đã chọn. Chỉ tính lựa chọn trên màn can thiệp, không tính sheet nhắc trong app (3.3).
   - Reels: số reel_watched và tỉ lệ có startedFocus; dòng "Reel đã thích" (số ReelReaction có liked). Thời gian quay lại: trung bình awaySeconds của session_distracted.
 - "Tạo dữ liệu mẫu" (lib/data/mock_data.dart) dùng id cố định nên bấm nhiều lần không trùng. 1 mục tiêu có câu bản sắc, 7 thói quen đủ 7 màu, đủ Sáng/Chiều/Tối (và 1 thói quen "lúc nào cũng được"), có hằng tuần theo thứ (Chạy bộ T2, T4, T6), hằng tuần theo số ngày (Thiền 5 ngày/tuần) và 1 việc một lần hạn hôm nay; lịch sử 120 ngày có ngày bỏ, bỏ qua (skip), bản 2 phút, nghỉ phép (các ngày nghỉ phép cách nhau ≥ 7 ngày để luôn khác tuần dù hôm nay là thứ mấy); "Ôn bài" đủ 66 ngày (đủ 4 huy hiệu), "Đọc sách" bỏ hôm qua để hiện lời nhắc. sortOrder của thói quen mẫu bắt đầu từ 1 để thói quen tạo lúc onboarding (sortOrder 0) đứng đầu và được Focus chọn sẵn. Ngày thứ 6 trước hôm nay không thói quen nào được làm nên streak chung là 5. Hôm nay để trống (chỉ có "Làm bài tập" 10/30 phút) để demo xong một phiên thì streak tăng từ 5 lên 6. Có 5 phiên học, 8 lượt xem reel, thích r1 và r3, 4 bình luận của "Người dùng mẫu" (r1, r3, r5), 6 lần chặn kèm lựa chọn, 7 lần xao nhãng; mọi lượt xem reel mẫu đều cũ hơn 24 giờ để không làm lệch thứ tự đề xuất lúc demo.
+
+## Firebase (F1)
+- Project ID: **disgret-qs8m** (tên hiển thị DisGret, gói Spark miễn phí, chủ project: tài khoản Google của Khang). Console: https://console.firebase.google.com/project/disgret-qs8m/overview
+- Firestore: database `(default)`, bản Standard, đặt ở `asia-southeast1` (Singapore). Đăng nhập: đã bật Email/Password (chưa có màn đăng nhập trong app).
+- App đã đăng ký: Android `com.nhom.focus.focus_app` và web. Cấu hình nằm trong `lib/firebase_options.dart` và `android/app/google-services.json` (sinh bằng flutterfire, đã commit; đây là cấu hình công khai, không phải mật khẩu, bảo mật nằm ở rules).
+- Gói: firebase_core, firebase_auth, cloud_firestore. Gradle có plugin `com.google.gms.google-services` (flutterfire tự thêm).
+- Khởi tạo: `lib/services/firebase_setup.dart` (`FirebaseSetup.init()` gọi trong main.dart sau khi mở Hive), bọc try/catch và chờ tối đa 5 giây; lỗi hay không có mạng thì app vẫn chạy bằng Hive. Kiểm tra `FirebaseSetup.isReady` trước khi dùng Firebase. Test không gọi main.dart nên không cần Firebase.
+- Rules (`firestore.rules`, khai báo trong `firebase.json`): chỉ chủ tài khoản đọc/ghi `users/{uid}/**`, còn lại chặn hết. Sửa rules xong thì deploy: `firebase deploy --only firestore:rules --project disgret-qs8m`.
+- Các lệnh đã dùng để cài:
+  - `npm install -g firebase-tools`, `dart pub global activate flutterfire_cli` (thêm `%LOCALAPPDATA%\Pub\Cache\bin` vào PATH người dùng)
+  - `firebase login`, `firebase projects:create disgret-qs8m --display-name "DisGret"` (lần đầu phải chấp nhận điều khoản Google Cloud trên console)
+  - Firestore tạo trên Firebase Console (lệnh `firebase firestore:databases:create` báo API chưa bật)
+  - `flutter pub add firebase_core firebase_auth cloud_firestore`
+  - `flutterfire configure --project=disgret-qs8m --platforms=android,web --android-package-name=com.nhom.focus.focus_app --yes`
+  - `firebase deploy --only firestore:rules --project disgret-qs8m`
+- Thành viên khác trong nhóm:
+  - Chỉ chạy app: `git pull` rồi `flutter pub get`, `flutter run`. Không cần cài gì thêm vì file cấu hình đã có trong repo.
+  - Cần quản lý Firebase (deploy rules, xem dữ liệu, cấu hình lại): nhờ Khang thêm email vào project (Console → Project settings → Users and permissions), rồi cài Node.js, `npm install -g firebase-tools`, `dart pub global activate flutterfire_cli`, chạy `firebase login`.
+  - Thêm nền tảng (ví dụ iOS trên Mac): `flutterfire configure --project=disgret-qs8m --platforms=android,ios,web`, rồi commit lại `lib/firebase_options.dart` và file cấu hình mới.
 
 ## MethodChannel focus/native
 Phần Kotlin nằm trong android/app/src/main/kotlin/com/nhom/focus/focus_app/. Phía Flutter mọi lời gọi đi qua lib/services/native_bridge.dart; trên web các hàm này không gọi gì và trả về giá trị mặc định.

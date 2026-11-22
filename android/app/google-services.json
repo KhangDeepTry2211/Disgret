@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "149315569456",
+    "project_id": "disgret-qs8m",
+    "storage_bucket": "disgret-qs8m.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:149315569456:android:2855169099ace4b5aaaaf5",
+        "android_client_info": {
+          "package_name": "com.nhom.focus.focus_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy-l6R7hLf80HnWRto-zk0aj4n1-3pnTI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
