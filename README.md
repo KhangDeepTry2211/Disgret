@@ -4,7 +4,7 @@ App Android giúp sinh viên **bắt đầu học** và **quay lại tập trung
 MVP môn Tư Duy Tính Toán. Chạy hoàn toàn offline: dữ liệu lưu trên máy bằng Hive, không cần
 đăng nhập, không có server.
 
-Quy ước code, màu sắc và giao tiếp với phần Kotlin nằm trong [CLAUDE.md](CLAUDE.md).
+Quy ước code nằm trong [AGENTS.md](AGENTS.md); màu sắc, mô hình dữ liệu và giao tiếp với phần Kotlin nằm trong [docs/architecture/](docs/architecture/).
 
 ## App làm gì
 
