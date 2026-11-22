@@ -227,6 +227,9 @@ class FocusSessionNotifier extends Notifier<FocusSessionState> {
 
   /// 3.3 Xem reel trong phiên: đồng hồ dừng, không tính xao nhãng cũng không tính tập trung.
   void setWatchingReels(bool isWatching) {
+    // Called from a post-frame callback when the motivation screen closes; the app (and this
+    // notifier) may already be disposed by then.
+    if (!ref.mounted) return;
     final timer = _timer;
     if (timer == null || !state.isRunning) return;
 

@@ -1,5 +1,6 @@
-// 5.1 Chuỗi giao diện tiếng Việt cho các màn mới hoặc vừa sửa (ADR-0005).
-// Màn cũ chưa đụng tới vẫn giữ chuỗi tại chỗ; khi sửa màn nào thì chuyển chuỗi của màn đó vào đây.
+// 5.1 Chuỗi giao diện.
+// Vietnamese UI strings for new or modified screens (ADR-0005). Untouched screens keep their
+// strings inline until they are edited.
 
 /// Vietnamese UI strings. Interpolated text uses small functions.
 class AppStrings {
@@ -11,6 +12,7 @@ class AppStrings {
   static const String close = 'Đóng';
   static const String save = 'Lưu';
   static const String back = 'Quay lại';
+  static const String backToToday = 'Về Hôm nay';
 
   // ---------- Tabs (5.1) ----------
   static const String tabToday = 'Hôm nay';
@@ -32,21 +34,21 @@ class AppStrings {
   static const String extraSession = 'Học thêm một phiên';
   static String identity(String identity) => 'Tôi là người $identity';
   static String minutes(int n) => '$n phút';
-  static String streakDays(int n) => 'Chuỗi $n ngày';
+  static String demoHint(int seconds) => 'Chế độ demo: 1 phút chỉ dài $seconds giây';
 
-  // ---------- Đổi kế hoạch ----------
+  // ---------- Plan sheet ----------
   static const String planSheetTitle = 'Phiên học tiếp theo';
   static const String planHabit = 'Thói quen';
   static const String planDuration = 'Thời lượng';
   static const String planApply = 'Dùng kế hoạch này';
 
-  // ---------- Động lực (bước trước phiên) ----------
+  // ---------- Motivation step ----------
   static String startMinutes(int n) => 'Bắt đầu $n phút';
   static const String smallStep = 'Chỉ 5 phút thôi';
   static const String skip = 'Bỏ qua';
   static const String backToStudy = 'Quay lại học';
 
-  // ---------- Phiên đang chạy ----------
+  // ---------- Running session ----------
   static const String focusTitle = 'Phiên học';
   static const String sessionOnBreak = 'Đang nghỉ';
   static String sessionRemaining(String clock) => 'Còn $clock';

@@ -113,7 +113,7 @@ void main() {
       expect(find.text('Chế độ demo'), findsOneWidget);
     });
 
-    testWidgets('Trên web gõ thẳng đường dẫn Reset break thì về Trang chủ', (tester) async {
+    testWidgets('Trên web gõ thẳng đường dẫn Reset break thì về Hôm nay', (tester) async {
       await pumpApp(tester, size: _phone, native: FakeNativeBridge(supported: false));
 
       GoRouter.of(tester.element(find.byType(MainShell))).go(AppRoutes.blockedApps);
@@ -252,11 +252,12 @@ void main() {
   group('7.1 Trước khi bắt đầu phiên Focus', () {
     const sheetTitle = 'Bật Reset break để chặn app gây xao nhãng?';
 
+    /// Hôm nay → "Bắt đầu" → bước động lực → "Bỏ qua" (mọi nút bắt đầu đi qua StudyStarter).
     Future<void> pressStart(WidgetTester tester, FakeNativeBridge native) async {
       await pumpApp(tester, size: _phone, native: native);
-      await tester.tap(find.widgetWithText(NavigationDestination, 'Focus'));
-      await tester.pumpAndSettle();
       await tester.tap(find.text('Bắt đầu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bỏ qua'));
       await tester.pumpAndSettle();
     }
 
@@ -294,7 +295,7 @@ void main() {
 
       await tester.tap(find.byTooltip('Quay lại'));
       await tester.pumpAndSettle();
-      expect(find.text('Bắt đầu'), findsOneWidget);
+      expect(find.text('Bỏ qua'), findsOneWidget, reason: 'Vẫn ở bước động lực');
       expect(find.text('Thời gian còn lại'), findsNothing);
     });
 
@@ -317,19 +318,19 @@ void main() {
 
       expect(find.text(sheetTitle), findsNothing);
       expect(find.text('Thời gian còn lại'), findsNothing);
-      expect(find.text('Bắt đầu'), findsOneWidget);
+      expect(find.text('Bỏ qua'), findsOneWidget);
     });
 
-    testWidgets('Bấm "Bắt đầu" hai lần liền cũng chỉ hỏi một lần', (tester) async {
+    testWidgets('Bấm "Bỏ qua" hai lần liền cũng chỉ hỏi một lần', (tester) async {
       final native = FakeNativeBridge(usageAccess: false);
       await pumpApp(tester, size: _phone, native: native);
-      await tester.tap(find.widgetWithText(NavigationDestination, 'Focus'));
+      await tester.tap(find.text('Bắt đầu'));
       await tester.pumpAndSettle();
 
       // Giữ kết quả kiểm tra quyền lại để sheet chưa hiện khi người dùng bấm lần thứ hai.
       native.permissionsGate = Completer<void>();
-      await tester.tap(find.text('Bắt đầu'));
-      await tester.tap(find.text('Bắt đầu'));
+      await tester.tap(find.text('Bỏ qua'));
+      await tester.tap(find.text('Bỏ qua'));
       native.permissionsGate!.complete();
       await tester.pumpAndSettle();
 
@@ -345,10 +346,12 @@ void main() {
       expect(find.text('Thời gian còn lại'), findsOneWidget);
     });
 
-    testWidgets('Bắt đầu nhanh từ reel cũng hỏi khi thiếu quyền', (tester) async {
+    testWidgets('"Chỉ 5 phút thôi" cũng hỏi khi thiếu quyền', (tester) async {
       await pumpApp(tester, size: _phone, native: FakeNativeBridge(usageAccess: false));
+      await tester.tap(find.text('Bắt đầu'));
+      await tester.pumpAndSettle();
 
-      GoRouter.of(tester.element(find.byType(MainShell))).go(AppRoutes.focusFor(5));
+      await tester.tap(find.text('Chỉ 5 phút thôi'));
       await tester.pumpAndSettle();
 
       expect(find.text(sheetTitle), findsOneWidget);
@@ -383,8 +386,15 @@ void main() {
 
     Future<void> startSession(WidgetTester tester) async {
       await pumpApp(tester, size: _phone, clock: () => now, native: native);
-      await tapTab(tester, 'Focus');
       await tester.tap(find.text('Bắt đầu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bỏ qua'));
+      await tester.pumpAndSettle();
+    }
+
+    /// Rời màn phiên học về Hôm nay; phiên vẫn chạy.
+    Future<void> leaveSession(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Quay lại'));
       await tester.pumpAndSettle();
     }
 
@@ -406,11 +416,12 @@ void main() {
       native = FakeNativeBridge();
     });
 
-    testWidgets('"Quay lại học": về màn Focus, tính xao nhãng, không hiện sheet hay lời chào', (
+    testWidgets('"Quay lại học": về màn phiên học, tính xao nhãng, không hiện sheet hay lời chào', (
       tester,
     ) async {
       await startSession(tester);
-      await tapTab(tester, 'Trang chủ');
+      await leaveSession(tester);
+      await tapTab(tester, 'Thói quen');
 
       for (var count = 1; count <= 2; count++) {
         openBlockedApp(tester);
@@ -437,7 +448,7 @@ void main() {
     });
 
     testWidgets(
-      '"Xem 1 reel động lực": tới Reels, đồng hồ dừng, nút dưới video là "Quay lại học"',
+      '"Xem 1 reel động lực": tới bước động lực, đồng hồ dừng, nút dưới video là "Quay lại học"',
       (tester) async {
         await startSession(tester);
 
@@ -446,6 +457,7 @@ void main() {
         showApp(tester);
         await tester.pumpAndSettle();
 
+        expect(find.byType(NavigationBar), findsNothing);
         expect(find.text('Quay lại học'), findsOneWidget);
         expect(find.text('Xem reel'), findsNothing);
 
@@ -462,22 +474,25 @@ void main() {
       tester,
     ) async {
       await startSession(tester);
-      await tapTab(tester, 'Trang chủ');
+      await leaveSession(tester);
 
       openBlockedApp(tester);
       native.emit(NativeAction.breakStarted, minutes: 10);
       showApp(tester);
       await tester.pumpAndSettle();
-      await tapTab(tester, 'Focus');
+      // Dải trên thanh tab báo đang nghỉ và mở lại phiên bằng 1 chạm.
+      expect(find.text('Đang nghỉ'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('running-session-banner')));
+      await tester.pumpAndSettle();
       expect(find.text('Đang nghỉ – còn 10:00'), findsOneWidget);
       expect(find.text('Tiếp tục'), findsOneWidget);
 
-      await tapTab(tester, 'Trang chủ');
+      await leaveSession(tester);
       await wait(tester, const Duration(minutes: 10));
       native.emit(NativeAction.breakEnded);
       await tester.pumpAndSettle();
 
-      expect(find.text('Thời gian còn lại'), findsOneWidget, reason: 'Tự về màn Focus');
+      expect(find.text('Thời gian còn lại'), findsOneWidget, reason: 'Tự về màn phiên học');
       expect(find.text('Tiếp tục'), findsNothing);
     });
 
@@ -518,7 +533,7 @@ void main() {
       expect(find.text('Tổng kết'), findsOneWidget);
     });
 
-    testWidgets('Không có phiên (nút thử): "Quay lại học" ở nguyên, "Xem reel" vẫn tới Reels', (
+    testWidgets('Không có phiên (nút thử): "Quay lại học" ở nguyên, "Xem reel" về Hôm nay', (
       tester,
     ) async {
       await pumpApp(tester, size: _phone, clock: () => now, native: native);
@@ -529,9 +544,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Cài đặt'), findsOneWidget);
 
+      // Bước động lực sau xao nhãng chỉ có nghĩa khi đang có phiên (contracts/navigation.md).
       native.emit(NativeAction.openReelsDistracted);
       await tester.pumpAndSettle();
-      expect(find.text('Bắt đầu 5 phút'), findsOneWidget);
+      expect(find.text('Bắt đầu'), findsOneWidget);
+      expect(find.text('Quay lại học'), findsNothing);
     });
 
     group('Màn Tổng kết', () {

@@ -2,15 +2,20 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/data/hive_boxes.dart';
 import 'package:focus_app/data/models/event.dart';
+import 'package:focus_app/data/models/goal.dart';
 import 'package:focus_app/data/models/habit.dart';
 import 'package:focus_app/data/models/habit_log.dart';
 import 'package:focus_app/data/models/motivation_type.dart';
 import 'package:focus_app/data/models/session.dart';
 import 'package:focus_app/data/models/user_profile.dart';
+import 'package:focus_app/data/repositories/goal_repository.dart';
+import 'package:focus_app/data/repositories/habit_log_repository.dart';
+import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/services/focus_stats.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'test_helpers.dart';
 
@@ -165,19 +170,30 @@ void main() {
 
     tearDown(() async => Hive.close());
 
+    /// Thống kê phiên học nằm ở tab Tiến độ, đoạn "Phiên học" (spec 001 FR-012).
     Future<void> openStats(WidgetTester tester, {bool createDemoData = false}) async {
       await pumpApp(tester, clock: () => DateTime(2026, 3, 10, 21));
-      await tapAndSettle(tester, find.byTooltip('Cài đặt'));
       if (createDemoData) {
+        await tapAndSettle(tester, find.byTooltip('Cài đặt'));
         // Danh sách chỉ dựng mục đang hiện trên màn nên phải cuộn tới trước.
         await tester.scrollUntilVisible(find.text('Tạo dữ liệu mẫu'), 200);
         await tapAndSettle(tester, find.text('Tạo dữ liệu mẫu'));
-        await tester.scrollUntilVisible(find.text('Thống kê'), -200);
+        await tapAndSettle(tester, find.byTooltip('Quay lại'));
       }
-      await tapAndSettle(tester, find.text('Thống kê'));
+      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Tiến độ'));
+      await tapAndSettle(tester, find.text('Phiên học'));
     }
 
-    testWidgets('Chưa có dữ liệu: mỗi thẻ có hướng dẫn, không lỗi giao diện', (tester) async {
+    /// Tiến độ chỉ hiện số liệu khi đã có lịch sử: một lần tick tay, chưa có phiên học nào.
+    Future<void> seedOneTick() async {
+      const habit = Habit(id: 'h1', goalId: 'g1', name: 'Ôn bài', minMinutesPerDay: 25);
+      await GoalRepository().save(const Goal(id: 'g1', title: 'A', reason: 'B'));
+      await HabitRepository().save(habit);
+      await HabitLogRepository().setMark(habit, DateTime(2026, 3, 10), HabitLogSource.manual);
+    }
+
+    testWidgets('Chưa có phiên học: mỗi thẻ có hướng dẫn, không lỗi giao diện', (tester) async {
+      await seedOneTick();
       await openStats(tester);
 
       expect(find.text('0 phút'), findsOneWidget);
@@ -222,6 +238,7 @@ void main() {
         'time': DateTime(2026, 3, 10).toIso8601String(),
         'meta': <String, dynamic>{},
       });
+      await seedOneTick();
 
       await openStats(tester);
 

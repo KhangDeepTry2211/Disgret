@@ -13,6 +13,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/habit_science.dart';
 import '../data/models/goal.dart';
 import '../data/models/habit.dart';
+import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
@@ -26,7 +27,7 @@ import '../widgets/habit_week_card.dart';
 
 enum _HabitsView { today, week, overall }
 
-enum _MenuAction { myHabits, achievements, addGoal, manageGoals }
+enum _MenuAction { myHabits, addGoal, manageGoals }
 
 /// Bộ lọc theo buổi; null là "Tất cả".
 const Map<HabitTimeOfDay?, String> _timeFilters = {
@@ -51,8 +52,6 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
     switch (action) {
       case _MenuAction.myHabits:
         context.push(AppRoutes.myHabits);
-      case _MenuAction.achievements:
-        context.push(AppRoutes.achievements);
       case _MenuAction.addGoal:
         showGoalSheet(context, ref);
       case _MenuAction.manageGoals:
@@ -137,18 +136,12 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         ),
         title: const Text('Thói quen'),
         actions: [
-          IconButton(
-            icon: const Icon(AppIcons.report),
-            tooltip: 'Báo cáo',
-            onPressed: () => context.push(AppRoutes.report),
-          ),
           PopupMenuButton<_MenuAction>(
             icon: const Icon(AppIcons.more),
             tooltip: 'Tuỳ chọn',
             onSelected: _onMenu,
             itemBuilder: (context) => const [
               PopupMenuItem(value: _MenuAction.myHabits, child: Text('Thói quen của tôi')),
-              PopupMenuItem(value: _MenuAction.achievements, child: Text('Thành tích')),
               PopupMenuItem(value: _MenuAction.addGoal, child: Text('Thêm mục tiêu')),
               PopupMenuItem(value: _MenuAction.manageGoals, child: Text('Quản lý mục tiêu')),
             ],
@@ -192,7 +185,7 @@ class _Header extends StatelessWidget {
             child: SegmentedButton<_HabitsView>(
               showSelectedIcon: false,
               segments: const [
-                ButtonSegment(value: _HabitsView.today, label: Text('Hôm nay')),
+                ButtonSegment(value: _HabitsView.today, label: Text(AppStrings.habitsByDay)),
                 ButtonSegment(value: _HabitsView.week, label: Text('Tuần')),
                 ButtonSegment(value: _HabitsView.overall, label: Text('Tổng thể')),
               ],

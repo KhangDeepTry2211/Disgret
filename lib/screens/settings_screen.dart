@@ -79,16 +79,6 @@ class SettingsScreen extends ConsumerWidget {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.lg),
-          // 8.2 Số liệu để kiểm chứng giả thuyết trong báo cáo.
-          Card(
-            child: ListTile(
-              leading: const Icon(AppIcons.stats),
-              title: const Text('Thống kê'),
-              subtitle: const Text('Phút tập trung, Reset break, reels và thời gian quay lại'),
-              onTap: () => context.push(AppRoutes.stats),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
           if (native.isSupported) ...[
             Text('Reset break', style: theme.textTheme.titleMedium),
             const SizedBox(height: AppSpacing.sm),

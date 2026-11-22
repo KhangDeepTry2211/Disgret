@@ -7,11 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/app.dart';
 import 'package:focus_app/data/hive_boxes.dart';
+import 'package:focus_app/data/models/habit.dart';
 import 'package:focus_app/data/models/reel.dart';
 import 'package:focus_app/data/repositories/reel_repository.dart';
 import 'package:focus_app/providers/app_providers.dart';
 import 'package:focus_app/providers/focus_session_provider.dart';
 import 'package:focus_app/services/native_bridge.dart';
+import 'package:focus_app/theme/app_theme.dart';
+import 'package:focus_app/widgets/habit_card.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -64,6 +67,52 @@ Future<void> pumpApp(
   await tester.runAsync(GoogleFonts.pendingFonts);
   await tester.pumpAndSettle();
 }
+
+/// Pumps one widget alone (with providers, theme and Vietnamese locale), for parked widgets that
+/// no screen shows any more (ADR-0004). Hive boxes must already be open.
+Future<void> pumpStandalone(
+  WidgetTester tester,
+  Widget child, {
+  Size size = smallPhone,
+  DateTime Function()? clock,
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [if (clock != null) clockProvider.overrideWithValue(clock)],
+      child: MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('vi'),
+        supportedLocales: const [Locale('vi')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        home: child,
+      ),
+    ),
+  );
+  await tester.runAsync(GoogleFonts.pendingFonts);
+  await tester.pumpAndSettle();
+}
+
+/// The parked Home habit card (ADR-0004), pumped alone.
+Future<void> pumpHabitCard(
+  WidgetTester tester,
+  Habit habit, {
+  Size size = smallPhone,
+  DateTime Function()? clock,
+}) => pumpStandalone(
+  tester,
+  Scaffold(
+    body: ListView(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      children: [HabitCard(habit: habit)],
+    ),
+  ),
+  size: size,
+  clock: clock,
+);
 
 /// Giả lập người dùng thoát khỏi app: đi đúng trình tự trạng thái như trên máy thật.
 void hideApp(WidgetTester tester) {

@@ -1,86 +1,47 @@
-// 5.1 Khung chính: thanh điều hướng dưới cùng với 4 tab.
-// 4.2 Theo dõi cấp thành tích: lên cấp mới thì hiện hộp thoại chúc mừng, mỗi cấp một lần.
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+// 5.1 Khung chính.
+// Bottom bar with three tabs: Hôm nay / Thói quen / Tiến độ (ADR-0002). While a session runs, the
+// running-session banner sits just above the bar (spec 001 FR-008). The level-up dialog is parked
+// (ADR-0004).
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../providers/app_providers.dart';
-import '../providers/focus_session_provider.dart';
+import '../l10n/app_strings.dart';
 import '../theme/app_theme.dart';
-import '../widgets/level_badge.dart';
+import '../widgets/running_session_banner.dart';
 
-class MainShell extends ConsumerStatefulWidget {
+class MainShell extends StatelessWidget {
   const MainShell({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  ConsumerState<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends ConsumerState<MainShell> {
-  static const int _reelsTab = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _syncReelsTabWithSession();
-  }
-
-  @override
-  void didUpdateWidget(MainShell oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.navigationShell.currentIndex != oldWidget.navigationShell.currentIndex) {
-      _syncReelsTabWithSession();
-    }
-  }
-
-  /// 3.3 Đang ở tab Reels thì đồng hồ của phiên dừng, rời tab thì chạy tiếp.
-  /// Riverpod không cho đổi trạng thái khi đang dựng giao diện nên chờ khung hình xong.
-  void _syncReelsTabWithSession() {
-    final isOnReels = widget.navigationShell.currentIndex == _reelsTab;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(focusSessionProvider.notifier).setWatchingReels(isOnReels);
-    });
-  }
-
-  /// 4.2 Lên cấp thành tích mới (cao hơn cấp đã chúc mừng) thì chúc mừng và lưu lại cấp đó,
-  /// để mỗi cấp chỉ chúc mừng một lần, kể cả khi mở lại app.
-  void _onLevelChanged(int? previous, int level) {
-    final profile = ref.read(profileRepositoryProvider);
-    if (level <= profile.celebratedLevel) return;
-    profile.saveCelebratedLevel(level);
-    showLevelUpDialog(context, level: level, total: ref.read(completionTotalProvider));
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final navigationShell = widget.navigationShell;
-    ref.listen<int>(achievementLevelProvider, _onLevelChanged);
-
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: DecoratedBox(
-        // Đường kẻ mảnh phân tách thanh tab với nội dung.
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-        ),
-        child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) => navigationShell.goBranch(
-            index,
-            // Bấm lại tab đang mở thì quay về đầu tab đó.
-            // Tab Reels luôn về đường dẫn mặc định, tức ngữ cảnh "start".
-            initialLocation: index == navigationShell.currentIndex || index == _reelsTab,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const RunningSessionBanner(),
+          DecoratedBox(
+            // Đường kẻ mảnh phân tách thanh tab với nội dung.
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+            ),
+            child: NavigationBar(
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: (index) => navigationShell.goBranch(
+                index,
+                // Bấm lại tab đang mở thì quay về đầu tab đó.
+                initialLocation: index == navigationShell.currentIndex,
+              ),
+              destinations: const [
+                NavigationDestination(icon: Icon(AppIcons.home), label: AppStrings.tabToday),
+                NavigationDestination(icon: Icon(AppIcons.habits), label: AppStrings.tabHabits),
+                NavigationDestination(icon: Icon(AppIcons.stats), label: AppStrings.tabProgress),
+              ],
+            ),
           ),
-          destinations: const [
-            NavigationDestination(icon: Icon(AppIcons.home), label: 'Trang chủ'),
-            NavigationDestination(icon: Icon(AppIcons.reels), label: 'Reels'),
-            NavigationDestination(icon: Icon(AppIcons.focus), label: 'Focus'),
-            NavigationDestination(icon: Icon(AppIcons.habits), label: 'Thói quen'),
-          ],
-        ),
+        ],
       ),
     );
   }

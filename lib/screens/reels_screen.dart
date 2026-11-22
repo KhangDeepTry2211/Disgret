@@ -1,8 +1,12 @@
-// 1.4 Màn Reels: vuốt dọc, mỗi trang một video hiện trọn vẹn trên nền mờ, tự phát và lặp lại.
+// 1.4 Màn Reels – bước động lực (route /motivation): vuốt dọc, mỗi trang một video hiện trọn vẹn
+// trên nền mờ, tự phát và lặp lại.
+// Spec 001 places it in the flow Hôm nay → motivation → session; all start buttons go through
+// StudyStarter. Spec 002 redesigns the content. During a session the clock pauses while this screen
+// is open and resumes when it closes (research R5, FR-010).
 //
 // Cách quản lý video để không tốn RAM và không phát tiếng ngầm:
 // - Chỉ tạo controller của trang hiện tại và trang kế; trang khác được giải phóng khi vuốt xong.
-// - Rời khỏi tab thì giải phóng hết (tab Reels vẫn sống ngầm trong IndexedStack của go_router).
+// - Leaving the screen (or being covered by another route) disposes all of them.
 // - Danh sách reel chỉ tính một lần mỗi khi vào màn, không đổi trong lúc đang vuốt.
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
@@ -17,45 +21,114 @@ import 'package:video_player/video_player.dart';
 import '../data/models/event.dart';
 import '../data/models/reel.dart';
 import '../data/repositories/event_repository.dart';
+import '../data/session_plan.dart';
+import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../router/app_router.dart';
 import '../services/reel_recommender.dart';
 import '../services/reel_share.dart';
 import '../services/reel_watch_tracker.dart';
+import '../services/study_starter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_pill_button.dart';
 import '../widgets/gradient_progress_bar.dart';
 import '../widgets/reel_action_column.dart';
 import '../widgets/reel_comments_sheet.dart';
 
-class ReelsScreen extends ConsumerWidget {
+class ReelsScreen extends ConsumerStatefulWidget {
   const ReelsScreen({this.reelContext = ReelContext.start, super.key});
 
-  /// Ngữ cảnh đề xuất: tab Reels dùng "start", sau khi xao nhãng (3.3) dùng "distracted".
+  /// Recommendation context: "start" before a session, "distracted" after a distraction (3.3).
   final String reelContext;
 
-  /// Số phút của phiên học khi bấm nút trên reel.
-  static const int quickStartMinutes = 5;
+  @override
+  ConsumerState<ReelsScreen> createState() => _ReelsScreenState();
+}
+
+class _ReelsScreenState extends ConsumerState<ReelsScreen> {
+  /// Captured in initState: ref cannot be used after the widget is disposed.
+  late final FocusSessionNotifier _session;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    _session = ref.read(focusSessionProvider.notifier);
+    // 3.3 Watching motivation during a session pauses the clock. Riverpod forbids state changes
+    // during build, so wait for the frame to finish.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _session.setWatchingReels(true);
+    });
+  }
+
+  @override
+  void dispose() {
+    final session = _session;
+    WidgetsBinding.instance.addPostFrameCallback((_) => session.setWatchingReels(false));
+    super.dispose();
+  }
+
+  /// Close: back to the session if one runs, otherwise back to the previous screen (Hôm nay).
+  void _close() {
+    if (ref.read(focusSessionProvider).isRunning) {
+      context.go(AppRoutes.focus);
+    } else if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.today);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final reels = ref.watch(reelsProvider);
+    final isInSession = ref.watch(focusSessionProvider.select((session) => session.isRunning));
+    final planMinutes = ref.watch(sessionPlanProvider.select((plan) => plan.plannedMinutes));
 
     // Nền video luôn tối nên icon thanh trạng thái phải sáng.
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.videoBackground,
-        body: reels.when(
-          loading: () => const _LoadingIndicator(),
-          error: (error, stackTrace) => const _CenterMessage('Không tải được danh sách reel.'),
-          data: (allReels) => _ReelFeed(
-            // Đổi ngữ cảnh thì tạo lại toàn bộ feed cho đơn giản.
-            key: ValueKey(reelContext),
-            allReels: allReels,
-            reelContext: reelContext,
-          ),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            reels.when(
+              loading: () => const _LoadingIndicator(),
+              error: (error, stackTrace) => const _CenterMessage('Không tải được danh sách reel.'),
+              data: (allReels) => _ReelFeed(
+                // Đổi ngữ cảnh thì tạo lại toàn bộ feed cho đơn giản.
+                key: ValueKey(widget.reelContext),
+                allReels: allReels,
+                reelContext: widget.reelContext,
+              ),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.md),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(AppIcons.close, color: AppColors.onVideo),
+                        tooltip: AppStrings.close,
+                        onPressed: _close,
+                      ),
+                      const Spacer(),
+                      // Skip motivation: start right away with the Hôm nay plan (FR-006).
+                      if (!isInSession)
+                        TextButton(
+                          style: TextButton.styleFrom(foregroundColor: AppColors.onVideo),
+                          onPressed: () => StudyStarter.start(context, ref, minutes: planMinutes),
+                          child: const Text(AppStrings.skip),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -98,7 +171,7 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Tab đang ẩn trong IndexedStack có TickerMode tắt: đây là cách biết người dùng đã rời tab.
+    // A covered route has TickerMode off: treat it as having left the screen.
     final isActive = TickerMode.valuesOf(context).enabled;
     if (isActive == _isActive) return;
 
@@ -217,9 +290,10 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
     _tracker = ReelWatchTracker(startPosition: _tracker.lastPosition);
   }
 
-  void _startFocus() {
+  /// "Bắt đầu N phút" or "Chỉ 5 phút thôi": log this reel as the one that started the session.
+  void _startFocus(int minutes) {
     _logCurrentWatch(startedFocus: true);
-    context.go(AppRoutes.focusFor(ReelsScreen.quickStartMinutes));
+    StudyStarter.start(context, ref, minutes: minutes);
   }
 
   /// 3.3 Đang có phiên học: chỉ quay về phiên đó, không tạo phiên mới.
@@ -258,6 +332,7 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
   @override
   Widget build(BuildContext context) {
     final isInSession = ref.watch(focusSessionProvider.select((session) => session.isRunning));
+    final planMinutes = ref.watch(sessionPlanProvider.select((plan) => plan.plannedMinutes));
 
     if (_reels.isEmpty) {
       return _isActive
@@ -280,10 +355,11 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
           reel: _reels[page],
           controller: _controllers[page],
           isCurrent: page == _currentPage,
-          actionLabel: isInSession
-              ? 'Quay lại học'
-              : 'Bắt đầu ${ReelsScreen.quickStartMinutes} phút',
-          onAction: isInSession ? _backToSession : _startFocus,
+          actionLabel: isInSession ? AppStrings.backToStudy : AppStrings.startMinutes(planMinutes),
+          onAction: isInSession ? _backToSession : () => _startFocus(planMinutes),
+          // Small step: commit to only 5 minutes for the same habit (FR-007).
+          secondaryLabel: isInSession ? null : AppStrings.smallStep,
+          onSecondary: isInSession ? null : () => _startFocus(SessionPlan.smallStepMinutes),
           onToggleLike: () => ref.read(reelLikesProvider.notifier).toggle(_reels[page].id),
           onDoubleTapLike: () =>
               ref.read(reelLikesProvider.notifier).setLiked(_reels[page].id, liked: true),
@@ -302,6 +378,8 @@ class _ReelPage extends StatefulWidget {
     required this.isCurrent,
     required this.actionLabel,
     required this.onAction,
+    required this.secondaryLabel,
+    required this.onSecondary,
     required this.onToggleLike,
     required this.onDoubleTapLike,
     required this.onComments,
@@ -312,9 +390,13 @@ class _ReelPage extends StatefulWidget {
   final VideoPlayerController? controller;
   final bool isCurrent;
 
-  /// Nút dưới video: "Bắt đầu 5 phút", hoặc "Quay lại học" khi đang có phiên.
+  /// Button under the video: "Bắt đầu N phút", or "Quay lại học" during a session.
   final String actionLabel;
   final VoidCallback onAction;
+
+  /// Secondary "Chỉ 5 phút thôi" button; null during a session.
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
   final VoidCallback onToggleLike;
   final VoidCallback onDoubleTapLike;
   final VoidCallback onComments;
@@ -455,6 +537,12 @@ class _ReelPageState extends State<_ReelPage> {
                         height: 56,
                         onPressed: widget.onAction,
                       ),
+                      if (widget.secondaryLabel != null)
+                        TextButton(
+                          style: TextButton.styleFrom(foregroundColor: AppColors.onVideo),
+                          onPressed: widget.onSecondary,
+                          child: Text(widget.secondaryLabel!),
+                        ),
                     ],
                   ),
                 ),

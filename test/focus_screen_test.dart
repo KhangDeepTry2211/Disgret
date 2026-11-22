@@ -1,10 +1,12 @@
-// 3.1–3.4 Kiểm thử giao diện màn Focus, phản hồi nhắc, Reels trong phiên và màn Tổng kết.
+// 3.1–3.4 Kiểm thử giao diện phiên học: kế hoạch trên Hôm nay, bắt đầu qua bước động lực,
+// phản hồi nhắc, động lực trong phiên, màn Tổng kết (spec 001).
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/data/models/event.dart';
 import 'package:focus_app/data/models/goal.dart';
 import 'package:focus_app/data/models/habit.dart';
 import 'package:focus_app/data/models/motivation_type.dart';
+import 'package:focus_app/data/models/reel.dart';
 import 'package:focus_app/data/models/user_profile.dart';
 import 'package:focus_app/data/repositories/event_repository.dart';
 import 'package:focus_app/data/repositories/goal_repository.dart';
@@ -48,13 +50,24 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// Mở tab Focus và bắt đầu phiên với số phút cho trước.
+  /// Đổi số phút của phiên tiếp theo ở Hôm nay ("Đổi thói quen hoặc thời lượng").
+  Future<void> changePlanMinutes(WidgetTester tester, int minutes) async {
+    await tapAndSettle(tester, find.text('Đổi thói quen hoặc thời lượng'));
+    await tapAndSettle(tester, find.text('$minutes phút').last);
+    await tapAndSettle(tester, find.text('Dùng kế hoạch này'));
+  }
+
+  /// Hôm nay → "Bắt đầu" → bước động lực → "Bỏ qua": phiên chạy với kế hoạch của Hôm nay.
   Future<void> startSession(WidgetTester tester, {int minutes = 25}) async {
     await openApp(tester);
-    await tapTab(tester, 'Focus');
-    await tapAndSettle(tester, find.text('$minutes phút'));
+    if (minutes != 25) await changePlanMinutes(tester, minutes);
     await tapAndSettle(tester, find.text('Bắt đầu'));
+    await tapAndSettle(tester, find.text('Bỏ qua'));
   }
+
+  /// Chạm dải "phiên đang chạy" trên thanh tab.
+  Future<void> openRunningSession(WidgetTester tester) =>
+      tapAndSettle(tester, find.byKey(const ValueKey('running-session-banner')));
 
   /// Rời app rồi quay lại sau khoảng thời gian cho trước.
   Future<void> leaveAppFor(WidgetTester tester, Duration duration) async {
@@ -116,62 +129,75 @@ void main() {
     });
   }
 
-  group('3.1 Thiết lập phiên', () {
-    testWidgets('Bước chọn: mặc định thói quen hôm nay, 25 phút, có gợi ý 5 phút', (tester) async {
+  group('3.1 Kế hoạch phiên trên Hôm nay', () {
+    testWidgets('Sheet đổi kế hoạch: thói quen hôm nay, 25 phút, các mức 5/25/45', (tester) async {
       await openApp(tester);
-      await tapTab(tester, 'Focus');
-
-      expect(find.text('Ôn bài'), findsOneWidget);
-      expect(find.text('5 phút'), findsOneWidget);
       expect(find.text('25 phút'), findsOneWidget);
+
+      await tapAndSettle(tester, find.text('Đổi thói quen hoặc thời lượng'));
+      expect(find.text('Phiên học tiếp theo'), findsOneWidget);
+      expect(find.text('Ôn bài'), findsWidgets);
+      expect(find.text('5 phút'), findsOneWidget);
       expect(find.text('45 phút'), findsOneWidget);
       expect(find.text('Tự nhập'), findsOneWidget);
-      expect(find.text('Chỉ cần cam kết 5 phút đầu'), findsOneWidget);
-      expect(find.text('Bắt đầu'), findsOneWidget);
+      expect(find.text('Dùng kế hoạch này'), findsOneWidget);
     });
 
-    testWidgets('Chọn thói quen khác và thời lượng rồi bắt đầu', (tester) async {
+    testWidgets('Chọn thói quen khác và thời lượng rồi bắt đầu (chỉ cho một phiên)', (
+      tester,
+    ) async {
       await openApp(tester);
-      await tapTab(tester, 'Focus');
-
-      await tapAndSettle(tester, find.text('Ôn bài'));
+      await tapAndSettle(tester, find.text('Đổi thói quen hoặc thời lượng'));
+      await tapAndSettle(tester, find.byType(DropdownButtonFormField<String>));
       await tapAndSettle(tester, find.text('Làm đề').last);
       await tapAndSettle(tester, find.text('45 phút'));
+      await tapAndSettle(tester, find.text('Dùng kế hoạch này'));
+
+      expect(find.text('Làm đề'), findsOneWidget);
+      expect(find.text('45 phút'), findsOneWidget);
+
       await tapAndSettle(tester, find.text('Bắt đầu'));
+      expect(find.text('Bắt đầu 45 phút'), findsOneWidget);
+      await tapAndSettle(tester, find.text('Bắt đầu 45 phút'));
 
       expect(find.text('Làm đề'), findsOneWidget);
       expect(find.text('45:00'), findsOneWidget);
       expect(find.text('Thời gian còn lại'), findsOneWidget);
+
+      // Lựa chọn chỉ dùng cho phiên này: Hôm nay quay về kế hoạch mặc định.
+      await tapAndSettle(tester, find.byTooltip('Quay lại'));
+      expect(find.text('Ôn bài'), findsOneWidget);
+      expect(find.text('25 phút'), findsOneWidget);
     });
 
     testWidgets('Tự nhập số phút: chặn giá trị sai, nhận giá trị đúng', (tester) async {
       await openApp(tester);
-      await tapTab(tester, 'Focus');
+      await tapAndSettle(tester, find.text('Đổi thói quen hoặc thời lượng'));
       await tapAndSettle(tester, find.text('Tự nhập'));
 
       for (final invalid in ['', '0', '481']) {
         await tester.enterText(find.widgetWithText(TextFormField, 'Số phút'), invalid);
-        await tapAndSettle(tester, find.text('Bắt đầu'));
+        await tapAndSettle(tester, find.text('Dùng kế hoạch này'));
         expect(find.text('Nhập số phút từ 1 đến 480'), findsOneWidget, reason: 'nhập "$invalid"');
-        expect(find.byType(ProgressRing), findsNothing);
       }
 
       await tester.enterText(find.widgetWithText(TextFormField, 'Số phút'), '7');
+      await tapAndSettle(tester, find.text('Dùng kế hoạch này'));
+      expect(find.text('7 phút'), findsOneWidget);
+
       await tapAndSettle(tester, find.text('Bắt đầu'));
+      await tapAndSettle(tester, find.text('Bỏ qua'));
       expect(find.text('07:00'), findsOneWidget);
     });
 
-    testWidgets('Chưa có thói quen thì mời tạo, không bắt đầu được', (tester) async {
-      await HabitRepository().delete('h1');
-      await HabitRepository().delete('h2');
+    testWidgets('Không có phiên thì không mở được màn phiên học, về Hôm nay', (tester) async {
       await openApp(tester);
-      await tapTab(tester, 'Focus');
 
-      expect(find.text('Bạn chưa có thói quen nào để bắt đầu.'), findsOneWidget);
-      expect(find.text('Bắt đầu'), findsNothing);
+      GoRouter.of(tester.element(find.byType(MainShell))).go(AppRoutes.focus);
+      await tester.pumpAndSettle();
 
-      await tapAndSettle(tester, find.text('Tạo thói quen'));
-      expect(find.text('Chưa có thói quen nào'), findsOneWidget);
+      expect(find.text('Thời gian còn lại'), findsNothing);
+      expect(find.text('Bắt đầu'), findsOneWidget);
     });
 
     testWidgets('Đồng hồ chạy theo mốc thời gian, vòng tiến độ tăng dần', (tester) async {
@@ -206,19 +232,24 @@ void main() {
       expect(screenAwakeCalls.last, isFalse);
     });
 
-    testWidgets('Phiên vẫn chạy khi chuyển tab và không bị mất', (tester) async {
+    testWidgets('Rời màn phiên sang các tab: phiên vẫn chạy, dải trên thanh tab đưa về', (
+      tester,
+    ) async {
       await startSession(tester);
 
+      await tapAndSettle(tester, find.byTooltip('Quay lại'));
       await tapTab(tester, 'Thói quen');
       now = now.add(const Duration(minutes: 5));
       await tester.pump(const Duration(milliseconds: 300));
-      await tapTab(tester, 'Focus');
+      expect(find.text('Còn 20:00'), findsOneWidget);
 
+      await openRunningSession(tester);
       expect(find.text('20:00'), findsOneWidget);
     });
 
     testWidgets('Hết giờ khi đang ở tab khác vẫn chuyển sang Tổng kết', (tester) async {
       await startSession(tester);
+      await tapAndSettle(tester, find.byTooltip('Quay lại'));
       await tapTab(tester, 'Thói quen');
 
       now = now.add(const Duration(minutes: 25));
@@ -249,61 +280,55 @@ void main() {
     });
   });
 
-  group('Mở Focus kèm số phút', () {
-    Future<void> goToFocusWithMinutes(WidgetTester tester, int minutes) async {
-      GoRouter.of(tester.element(find.byType(MainShell))).go(AppRoutes.focusFor(minutes));
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('Bắt đầu ngay, không qua bước chọn', (tester) async {
+  group('Bắt đầu từ bước động lực', () {
+    testWidgets('"Chỉ 5 phút thôi" bắt đầu phiên 5 phút cho thói quen của Hôm nay', (tester) async {
       await openApp(tester);
-      await goToFocusWithMinutes(tester, 5);
+      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await tapAndSettle(tester, find.text('Chỉ 5 phút thôi'));
 
       expect(find.text('05:00'), findsOneWidget);
       expect(find.text('Ôn bài'), findsOneWidget);
-      expect(find.text('Chỉ cần cam kết 5 phút đầu'), findsNothing);
     });
 
-    testWidgets('Từ nút "Bắt đầu 5 phút" trên reel', (tester) async {
+    testWidgets('"Bắt đầu N phút" dùng đúng số phút của kế hoạch', (tester) async {
       await openApp(tester);
-      await tapTab(tester, 'Reels');
-
-      await tester.tap(find.text('Bắt đầu 5 phút'));
+      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await tester.tap(find.text('Bắt đầu 25 phút'));
       await tester.pumpAndSettle();
 
-      expect(find.text('05:00'), findsOneWidget);
+      expect(find.text('25:00'), findsOneWidget);
     });
 
-    testWidgets('Đang có phiên thì giữ nguyên phiên đó', (tester) async {
+    testWidgets('Đóng bước động lực thì về Hôm nay, không bắt đầu phiên', (tester) async {
+      await openApp(tester);
+      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await tapAndSettle(tester, find.byTooltip('Đóng'));
+
+      expect(find.text('Bắt đầu'), findsOneWidget);
+      expect(find.byKey(const ValueKey('running-session-banner')), findsNothing);
+    });
+
+    testWidgets('Đang có phiên thì "Bắt đầu" trên Hôm nay mở đúng phiên đó', (tester) async {
       await startSession(tester);
       await wait(tester, const Duration(minutes: 5));
+      await tapAndSettle(tester, find.byTooltip('Quay lại'));
 
-      await goToFocusWithMinutes(tester, 5);
+      await tapAndSettle(tester, find.text('Bắt đầu'));
 
       expect(find.text('20:00'), findsOneWidget);
+      expect(SessionRepository().getAll(), isEmpty);
     });
 
-    testWidgets('Xong phiên, mở lại tab Focus không tự bắt đầu phiên mới từ số phút cũ', (
-      tester,
-    ) async {
-      await openApp(tester);
-      await goToFocusWithMinutes(tester, 5);
+    testWidgets('Xong phiên, về Hôm nay không tự bắt đầu phiên mới', (tester) async {
+      await startSession(tester, minutes: 5);
       now = now.add(const Duration(minutes: 5));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
-      await tapAndSettle(tester, find.text('Về Trang chủ'));
+      await tapAndSettle(tester, find.text('Về Hôm nay'));
 
-      await tapTab(tester, 'Focus');
-
-      expect(find.text('Chỉ cần cam kết 5 phút đầu'), findsOneWidget);
+      expect(find.text('Bắt đầu'), findsOneWidget);
       expect(find.byType(ProgressRing), findsNothing);
-    });
-
-    testWidgets('Số phút không hợp lệ thì ở lại bước chọn', (tester) async {
-      await openApp(tester);
-      await goToFocusWithMinutes(tester, 0);
-
-      expect(find.text('Chỉ cần cam kết 5 phút đầu'), findsOneWidget);
+      expect(find.byKey(const ValueKey('running-session-banner')), findsNothing);
     });
   });
 
@@ -440,11 +465,16 @@ void main() {
       await tapAndSettle(tester, find.text('Xem reel'));
     }
 
-    testWidgets('Mở Reels ngữ cảnh "distracted", nút đổi thành "Quay lại học"', (tester) async {
+    testWidgets('Mở bước động lực ngữ cảnh "distracted", nút đổi thành "Quay lại học"', (
+      tester,
+    ) async {
       await openReelFromNudge(tester);
 
+      expect(find.byType(NavigationBar), findsNothing);
       expect(find.text('Quay lại học'), findsOneWidget);
-      expect(find.text('Bắt đầu 5 phút'), findsNothing);
+      expect(find.text('Bắt đầu 25 phút'), findsNothing);
+      expect(find.text('Chỉ 5 phút thôi'), findsNothing);
+      expect(find.text('Bỏ qua'), findsNothing);
       // Ngữ cảnh distracted: r6 được ghim nên luôn đứng đầu, không phải r1 của ngữ cảnh start.
       expect(find.text('Get back to work!'), findsOneWidget);
     });
@@ -466,22 +496,40 @@ void main() {
       expect(find.text('Thời gian còn lại'), findsOneWidget);
     });
 
-    testWidgets('Rời Reels bằng thanh tab thay vì nút: đồng hồ cũng chạy lại', (tester) async {
+    testWidgets('Đóng bước động lực bằng nút X thay vì nút: đồng hồ cũng chạy lại', (tester) async {
       await openReelFromNudge(tester);
 
-      await tapTab(tester, 'Focus');
+      await tapAndSettle(tester, find.byTooltip('Đóng'));
       now = now.add(const Duration(minutes: 1));
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('22:40'), findsOneWidget);
     });
 
-    testWidgets('Tự mở tab Reels khi đang có phiên: cũng dừng đồng hồ và có "Quay lại học"', (
+    testWidgets('Bắt đầu từ thẻ thói quen khi đang có phiên: về phiên, không mở động lực', (
+      tester,
+    ) async {
+      await startSession(tester);
+      await tapAndSettle(tester, find.byTooltip('Quay lại'));
+      await tapTab(tester, 'Thói quen');
+
+      await tester.longPress(find.text('Làm đề'));
+      await tester.pumpAndSettle();
+      await tapAndSettle(tester, find.text('Bắt đầu Focus'));
+
+      expect(find.text('Quay lại học'), findsNothing);
+      expect(find.text('Ôn bài'), findsOneWidget);
+      expect(find.text('25:00'), findsOneWidget);
+    });
+
+    testWidgets('Xem động lực trong phiên (native "open_reels_distracted"): dừng đồng hồ', (
       tester,
     ) async {
       await startSession(tester);
 
-      await tapTab(tester, 'Reels');
+      GoRouter.of(tester.element(find.text('Thời gian còn lại')))
+          .go(AppRoutes.motivationFor(ReelContext.distracted));
+      await tester.pumpAndSettle();
       expect(find.text('Quay lại học'), findsOneWidget);
       now = now.add(const Duration(minutes: 3));
       await tester.pump(const Duration(milliseconds: 300));
@@ -492,11 +540,15 @@ void main() {
       expect(find.text('25:00'), findsOneWidget);
     });
 
-    testWidgets('Không có phiên thì nút vẫn là "Bắt đầu 5 phút"', (tester) async {
+    testWidgets('Không có phiên thì có "Bắt đầu N phút", "Chỉ 5 phút thôi" và "Bỏ qua"', (
+      tester,
+    ) async {
       await openApp(tester);
-      await tapTab(tester, 'Reels');
+      await tapAndSettle(tester, find.text('Bắt đầu'));
 
-      expect(find.text('Bắt đầu 5 phút'), findsOneWidget);
+      expect(find.text('Bắt đầu 25 phút'), findsOneWidget);
+      expect(find.text('Chỉ 5 phút thôi'), findsOneWidget);
+      expect(find.text('Bỏ qua'), findsOneWidget);
       expect(find.text('Quay lại học'), findsNothing);
     });
 
@@ -577,18 +629,19 @@ void main() {
       expect(find.bySemanticsLabel('Chuỗi 0 ngày học liên tiếp'), findsOneWidget);
     });
 
-    testWidgets('Về Trang chủ mà chưa bấm Lưu: vẫn lưu, không mất giờ học', (tester) async {
+    testWidgets('Về Hôm nay mà chưa bấm Lưu: vẫn lưu, không mất giờ học', (tester) async {
       await startSession(tester);
       await finishSession(tester);
 
-      await tapAndSettle(tester, find.text('Về Trang chủ'));
+      await tapAndSettle(tester, find.text('Về Hôm nay'));
 
       expect(SessionRepository().getAll(), hasLength(1));
+      // "Ôn bài" đã đủ phút nên kế hoạch chuyển sang thói quen tiếp theo.
+      expect(find.text('Làm đề'), findsOneWidget);
       expect(find.text('Bắt đầu'), findsOneWidget);
-      expect(find.text('25/25 phút hôm nay'), findsOneWidget);
     });
 
-    testWidgets('Nút Back của hệ thống cũng lưu và về Trang chủ, không quay lại Focus', (
+    testWidgets('Nút Back của hệ thống cũng lưu và về Hôm nay, không quay lại phiên', (
       tester,
     ) async {
       await startSession(tester);
@@ -600,16 +653,6 @@ void main() {
       expect(SessionRepository().getAll(), hasLength(1));
       expect(find.text('Tổng kết'), findsNothing);
       expect(find.text('Bắt đầu'), findsOneWidget);
-    });
-
-    testWidgets('Về Trang chủ xong, tab Focus quay lại bước chọn cho phiên mới', (tester) async {
-      await startSession(tester);
-      await finishSession(tester);
-      await tapAndSettle(tester, find.text('Về Trang chủ'));
-
-      await tapTab(tester, 'Focus');
-
-      expect(find.text('Chỉ cần cam kết 5 phút đầu'), findsOneWidget);
     });
 
     testWidgets('Không có phiên vừa xong thì không vào được màn Tổng kết', (tester) async {
@@ -634,9 +677,9 @@ void main() {
       expect(ProfileRepository().profile?.demoMode, isTrue);
       await tapAndSettle(tester, find.byTooltip('Quay lại'));
 
-      await tapTab(tester, 'Focus');
       expect(find.text('Chế độ demo: 1 phút chỉ dài 20 giây'), findsOneWidget);
       await tapAndSettle(tester, find.text('Bắt đầu'));
+      await tapAndSettle(tester, find.text('Bỏ qua'));
 
       await wait(tester, const Duration(seconds: 20));
       expect(find.text('24:00'), findsOneWidget);
@@ -660,11 +703,11 @@ void main() {
       ),
     );
     await pumpApp(tester, clock: () => now);
-    await tester.tap(find.widgetWithText(NavigationDestination, 'Focus'));
-    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
     await tapAndSettle(tester, find.text('Bắt đầu'));
+    expect(tester.takeException(), isNull);
+    await tapAndSettle(tester, find.text('Bỏ qua'));
     expect(tester.takeException(), isNull);
 
     await tapAndSettle(tester, find.text('Kết thúc sớm'));

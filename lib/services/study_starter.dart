@@ -1,6 +1,6 @@
-// 3.1 Bắt đầu phiên học: một lối vào duy nhất cho mọi nút bắt đầu (spec 001, research R3).
-// "Bỏ qua", "Bắt đầu N phút" và "Chỉ 5 phút thôi" đều đi qua đây, nên bước hỏi quyền Reset break
-// không bao giờ bị bỏ qua và không bao giờ tạo phiên chồng lên nhau.
+// 3.1 Bắt đầu phiên học.
+// The single start path (spec 001, research R3): "Bỏ qua", "Bắt đầu N phút" and "Chỉ 5 phút thôi"
+// all come here, so the Reset break check is never skipped and sessions never overlap.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -13,8 +13,9 @@ import '../widgets/reset_break_sheet.dart';
 class StudyStarter {
   StudyStarter._();
 
-  /// A start is waiting for the Reset break check; a second tap must not ask again.
-  static bool _isStarting = false;
+  /// Containers (one per running app) whose start is waiting for the Reset break check;
+  /// a second tap must not ask again. Keyed by container so a fresh app never inherits it.
+  static final Expando<bool> _starting = Expando<bool>('StudyStarter');
 
   /// Starts a session for the Hôm nay plan habit with [minutes] and opens `/focus`.
   ///
@@ -28,17 +29,18 @@ class StudyStarter {
       router.go(AppRoutes.focus);
       return;
     }
-    if (phase != FocusPhase.setup || _isStarting) return;
+    final container = ProviderScope.containerOf(context, listen: false);
+    if (phase != FocusPhase.setup || _starting[container] == true) return;
 
     final habit = ref.read(sessionPlanProvider).habit;
     if (habit == null) return;
 
-    _isStarting = true;
+    _starting[container] = true;
     final bool canStart;
     try {
       canStart = await confirmStartWithResetBreak(context, ref);
     } finally {
-      _isStarting = false;
+      _starting[container] = null;
     }
     if (!canStart || !context.mounted) return;
 

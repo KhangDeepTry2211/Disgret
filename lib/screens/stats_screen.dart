@@ -1,5 +1,6 @@
 // 8.2 Màn Thống kê: số liệu để kiểm chứng giả thuyết trong báo cáo.
-// Mở từ Cài đặt. Phần tính toán nằm ở services/focus_stats.dart, màn này chỉ hiển thị.
+// Shown in the Tiến độ tab, segment "Phiên học" (spec 001 FR-012). Phần tính toán nằm ở
+// services/focus_stats.dart, widget này chỉ hiển thị.
 import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,30 +11,28 @@ import '../services/focus_stats.dart';
 import '../services/time_format.dart';
 import '../theme/app_theme.dart';
 
-class StatsScreen extends ConsumerWidget {
-  const StatsScreen({super.key});
+/// Study statistics body without Scaffold; shown in Tiến độ.
+class StatsView extends ConsumerWidget {
+  const StatsView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(focusStatsProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Thống kê')),
-      body: stats.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => const _ErrorMessage(),
-        data: (stats) => ListView(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          children: [
-            _FocusCard(stats: stats),
-            const SizedBox(height: AppSpacing.md),
-            _ResetBreakCard(stats: stats),
-            const SizedBox(height: AppSpacing.md),
-            _ReelsCard(stats: stats),
-            const SizedBox(height: AppSpacing.md),
-            _ReturnCard(stats: stats),
-          ],
-        ),
+    return stats.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => const _ErrorMessage(),
+      data: (stats) => ListView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        children: [
+          _FocusCard(stats: stats),
+          const SizedBox(height: AppSpacing.md),
+          _ResetBreakCard(stats: stats),
+          const SizedBox(height: AppSpacing.md),
+          _ReelsCard(stats: stats),
+          const SizedBox(height: AppSpacing.md),
+          _ReturnCard(stats: stats),
+        ],
       ),
     );
   }
@@ -159,7 +158,7 @@ class _FocusCard extends StatelessWidget {
         _FocusBarChart(days: stats.dailyFocus),
         const SizedBox(height: AppSpacing.md),
         if (stats.sessionCount == 0)
-          const _Hint('Chưa có phiên học nào. Bấm "Bắt đầu" ở Trang chủ để học phiên đầu tiên.')
+          const _Hint('Chưa có phiên học nào. Bấm "Bắt đầu" ở Hôm nay để học phiên đầu tiên.')
         else
           _Hint(
             '${stats.sessionCount} phiên học · '
@@ -307,7 +306,7 @@ class _ReelsCard extends StatelessWidget {
       headline: 'Đã xem ${stats.reelsWatched} reel',
       children: [
         if (rate == null)
-          const _Hint('Chưa xem reel nào. Bấm "Bắt đầu" ở Trang chủ để xem reel trước khi học.')
+          const _Hint('Chưa xem reel nào. Bấm "Bắt đầu" ở Hôm nay để xem reel trước khi học.')
         else
           _ShareRow(
             label: 'Bấm "Bắt đầu 5 phút" ngay sau khi xem',

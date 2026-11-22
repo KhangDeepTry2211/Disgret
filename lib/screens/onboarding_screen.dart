@@ -104,7 +104,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
         );
     if (!mounted) return;
-    context.go(AppRoutes.home);
+    context.go(AppRoutes.today);
   }
 
   @override

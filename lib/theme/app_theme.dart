@@ -235,7 +235,7 @@ class AppReels {
   /// Chiều cao khối tiêu đề, chip tag và nút ở đáy trang, tính cả trường hợp xấu nhất:
   /// tiêu đề 2 dòng và chip tag xuống 2 hàng trên màn hình hẹp. Cột Tim / Bình luận / Chia sẻ
   /// nổi đè lên video (có bóng mờ) nên không tính vào đây.
-  static const double overlayHeight = 210;
+  static const double overlayHeight = 240; // Includes the "Chỉ 5 phút thôi" button (spec 001).
 
   /// Cột nút Tim, Bình luận, Chia sẻ bên phải video.
   static const double actionIconSize = 30;

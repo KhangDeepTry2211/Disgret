@@ -65,7 +65,10 @@ class _DisGretAppState extends ConsumerState<DisGretApp> {
       case NativeAction.resumeFocus:
         if (phase == FocusPhase.running) router.go(AppRoutes.focus);
       case NativeAction.openReelsDistracted:
-        if (phase != FocusPhase.finished) router.go(AppRoutes.reelsFor(ReelContext.distracted));
+        // Motivation after a distraction; the router sends it to /today if no session runs.
+        if (phase != FocusPhase.finished) {
+          router.go(AppRoutes.motivationFor(ReelContext.distracted));
+        }
       case NativeAction.breakStarted:
         final minutes = action.minutes;
         if (minutes != null) notifier.onBreakStarted(minutes);
@@ -112,7 +115,7 @@ class _DisGretAppState extends ConsumerState<DisGretApp> {
       case NudgeChoice.keepStudying:
         break;
       case NudgeChoice.watchReel:
-        ref.read(routerProvider).go(AppRoutes.reelsFor(ReelContext.distracted));
+        ref.read(routerProvider).go(AppRoutes.motivationFor(ReelContext.distracted));
       case NudgeChoice.takeBreak:
         ref.read(focusSessionProvider.notifier).takeBreak(minutes: suggestedBreakMinutes);
         ref.read(routerProvider).go(AppRoutes.focus);

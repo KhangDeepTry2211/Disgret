@@ -36,14 +36,27 @@ Future<void> _seedProfile([List<MotivationType> types = const [MotivationType.ca
       UserProfile(motivationTypes: types, preferredReelLength: 30),
     );
 
+/// Mở bước động lực (route /motivation, toàn màn hình) như khi bấm "Bắt đầu" ở Hôm nay.
+Future<void> _pushMotivation(WidgetTester tester) async {
+  GoRouter.of(tester.element(find.byType(MainShell)))
+      .push(AppRoutes.motivationFor(ReelContext.start));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _openReelsTab(WidgetTester tester) async {
   await pumpApp(tester);
-  await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Reels'));
+  await _pushMotivation(tester);
+}
+
+/// Đóng bước động lực (nút X) để về Hôm nay.
+Future<void> _closeMotivation(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('Đóng'));
+  await tester.pumpAndSettle();
 }
 
 /// Bấm trực tiếp, không dùng tapAndSettle: ensureVisible sẽ cuộn luôn PageView sang trang khác.
 Future<void> _tapStartFocus(WidgetTester tester) async {
-  await tester.tap(find.text('Bắt đầu 5 phút'));
+  await tester.tap(find.text('Chỉ 5 phút thôi'));
   await tester.pumpAndSettle();
 }
 
@@ -92,7 +105,7 @@ void main() {
       VideoPlayerPlatform.instance = player;
       await _seedProfile(types);
       await pumpApp(tester, size: screen);
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Reels'));
+      await _pushMotivation(tester);
     }
 
     Rect videoRect(WidgetTester tester) => tester.getRect(find.byType(AspectRatio));
@@ -264,16 +277,16 @@ void main() {
       expect(find.byIcon(AppIcons.play), findsNothing);
     });
 
-    testWidgets('Rời tab thì dừng và giải phóng hết video, quay lại thì phát lại', (tester) async {
+    testWidgets('Rời màn thì dừng và giải phóng hết video, mở lại thì phát lại', (tester) async {
       await _seedProfile();
       await _openReelsTab(tester);
       expect(player.playingAssets, isNotEmpty);
 
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Trang chủ'));
-      expect(player.playingAssets, isEmpty, reason: 'Không được phát tiếng khi đã rời tab');
+      await _closeMotivation(tester);
+      expect(player.playingAssets, isEmpty, reason: 'Không được phát tiếng khi đã rời màn');
       expect(player.liveAssets, isEmpty);
 
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Reels'));
+      await _pushMotivation(tester);
       expect(player.playingAssets, hasLength(1));
       expect(player.liveAssets, hasLength(2));
     });
@@ -352,42 +365,45 @@ void main() {
       expect(find.text('Chưa có reel phù hợp.'), findsNothing);
     });
 
-    testWidgets('Quay lại tab thì đề xuất lại: reel vừa xem bị đẩy xuống', (tester) async {
+    testWidgets('Mở lại thì đề xuất lại: reel vừa xem bị đẩy xuống', (tester) async {
       await _seedProfile();
       await _openReelsTab(tester);
       expect(find.text(_titleR1), findsOneWidget);
 
       player.setPosition(_r1, const Duration(seconds: 7));
       await _tickVideo(tester);
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Trang chủ'));
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Reels'));
+      await _closeMotivation(tester);
+      await _pushMotivation(tester);
 
       expect(find.text(_titleR3), findsOneWidget);
       expect(player.playingAssets, [_r3]);
     });
 
-    testWidgets('Route nhận tham số context; bấm tab Reels lại về "start"', (tester) async {
+    testWidgets('Route nhận tham số context: trong phiên, "distracted" đề xuất reel khác', (
+      tester,
+    ) async {
       await _seedProfile();
+      await GoalRepository().save(const Goal(id: 'g1', title: 'Mục tiêu', reason: 'Lý do'));
+      await HabitRepository().save(
+        const Habit(id: 'h1', goalId: 'g1', name: 'Ôn bài', minMinutesPerDay: 25),
+      );
       await pumpApp(tester);
+      await tapAndSettle(tester, find.text('Bắt đầu'));
+      expect(find.text(_titleR1), findsOneWidget, reason: 'Ngữ cảnh mặc định là "start"');
+      await tapAndSettle(tester, find.text('Bỏ qua'));
 
-      GoRouter.of(tester.element(find.byType(MainShell)))
-          .go(AppRoutes.reelsFor(ReelContext.distracted));
+      GoRouter.of(tester.element(find.text('Thời gian còn lại')))
+          .go(AppRoutes.motivationFor(ReelContext.distracted));
       await tester.pumpAndSettle();
 
       // Chỉ r2, r5, r6 có ngữ cảnh distracted; r6 được ghim nên luôn đứng đầu.
       expect(find.text('Get back to work!'), findsOneWidget);
       expect(player.playingAssets, ['assets/reels/r6.mp4']);
-      expect(player.createdAssets, isNot(contains(_r1)));
-
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Trang chủ'));
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Reels'));
-      expect(find.text(_titleR1), findsOneWidget);
-      expect(player.playingAssets, [_r1]);
     });
   });
 
-  group('Nút "Bắt đầu 5 phút" và sự kiện', () {
-    testWidgets('Mở Focus với 5 phút và thói quen hôm nay, dừng video, ghi startedFocus', (
+  group('Nút "Chỉ 5 phút thôi" và sự kiện', () {
+    testWidgets('Bắt đầu phiên 5 phút với thói quen hôm nay, dừng video, ghi startedFocus', (
       tester,
     ) async {
       await _seedProfile();
@@ -471,18 +487,18 @@ void main() {
 
       player.setPosition(_r3, const Duration(seconds: 9));
       await _tickVideo(tester);
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Trang chủ'));
+      await _closeMotivation(tester);
 
       expect(_watchEvents(), isEmpty);
     });
 
-    testWidgets('Rời tab: ghi lượt đang xem đúng một lần', (tester) async {
+    testWidgets('Rời màn: ghi lượt đang xem đúng một lần', (tester) async {
       await _seedProfile();
       await _openReelsTab(tester);
 
       player.setPosition(_r1, const Duration(seconds: 5));
       await _tickVideo(tester);
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Thói quen'));
+      await _closeMotivation(tester);
 
       expect(_watchEvents(), hasLength(1));
       expect(_watchEvents().single.meta[ReelWatchMeta.reelId], 'r1');

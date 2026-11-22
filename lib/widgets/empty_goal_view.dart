@@ -1,4 +1,4 @@
-// 4.1 Đặt mục tiêu – màn trống khi chưa có mục tiêu, dùng ở Trang chủ và Thói quen.
+// 4.1 Đặt mục tiêu – màn trống khi chưa có mục tiêu, dùng ở Hôm nay và Thói quen.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 

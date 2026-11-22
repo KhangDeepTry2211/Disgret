@@ -5,11 +5,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/achievements.dart';
-import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 
 class LevelBadge extends StatelessWidget {
@@ -128,13 +126,6 @@ Future<void> showLevelUpDialog(BuildContext context, {required int level, requir
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              GoRouter.of(context).push(AppRoutes.achievements);
-            },
-            child: const Text('Xem thành tích'),
-          ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Tuyệt!'),

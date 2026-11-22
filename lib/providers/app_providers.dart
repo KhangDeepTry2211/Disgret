@@ -411,9 +411,9 @@ final installedAppsProvider = FutureProvider.autoDispose<List<InstalledApp>>(
   (ref) => ref.watch(nativeBridgeProvider).getLaunchableApps(),
 );
 
-// ---------- Dữ liệu cho Trang chủ và Focus ----------
+// ---------- Dữ liệu cho Hôm nay và phiên học ----------
 
-/// Mục tiêu hiển thị ở Trang chủ: mục tiêu đầu tiên.
+/// Mục tiêu hiển thị ở Hôm nay: mục tiêu đầu tiên.
 class TodayGoalNotifier extends Notifier<Goal?> {
   @override
   Goal? build() {

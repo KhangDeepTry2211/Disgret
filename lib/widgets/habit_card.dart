@@ -1,4 +1,6 @@
-// 4.2 Ghi nhận – thẻ một thói quen ở Trang chủ (tab Thói quen dùng habit_today_card.dart):
+// 4.2 Ghi nhận – thẻ một thói quen ở Trang chủ cũ.
+// PARKED (ADR-0004, docs/architecture/parked-features.md): no screen uses it; only tests do.
+// The Thói quen tab uses habit_today_card.dart. Contents:
 // - vòng tiến độ phút: chạm để tick, giữ lâu để chọn bản 2 phút / nghỉ phép / bỏ qua;
 // - icon, tên, lịch lặp lại, "Sau khi… · tại…", streak và điểm sức mạnh (4.2);
 // - nhắc "Đừng bỏ 2 lần liên tiếp" khi hôm qua bỏ;

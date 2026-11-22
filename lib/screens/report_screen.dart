@@ -1,4 +1,5 @@
-// 4.2 Màn Báo cáo (bố cục theo design/habit_kit/ ảnh 13–15), mở từ tab Thói quen:
+// 4.2 Màn Báo cáo (bố cục theo design/habit_kit/ ảnh 13–15). Shown in the Tiến độ tab, segment
+// "Thói quen" (spec 001 FR-012):
 // - 4 ô số liệu: chuỗi hiện tại, tỉ lệ hoàn thành, số lần hoàn thành, số ngày hoàn hảo;
 // - biểu đồ cột "Đã hoàn thành" và biểu đồ đường "Tỉ lệ hoàn thành" (fl_chart), mỗi biểu đồ có
 //   menu chọn kỳ; cột/điểm đang chọn có bong bóng giá trị;
@@ -25,14 +26,15 @@ const Map<ReportPeriod, String> reportPeriodLabels = {
   ReportPeriod.allTime: 'Tất cả',
 };
 
-class ReportScreen extends ConsumerStatefulWidget {
-  const ReportScreen({super.key});
+/// Habit report body without Scaffold; shown in Tiến độ.
+class ReportView extends ConsumerStatefulWidget {
+  const ReportView({super.key});
 
   @override
-  ConsumerState<ReportScreen> createState() => _ReportScreenState();
+  ConsumerState<ReportView> createState() => _ReportViewState();
 }
 
-class _ReportScreenState extends ConsumerState<ReportScreen> {
+class _ReportViewState extends ConsumerState<ReportView> {
   ReportPeriod _barPeriod = ReportPeriod.thisWeek;
   ReportPeriod _ratePeriod = ReportPeriod.sixMonths;
 
@@ -43,16 +45,13 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     final today = ref.watch(todayProvider);
 
     if (histories.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(centerTitle: true, title: const Text('Báo cáo')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Text(
-              'Chưa có thói quen nào. Tạo thói quen và đánh dấu vài ngày để xem báo cáo.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge,
-            ),
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Text(
+            'Chưa có thói quen nào. Tạo thói quen và đánh dấu vài ngày để xem báo cáo.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge,
           ),
         ),
       );
@@ -63,83 +62,80 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     final rate = total.due == 0 ? 0.0 : total.completed / total.due;
     final perfect = HabitScience.perfectDays(histories, start, today, today: today);
 
-    return Scaffold(
-      appBar: AppBar(centerTitle: true, title: const Text('Báo cáo')),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _NumberTile(
-                  value: '${ref.watch(overallStreakProvider)} ngày',
-                  label: 'Chuỗi hiện tại',
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _NumberTile(value: '${(rate * 100).round()}%', label: 'Tỉ lệ hoàn thành'),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: _NumberTile(
-                  value: '${ref.watch(completionTotalProvider)}',
-                  label: 'Lần hoàn thành',
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _NumberTile(value: '$perfect', label: 'Ngày hoàn hảo'),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _ChartCard(
-            title: 'Đã hoàn thành',
-            period: _barPeriod,
-            onPeriod: (period) => setState(() => _barPeriod = period),
-            child: _CompletedBarChart(
-              key: ValueKey(_barPeriod),
-              buckets: HabitScience.buckets(histories, _barPeriod, today),
-              today: today,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _ChartCard(
-            title: 'Tỉ lệ hoàn thành',
-            period: _ratePeriod,
-            onPeriod: (period) => setState(() => _ratePeriod = period),
-            child: _RateLineChart(
-              key: ValueKey(_ratePeriod),
-              buckets: HabitScience.buckets(histories, _ratePeriod, today),
-              today: today,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _ChartCard(
-            title: 'Lịch hoàn thành',
-            child: MonthCalendar(
-              today: today,
-              dayBuilder: (context, day, isFuture) => _RateDay(
-                day: day,
-                rate: isFuture ? null : HabitScience.dayRate(histories, day, today: today),
-                isToday: day == today,
-                isFuture: isFuture,
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _NumberTile(
+                value: '${ref.watch(overallStreakProvider)} ngày',
+                label: 'Chuỗi hiện tại',
               ),
             ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _NumberTile(value: '${(rate * 100).round()}%', label: 'Tỉ lệ hoàn thành'),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: _NumberTile(
+                value: '${ref.watch(completionTotalProvider)}',
+                label: 'Lần hoàn thành',
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: _NumberTile(value: '$perfect', label: 'Ngày hoàn hảo'),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _ChartCard(
+          title: 'Đã hoàn thành',
+          period: _barPeriod,
+          onPeriod: (period) => setState(() => _barPeriod = period),
+          child: _CompletedBarChart(
+            key: ValueKey(_barPeriod),
+            buckets: HabitScience.buckets(histories, _barPeriod, today),
+            today: today,
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Ngày hoàn hảo: mọi thói quen đến hạn hôm đó đều xong. Ngày không có thói quen nào '
-            'đến hạn thì không tính.',
-            style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _ChartCard(
+          title: 'Tỉ lệ hoàn thành',
+          period: _ratePeriod,
+          onPeriod: (period) => setState(() => _ratePeriod = period),
+          child: _RateLineChart(
+            key: ValueKey(_ratePeriod),
+            buckets: HabitScience.buckets(histories, _ratePeriod, today),
+            today: today,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _ChartCard(
+          title: 'Lịch hoàn thành',
+          child: MonthCalendar(
+            today: today,
+            dayBuilder: (context, day, isFuture) => _RateDay(
+              day: day,
+              rate: isFuture ? null : HabitScience.dayRate(histories, day, today: today),
+              isToday: day == today,
+              isFuture: isFuture,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Ngày hoàn hảo: mọi thói quen đến hạn hôm đó đều xong. Ngày không có thói quen nào '
+          'đến hạn thì không tính.',
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
     );
   }
 }

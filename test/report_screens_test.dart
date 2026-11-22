@@ -1,5 +1,5 @@
-// 4.1, 4.2 Kiểm thử giao diện: màn Báo cáo, "Thói quen của tôi" (kéo để sắp xếp), Thành tích
-// và hộp thoại chúc mừng lên cấp.
+// 4.1, 4.2, 5.1 Kiểm thử giao diện: tab Tiến độ (báo cáo + thống kê), "Thói quen của tôi" (kéo để
+// sắp xếp) và các tính năng đã cất: Thành tích, hộp thoại lên cấp (ADR-0004, spec 001 US3/US4).
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/data/mock_data.dart';
@@ -12,8 +12,8 @@ import 'package:focus_app/data/repositories/goal_repository.dart';
 import 'package:focus_app/data/repositories/habit_log_repository.dart';
 import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
+import 'package:focus_app/screens/achievements_screen.dart';
 import 'package:focus_app/theme/app_theme.dart';
-import 'package:focus_app/widgets/habit_check_ring.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -32,6 +32,10 @@ Future<void> _onboard() => ProfileRepository().completeOnboarding(
 
 Future<void> _openHabitsTab(WidgetTester tester) =>
     _tap(tester, find.widgetWithText(NavigationDestination, 'Thói quen'));
+
+/// Tiến độ, đoạn "Thói quen" (mặc định) là báo cáo thói quen.
+Future<void> _openReport(WidgetTester tester) =>
+    _tap(tester, find.widgetWithText(NavigationDestination, 'Tiến độ'));
 
 Future<void> _habitsMenu(WidgetTester tester, String item) async {
   await _tap(tester, find.byTooltip('Tuỳ chọn'));
@@ -56,8 +60,7 @@ void main() {
       await _onboard();
       await MockData.createDemoData(now: _now);
       await pumpApp(tester, clock: () => _now);
-      await _openHabitsTab(tester);
-      await _tap(tester, find.byTooltip('Báo cáo'));
+      await _openReport(tester);
 
       expect(find.bySemanticsLabel('Chuỗi hiện tại: 5 ngày'), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(r'^Tỉ lệ hoàn thành: \d+%$')), findsOneWidget);
@@ -91,22 +94,9 @@ void main() {
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
       await pumpApp(tester, clock: () => _now);
-      await _openHabitsTab(tester);
-      await _tap(tester, find.byTooltip('Báo cáo'));
+      await _openReport(tester);
       await tester.scrollUntilVisible(find.text('Lịch hoàn thành'), 300, scrollable: _pageScroll);
       expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('Chưa có thói quen nào thì báo trống', (tester) async {
-      await _onboard();
-      await GoalRepository().save(const Goal(id: 'g1', title: 'A', reason: 'B'));
-      await pumpApp(tester, clock: () => _now);
-      await _openHabitsTab(tester);
-      await _tap(tester, find.byTooltip('Báo cáo'));
-      expect(
-        find.text('Chưa có thói quen nào. Tạo thói quen và đánh dấu vài ngày để xem báo cáo.'),
-        findsOneWidget,
-      );
     });
   });
 
@@ -156,13 +146,22 @@ void main() {
     });
   });
 
-  group('Thành tích', () {
-    testWidgets('Lưới 9 cấp: cấp đã đạt có màu, cấp chưa đạt có ổ khoá', (tester) async {
+  group('Đã cất: Thành tích và hộp thoại lên cấp (ADR-0004)', () {
+    testWidgets('Menu Thói quen không còn mục "Thành tích"', (tester) async {
       await _onboard();
       await MockData.createDemoData(now: _now);
       await pumpApp(tester, clock: () => _now);
       await _openHabitsTab(tester);
-      await _habitsMenu(tester, 'Thành tích');
+
+      await _tap(tester, find.byTooltip('Tuỳ chọn'));
+      expect(find.text('Thói quen của tôi'), findsOneWidget);
+      expect(find.text('Thành tích'), findsNothing);
+    });
+
+    testWidgets('Màn Thành tích (không còn lối vào) vẫn dựng được: lưới 9 cấp', (tester) async {
+      await _onboard();
+      await MockData.createDemoData(now: _now);
+      await pumpStandalone(tester, const AchievementsScreen());
 
       expect(find.bySemanticsLabel('Cấp 1, 10 lần, đã đạt'), findsOneWidget);
       await tester.scrollUntilVisible(
@@ -175,45 +174,22 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Lên cấp thì chúc mừng một lần; bỏ tick rồi tick lại không chúc mừng nữa', (
-      tester,
-    ) async {
+    testWidgets('Vượt mốc lên cấp thì không hiện hộp thoại chúc mừng', (tester) async {
       await _onboard();
       const habit = Habit(id: 'h1', goalId: 'g1', name: 'Ôn bài', minMinutesPerDay: 25);
       await GoalRepository().save(const Goal(id: 'g1', title: 'A', reason: 'B'));
       await HabitRepository().save(habit);
-      // 9 lần hoàn thành trước hôm nay: tick hôm nay là đủ 10 lần, lên Cấp 1.
+      // 9 lần hoàn thành trước hôm nay: tick hôm nay là đủ 10 lần (mốc Cấp 1).
       for (var i = 1; i <= 9; i++) {
         await HabitLogRepository().setMark(habit, DateTime(2026, 3, 5 - i), HabitLogSource.manual);
       }
       await pumpApp(tester, clock: () => _now);
+      await _openHabitsTab(tester);
 
-      await _tap(tester, find.byType(HabitCheckRing));
-      expect(find.text('Chúc mừng! 🎉'), findsOneWidget);
-      expect(find.text('Bạn đã lên Cấp 1'), findsOneWidget);
-      await _tap(tester, find.text('Tuyệt!'));
-      expect(ProfileRepository().celebratedLevel, 1);
-
-      // Bỏ tick (xuống 9 lần) rồi tick lại: không chúc mừng lần nữa.
-      await _tap(tester, find.byType(HabitCheckRing));
-      await _tap(tester, find.byType(HabitCheckRing));
+      await _tap(tester, find.text('Ôn bài'));
+      expect(find.text('Đã xong (1)'), findsOneWidget);
       expect(find.text('Chúc mừng! 🎉'), findsNothing);
-    });
-
-    testWidgets('"Xem thành tích" trong hộp thoại mở màn Thành tích', (tester) async {
-      await _onboard();
-      const habit = Habit(id: 'h1', goalId: 'g1', name: 'Ôn bài', minMinutesPerDay: 25);
-      await GoalRepository().save(const Goal(id: 'g1', title: 'A', reason: 'B'));
-      await HabitRepository().save(habit);
-      for (var i = 1; i <= 9; i++) {
-        await HabitLogRepository().setMark(habit, DateTime(2026, 3, 5 - i), HabitLogSource.manual);
-      }
-      await pumpApp(tester, clock: () => _now);
-
-      await _tap(tester, find.byType(HabitCheckRing));
-      await _tap(tester, find.text('Xem thành tích'));
-      expect(find.text('Thành tích'), findsOneWidget);
-      expect(find.text('Cấp 1'), findsWidgets);
+      expect(find.text('Bạn đã lên Cấp 1'), findsNothing);
     });
 
     testWidgets('Tạo dữ liệu mẫu không hiện hộp thoại chúc mừng', (tester) async {

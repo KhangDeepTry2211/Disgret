@@ -1,4 +1,4 @@
-// Kiểm thử giao diện: onboarding, Trang chủ, màn Thói quen, Cài đặt và vòng chính.
+// Kiểm thử giao diện: onboarding, Hôm nay, màn Thói quen, Cài đặt và vòng chính.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/data/models/goal.dart';
 import 'package:focus_app/data/models/habit.dart';
@@ -123,7 +123,7 @@ void main() {
   });
 
   group('Onboarding', () {
-    testWidgets('Lần đầu mở app: giới thiệu, quiz 4 câu, nhập mục tiêu rồi vào Trang chủ', (
+    testWidgets('Lần đầu mở app: giới thiệu, quiz 4 câu, nhập mục tiêu rồi vào Hôm nay', (
       tester,
     ) async {
       await _pumpApp(tester);
@@ -155,9 +155,8 @@ void main() {
 
       expect(find.text('Bắt đầu'), findsOneWidget);
       expect(find.text('Qua môn Toán'), findsOneWidget);
-      expect(find.text('Để ra trường đúng hạn'), findsOneWidget);
       expect(find.text('Làm đề'), findsOneWidget);
-      expect(find.text('0/15 phút hôm nay'), findsOneWidget);
+      expect(find.text('15 phút'), findsOneWidget);
 
       // Đã lưu thật xuống Hive, động lực là 2 loại điểm cao nhất của quiz.
       expect(GoalRepository().getAll().single.title, 'Qua môn Toán');
@@ -277,7 +276,7 @@ void main() {
     });
   });
 
-  group('Trang chủ', () {
+  group('Hôm nay', () {
     testWidgets('Chưa có mục tiêu: hiện màn trống, tạo xong mục tiêu và thói quen thì đổi ngay', (
       tester,
     ) async {
@@ -292,19 +291,21 @@ void main() {
       await _enterField(tester, 'Vì sao bạn muốn điều này?', 'Vì thích');
       await _tap(tester, find.text('Lưu'));
 
+      // Có mục tiêu nhưng chưa có thói quen: một lời mời thêm thói quen, chưa có nút bắt đầu.
       expect(find.text('Chưa có mục tiêu nào'), findsNothing);
-      expect(find.text('Mục tiêu mới tạo'), findsOneWidget);
-      expect(find.text('Bắt đầu'), findsOneWidget);
-      expect(find.text('Chưa có thói quen nào.'), findsOneWidget);
+      expect(find.text('Chưa có thói quen nào'), findsOneWidget);
+      expect(find.text('Bắt đầu'), findsNothing);
 
       await _tap(tester, find.text('Thêm thói quen'));
       await _createHabitInForm(tester, 'Thói quen mới tạo');
 
+      expect(find.text('Mục tiêu mới tạo'), findsOneWidget);
       expect(find.text('Thói quen mới tạo'), findsOneWidget);
-      expect(find.text('0/25 phút hôm nay'), findsOneWidget);
+      expect(find.text('25 phút'), findsOneWidget);
+      expect(find.text('Bắt đầu'), findsOneWidget);
     });
 
-    testWidgets('Các lần sau vào thẳng Trang chủ với dữ liệu thật', (tester) async {
+    testWidgets('Các lần sau vào thẳng Hôm nay với dữ liệu thật', (tester) async {
       await _seedGoalAndHabit();
       await _pumpApp(tester);
 
@@ -314,13 +315,73 @@ void main() {
       expect(find.bySemanticsLabel('Chuỗi 0 ngày học liên tiếp'), findsOneWidget);
       expect(find.text('Đạt điểm A'), findsOneWidget);
       expect(find.text('Ôn bài'), findsOneWidget);
+      expect(find.text('25 phút'), findsOneWidget);
       expect(find.text('Bắt đầu'), findsOneWidget);
+      // Không còn danh sách thói quen hay điểm sức mạnh trên Hôm nay (FR-002).
+      expect(find.byType(HabitCheckRing), findsNothing);
+      expect(find.textContaining('Sức mạnh'), findsNothing);
+    });
+
+    testWidgets('Hiện câu bản sắc của mục tiêu', (tester) async {
+      await _completeOnboarding();
+      await GoalRepository().save(_goal.copyWith(identity: 'học đều mỗi ngày'));
+      await HabitRepository().save(_habit);
+      await _pumpApp(tester);
+
+      expect(find.text('Tôi là người học đều mỗi ngày'), findsOneWidget);
+    });
+
+    testWidgets('Tick ở tab Thói quen thì Hôm nay cập nhật ngay; bỏ tick cũng vậy', (tester) async {
+      await _seedGoalAndHabit();
+      await _pumpApp(tester);
+      expect(find.bySemanticsLabel('Chuỗi 0 ngày học liên tiếp'), findsOneWidget);
+
+      await _tap(tester, find.text('Thói quen'));
+      await _tap(tester, find.text('Ôn bài'));
+      expect(find.text('Đã xong (1)'), findsOneWidget);
+      final log = HabitLogRepository().getAll().single;
+      expect(log.source, HabitLogSource.manual);
+      expect(log.minutes, 25);
+
+      // Mọi thói quen hôm nay đã xong: Hôm nay báo xong và chỉ còn nút phụ "Học thêm một phiên".
+      await _tap(tester, find.text('Hôm nay'));
+      expect(find.bySemanticsLabel('Chuỗi 1 ngày học liên tiếp'), findsOneWidget);
+      expect(find.text('Hôm nay bạn đã xong hết!'), findsOneWidget);
+      expect(find.text('Học thêm một phiên'), findsOneWidget);
+      expect(find.text('Bắt đầu'), findsNothing);
+
+      await _tap(tester, find.text('Thói quen'));
+      await _tap(tester, find.text('Ôn bài'));
+      expect(HabitLogRepository().getAll(), isEmpty);
+
+      await _tap(tester, find.text('Hôm nay'));
+      expect(find.bySemanticsLabel('Chuỗi 0 ngày học liên tiếp'), findsOneWidget);
+      expect(find.text('Bắt đầu'), findsOneWidget);
+    });
+  });
+
+  // Thẻ thói quen của Trang chủ cũ đã được cất (ADR-0004) nhưng vẫn được test trực tiếp.
+  group('Tick "Hôm nay đã làm" (thẻ đã cất)', () {
+    testWidgets('Tick thì lưu log manual đủ phút; bỏ tick thì xoá', (tester) async {
+      await _seedGoalAndHabit();
+      await pumpHabitCard(tester, _habit);
+      expect(find.text('0/25 phút hôm nay'), findsOneWidget);
+
+      await _tap(tester, _ring);
+      expect(find.text('25/25 phút hôm nay'), findsOneWidget);
+      final log = HabitLogRepository().getAll().single;
+      expect(log.source, HabitLogSource.manual);
+      expect(log.minutes, 25);
+
+      await _tap(tester, _ring);
+      expect(find.text('0/25 phút hôm nay'), findsOneWidget);
+      expect(HabitLogRepository().getAll(), isEmpty);
     });
 
     testWidgets('Vòng tiến độ phút chạy đúng tỉ lệ', (tester) async {
       await _seedGoalAndHabit();
       await _addFocusLog(10);
-      await _pumpApp(tester);
+      await pumpHabitCard(tester, _habit);
 
       // Đã học 10/25 phút nên vòng chạy 40%.
       expect(find.text('10/25 phút hôm nay'), findsOneWidget);
@@ -331,55 +392,9 @@ void main() {
       expect(_isTicked(tester), isFalse);
     });
 
-    testWidgets('Hiện câu bản sắc và điểm sức mạnh trung bình', (tester) async {
-      await _completeOnboarding();
-      await GoalRepository().save(_goal.copyWith(identity: 'học đều mỗi ngày'));
-      await HabitRepository().save(_habit);
-      await _pumpApp(tester);
-
-      expect(find.text('Tôi là người học đều mỗi ngày'), findsOneWidget);
-      expect(find.bySemanticsLabel('Sức mạnh thói quen trung bình 0%'), findsOneWidget);
-
-      await _tap(tester, _ring);
-      expect(find.bySemanticsLabel('Sức mạnh thói quen trung bình 4%'), findsOneWidget);
-      expect(find.bySemanticsLabel('Chuỗi 1 ngày học liên tiếp'), findsOneWidget);
-    });
-  });
-
-  group('Tick "Hôm nay đã làm"', () {
-    testWidgets('Tick ở Trang chủ thì mọi màn cập nhật ngay; bỏ tick ở màn khác cũng vậy', (
-      tester,
-    ) async {
-      await _seedGoalAndHabit();
-      await _pumpApp(tester);
-      expect(find.text('0/25 phút hôm nay'), findsOneWidget);
-
-      await _tap(tester, _ring);
-
-      expect(find.text('25/25 phút hôm nay'), findsOneWidget);
-      expect(find.bySemanticsLabel('Chuỗi 1 ngày học liên tiếp'), findsOneWidget);
-      expect(find.bySemanticsLabel('Chuỗi 1 ngày'), findsOneWidget);
-      final log = HabitLogRepository().getAll().single;
-      expect(log.source, HabitLogSource.manual);
-      expect(log.minutes, 25);
-
-      // Sang tab Thói quen thấy thẻ nằm ở mục "Đã xong"; chạm thẻ để bỏ đánh dấu.
-      await _tap(tester, find.text('Thói quen'));
-      expect(find.text('Đã xong (1)'), findsOneWidget);
-      await _tap(tester, find.text('Ôn bài'));
-      expect(HabitLogRepository().getAll(), isEmpty);
-      expect(find.text('Đã xong (1)'), findsNothing);
-
-      // Về Trang chủ thấy đã bỏ tick.
-      await _tap(tester, find.text('Trang chủ'));
-      expect(find.text('0/25 phút hôm nay'), findsOneWidget);
-      expect(_isTicked(tester), isFalse);
-      expect(find.bySemanticsLabel('Chuỗi 0 ngày học liên tiếp'), findsOneWidget);
-    });
-
     testWidgets('Sau khi tick cho thêm ghi chú, không bắt buộc, sửa lại được', (tester) async {
       await _seedGoalAndHabit();
-      await _pumpApp(tester);
+      await pumpHabitCard(tester, _habit);
       expect(find.text('Thêm ghi chú'), findsNothing);
 
       await _tap(tester, _ring);
@@ -405,7 +420,7 @@ void main() {
     ) async {
       await _seedGoalAndHabit();
       await _addFocusLog(25);
-      await _pumpApp(tester);
+      await pumpHabitCard(tester, _habit);
 
       final ring = tester.widget<HabitCheckRing>(_ring);
       expect(ring.done, isTrue);
@@ -413,7 +428,6 @@ void main() {
       expect(ring.onLongPress, isNull);
       expect(find.text('Đã đủ phút từ phiên Focus'), findsOneWidget);
       expect(find.text('25/25 phút hôm nay'), findsOneWidget);
-      expect(find.bySemanticsLabel('Chuỗi 1 ngày học liên tiếp'), findsOneWidget);
     });
 
     testWidgets('Focus chưa đủ phút: vẫn tick tay được, bỏ tick thì phút học vẫn còn', (
@@ -421,7 +435,7 @@ void main() {
     ) async {
       await _seedGoalAndHabit();
       await _addFocusLog(10);
-      await _pumpApp(tester);
+      await pumpHabitCard(tester, _habit);
       expect(_isTicked(tester), isFalse);
 
       await _tap(tester, _ring);
@@ -480,7 +494,7 @@ void main() {
       expect(find.text('Hãy ghi lại lý do của bạn'), findsOneWidget);
     });
 
-    testWidgets('Sửa mục tiêu hiện sẵn dữ liệu cũ và cập nhật cả Trang chủ', (tester) async {
+    testWidgets('Sửa mục tiêu hiện sẵn dữ liệu cũ và cập nhật cả Hôm nay', (tester) async {
       await _seedGoalAndHabit();
       await openHabits(tester);
 
@@ -494,10 +508,10 @@ void main() {
       await _tap(tester, find.text('Lưu'));
       expect(find.text('Đạt điểm A+'), findsOneWidget);
 
-      // Đóng danh sách mục tiêu rồi về Trang chủ.
+      // Đóng danh sách mục tiêu rồi về Hôm nay.
       await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
-      await _tap(tester, find.text('Trang chủ'));
+      await _tap(tester, find.widgetWithText(NavigationDestination, 'Hôm nay'));
       expect(find.text('Đạt điểm A+'), findsOneWidget);
     });
 
@@ -526,7 +540,7 @@ void main() {
       expect(GoalRepository().getAll(), isEmpty);
       expect(HabitRepository().getAll(), isEmpty);
 
-      await _tap(tester, find.text('Trang chủ'));
+      await _tap(tester, find.widgetWithText(NavigationDestination, 'Hôm nay'));
       expect(find.text('Tạo mục tiêu đầu tiên'), findsOneWidget);
     });
 
@@ -650,7 +664,7 @@ void main() {
   });
 
   group('Cài đặt', () {
-    testWidgets('Tạo dữ liệu mẫu: Trang chủ hiện ngay mục tiêu, streak 5 và 2 thói quen', (
+    testWidgets('Tạo dữ liệu mẫu: Hôm nay hiện ngay mục tiêu, streak 5 và thói quen tiếp theo', (
       tester,
     ) async {
       await _completeOnboarding();
@@ -666,8 +680,7 @@ void main() {
 
       expect(find.bySemanticsLabel('Chuỗi 5 ngày học liên tiếp'), findsOneWidget);
       expect(find.text('Đạt điểm A môn Tư Duy Tính Toán'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Làm bài tập về nhà'), 200);
-      expect(find.text('10/30 phút hôm nay'), findsOneWidget);
+      expect(find.text('Bắt đầu'), findsOneWidget);
     });
 
     testWidgets('Xoá toàn bộ dữ liệu: Huỷ thì giữ, xác nhận thì về onboarding như mới cài', (
@@ -692,63 +705,53 @@ void main() {
   });
 
   group('Khung app', () {
-    testWidgets('Đi hết vòng chính: Bắt đầu → Reels → Focus 5 phút → Tổng kết → Trang chủ', (
+    testWidgets('Đi hết vòng chính: Bắt đầu → động lực → phiên 5 phút → Tổng kết → Hôm nay', (
       tester,
     ) async {
       await _seedGoalAndHabit();
       await _pumpApp(tester);
 
       await _tap(tester, find.text('Bắt đầu'));
-      expect(find.text('Bắt đầu 5 phút'), findsOneWidget);
+      // Bước động lực toàn màn hình: không có thanh tab.
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.text('Bắt đầu 25 phút'), findsOneWidget);
+      expect(find.text('Chỉ 5 phút thôi'), findsOneWidget);
 
-      await tester.tap(find.text('Bắt đầu 5 phút'));
+      await tester.tap(find.text('Chỉ 5 phút thôi'));
       await tester.pumpAndSettle();
       expect(find.text('Kết thúc sớm'), findsOneWidget);
       expect(find.text('Ôn bài'), findsOneWidget);
       expect(find.text('05:00'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
 
       await _tap(tester, find.text('Kết thúc sớm'));
       await _tap(tester, find.text('Kết thúc'));
       expect(find.text('Tổng kết'), findsOneWidget);
 
-      await _tap(tester, find.text('Về Trang chủ'));
+      await _tap(tester, find.text('Về Hôm nay'));
       expect(find.text('Bắt đầu'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
     });
 
-    testWidgets('Link "Bỏ qua, vào học luôn" mở thẳng Focus, không qua Reels', (tester) async {
+    testWidgets('Thanh dưới có đúng 3 tab theo thứ tự và tab nào cũng mở được', (tester) async {
       await _seedGoalAndHabit();
       await _pumpApp(tester);
 
-      await _tap(tester, find.text('Bỏ qua, vào học luôn'));
+      final labels = tester
+          .widgetList<NavigationDestination>(find.byType(NavigationDestination))
+          .map((destination) => destination.label)
+          .toList();
+      expect(labels, ['Hôm nay', 'Thói quen', 'Tiến độ']);
+      expect(find.text('Reels'), findsNothing);
+      expect(find.text('Focus'), findsNothing);
 
-      expect(find.text('Chỉ cần cam kết 5 phút đầu'), findsOneWidget);
-      expect(find.text('Ôn bài'), findsOneWidget);
-      expect((VideoPlayerPlatform.instance as FakeVideoPlayerPlatform).createdAssets, isEmpty);
-    });
-
-    testWidgets('Thanh dưới có đúng 4 tab và tab nào cũng mở được', (tester) async {
-      await _seedGoalAndHabit();
-      await _pumpApp(tester);
-
-      expect(find.byType(NavigationDestination), findsNWidgets(4));
-
-      await _tap(tester, find.text('Reels'));
-      expect(find.text('Bắt đầu 5 phút'), findsOneWidget);
-
-      // Vuốt dọc sang reel tiếp theo.
-      expect(find.text('Bạn đủ thông minh để thay đổi'), findsOneWidget);
-      await tester.fling(find.byType(PageView), const Offset(0, -400), 1000);
-      await tester.pumpAndSettle();
-      expect(find.text('Làm nhiều hơn người khác'), findsOneWidget);
-
-      await _tap(tester, find.text('Focus'));
-      expect(find.text('Chỉ cần cam kết 5 phút đầu'), findsOneWidget);
-
-      // Màn Focus cũng có ô chọn tên "Thói quen" nên phải chỉ rõ là bấm vào tab.
       await _tap(tester, find.widgetWithText(NavigationDestination, 'Thói quen'));
       expect(find.byTooltip('Tạo thói quen'), findsOneWidget);
 
-      await _tap(tester, find.text('Trang chủ'));
+      await _tap(tester, find.widgetWithText(NavigationDestination, 'Tiến độ'));
+      expect(find.text('Tiến độ sẽ hiện ở đây sau phiên học đầu tiên.'), findsOneWidget);
+
+      await _tap(tester, find.widgetWithText(NavigationDestination, 'Hôm nay'));
       expect(find.text('Bắt đầu'), findsOneWidget);
     });
 
@@ -765,20 +768,27 @@ void main() {
 
     testWidgets('Tên rất dài trên màn hình nhỏ không gây tràn giao diện', (tester) async {
       await _completeOnboarding();
-      await GoalRepository().save(Goal(id: 'g1', title: 'Mục tiêu ' * 8, reason: 'Lý do ' * 30));
+      await GoalRepository().save(
+        Goal(id: 'g1', title: 'Mục tiêu ' * 8, reason: 'Lý do ' * 30, identity: 'học ' * 20),
+      );
       await HabitRepository().save(
         Habit(id: 'h1', goalId: 'g1', name: 'Thói quen ' * 6, minMinutesPerDay: 1440),
       );
       await _pumpApp(tester);
-
-      // Trang chủ: thẻ mục tiêu rất dài đẩy vòng tick xuống dưới nên phải cuộn tới.
-      await tester.scrollUntilVisible(find.byType(HabitCheckRing), 200);
-      await _tap(tester, _ring);
       expect(tester.takeException(), isNull);
 
-      // Màn Thói quen có thêm menu Sửa/Xoá trên cùng một hàng.
       await _tap(tester, find.widgetWithText(NavigationDestination, 'Thói quen'));
       expect(find.byTooltip('Tạo thói quen'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Thẻ đã cất với tên rất dài không gây tràn giao diện', (tester) async {
+      await _completeOnboarding();
+      final habit = Habit(id: 'h1', goalId: 'g1', name: 'Thói quen ' * 6, minMinutesPerDay: 1440);
+      await HabitRepository().save(habit);
+      await pumpHabitCard(tester, habit);
+
+      await _tap(tester, _ring);
       expect(tester.takeException(), isNull);
     });
   });

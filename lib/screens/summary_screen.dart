@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../router/app_router.dart';
@@ -62,7 +63,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
     await _save();
     if (!mounted) return;
     final notifier = ref.read(focusSessionProvider.notifier);
-    context.go(AppRoutes.home);
+    context.go(AppRoutes.today);
     notifier.reset();
   }
 
@@ -72,7 +73,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
     final streak = ref.watch(overallStreakProvider);
     final result = _saveResult;
 
-    // Phiên học đã xong nên nút Back của hệ thống đưa về Trang chủ, không quay lại Focus.
+    // Phiên học đã xong nên nút Back của hệ thống đưa về Hôm nay, không quay lại Focus.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -200,7 +201,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: _isSaving ? null : _goHome,
-                        child: const Text('Về Trang chủ'),
+                        child: const Text(AppStrings.backToToday),
                       ),
                     ),
                     if (!_isSaved) ...[

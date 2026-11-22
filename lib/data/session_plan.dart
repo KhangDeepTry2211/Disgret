@@ -1,4 +1,4 @@
-// 5.1 Hôm nay: kế hoạch cho phiên học tiếp theo (mục tiêu, thói quen, số phút).
+// 5.1 Kế hoạch phiên học tiếp theo (Hôm nay): goal, habit and planned minutes.
 // Pure function with unit tests (test/session_plan_test.dart); rules in
 // specs/001-today-single-study-entry/data-model.md.
 import 'habit_science.dart';

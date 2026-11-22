@@ -15,6 +15,7 @@ import '../data/habit_progress.dart';
 import '../data/habit_science.dart';
 import '../data/models/habit.dart';
 import '../data/models/habit_log.dart';
+import '../data/models/reel.dart';
 import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
@@ -332,8 +333,10 @@ Future<void> showHabitActionsSheet(
     case _HabitAction.clear:
       await logs.clearMarksOn(habit, ref.read(todayProvider));
     case _HabitAction.focus:
+      // Single study entry (ADR-0002): set the plan habit, then go through motivation.
+      // If a session already runs, the router sends this to that session.
       ref.read(sessionPlanOverrideProvider.notifier).chooseHabit(habit.id);
-      context.go(AppRoutes.focus);
+      await context.push(AppRoutes.motivationFor(ReelContext.start));
     case _HabitAction.details:
       await context.push(AppRoutes.habitDetail(habit.id));
     case _HabitAction.edit:

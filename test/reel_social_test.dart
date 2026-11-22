@@ -15,12 +15,15 @@ import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/data/repositories/reel_comment_repository.dart';
 import 'package:focus_app/data/repositories/reel_reaction_repository.dart';
 import 'package:focus_app/providers/app_providers.dart';
+import 'package:focus_app/router/app_router.dart';
+import 'package:focus_app/screens/main_shell.dart';
 import 'package:focus_app/services/focus_stats.dart';
 import 'package:focus_app/services/reel_recommender.dart';
 import 'package:focus_app/services/reel_share.dart';
 import 'package:focus_app/theme/app_theme.dart';
 import 'package:focus_app/widgets/reel_action_column.dart';
 import 'package:focus_app/widgets/reel_comments_sheet.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -51,7 +54,14 @@ Future<void> _seedProfile() => ProfileRepository().completeOnboarding(
 Future<void> _openReelsTab(WidgetTester tester) async {
   await _seedProfile();
   await pumpApp(tester);
-  await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Reels'));
+  await _pushMotivation(tester);
+}
+
+/// Bước động lực (route /motivation) thay cho tab Reels cũ (spec 001).
+Future<void> _pushMotivation(WidgetTester tester) async {
+  GoRouter.of(tester.element(find.byType(MainShell)))
+      .push(AppRoutes.motivationFor(ReelContext.start));
+  await tester.pumpAndSettle();
 }
 
 Finder get _likeButton => find.byKey(const ValueKey('reel_like'));
@@ -284,7 +294,7 @@ void main() {
       // Chưa có bình luận thì không hiện số.
       expect(find.text('0'), findsNothing);
 
-      final start = tester.getRect(find.text('Bắt đầu 5 phút'));
+      final start = tester.getRect(find.text('Bắt đầu 25 phút'));
       expect(tester.getRect(_shareButton).bottom, lessThanOrEqualTo(start.top));
       // Nằm bên phải, không che tiêu đề và chip tag.
       final title = tester.getRect(find.text('Bạn đủ thông minh để thay đổi'));
@@ -431,7 +441,7 @@ void main() {
       await _seedProfile();
       await MockData.createDemoData(now: DateTime.now());
       await pumpApp(tester);
-      await tapAndSettle(tester, find.widgetWithText(NavigationDestination, 'Reels'));
+      await _pushMotivation(tester);
 
       await tester.tap(_commentButton);
       await tester.pumpAndSettle();
