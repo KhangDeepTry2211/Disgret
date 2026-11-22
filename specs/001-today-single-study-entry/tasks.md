@@ -42,7 +42,7 @@ and `flutter test` (0 failures) pass before the task is checked off.
       `.minutes`, cleared on start) and `sessionPlanProvider` in `lib/providers/app_providers.dart`;
       replace `focusHabitChoiceProvider` and update its users (`lib/screens/focus_screen.dart`,
       `lib/widgets/habit_today_card.dart`). **Done when** analyze is clean and existing tests pass.
-- [ ] T006 Implement `lib/services/study_starter.dart` (research R3): if a session runs → go
+- [X] T006 Implement `lib/services/study_starter.dart` (research R3): if a session runs → go
       `/focus`; else `confirmStartWithResetBreak` → `FocusSessionNotifier.start(habit, minutes)` →
       clear override → go `/focus`. Add unit/widget test in `test/navigation_test.dart` proving no
       second session is created when called twice.
