@@ -15,9 +15,7 @@ class InstalledApp {
     return InstalledApp(
       packageName: json['packageName'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      icon: iconData is String && iconData.isNotEmpty
-          ? base64Decode(iconData)
-          : Uint8List(0),
+      icon: iconData is String && iconData.isNotEmpty ? base64Decode(iconData) : Uint8List(0),
     );
   }
 
