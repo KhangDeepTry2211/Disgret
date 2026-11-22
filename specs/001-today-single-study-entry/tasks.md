@@ -23,7 +23,7 @@ and `flutter test` (0 failures) pass before the task is checked off.
       values (and small functions for interpolated text such as `startMinutes(int n)`) for every
       string introduced by this feature. **Done when** the file compiles and is referenced by at
       least one screen (ADR-0005).
-- [ ] T002 [P] Create `docs/architecture/parked-features.md` listing achievements
+- [X] T002 [P] Create `docs/architecture/parked-features.md` listing achievements
       (`lib/data/achievements.dart`, `lib/widgets/level_badge.dart`, `lib/screens/achievements_screen.dart`),
       heat map (`lib/widgets/habit_heat_map.dart`), 66-day journey (`HabitScience.journeyDays`,
       `_Journey` in `habit_detail_screen.dart`) and the former Home habit card
