@@ -95,8 +95,8 @@ contracts/motivation-step.md, quickstart.md)
 
 ## Phase 7: Polish
 
-- [ ] T016 Update `README.md` demo script (reel step) and `CLAUDE.md`/docs references to Reels tab,
-      likes and comments.
+- [ ] T016 Update `README.md` demo script (reel step) and the references to the Reels tab, likes and
+      comments in `docs/architecture/design-system.md` and `docs/architecture/data-model.md`.
 - [ ] T017 Run full gate + quickstart; verify `grep -rn "share_plus\|ReelComment\|ReelReaction" lib
       test pubspec.yaml` is empty; mark spec "Implemented".
 

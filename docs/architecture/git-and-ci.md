@@ -39,6 +39,12 @@ manual checklist, not CI.
 
 Hand-off release: `git tag v0.2.0 && git push origin v0.2.0` on the verified `master` commit.
 
+`gh` note: the clone has an `upstream` remote (the original repository), so `gh` may resolve to it.
+Run `gh repo set-default ltuong0211/Disgret` once per clone, or pass `-R ltuong0211/Disgret`.
+
+First CI run: run 45031049645 on `feature/agentic-setup` (2026-11-22) — both jobs green; the debug
+APK artifact is about 113 MB (debug build plus ~13 MB of bundled videos).
+
 ## Recommended GitHub settings (not applied; decided "not needed" for now)
 
 - Protect `master`: require the `CI / Format, analyze, test` and `CI / Build debug APK` checks,
