@@ -32,12 +32,12 @@ and `flutter test` (0 failures) pass before the task is checked off.
 
 ## Phase 2: Foundational (blocks all stories)
 
-- [ ] T003 Write `test/session_plan_test.dart` covering data-model.md `SessionPlan.habit`,
+- [X] T003 Write `test/session_plan_test.dart` covering data-model.md `SessionPlan.habit`,
       `SessionPlan.plannedMinutes` and `SessionPlan.state` rules: override habit wins if present and
       not archived; else first due-and-not-done; else first habit; minutes = override, else
       `minMinutesPerDay` within 5–480, else 25; states `noGoal`, `noHabit`, `ready`,
       `allDoneToday`, `restDay`. **Done when** tests exist and fail.
-- [ ] T004 Implement `lib/data/session_plan.dart` (pure `SessionPlan.next(...)`) so T003 passes.
+- [X] T004 Implement `lib/data/session_plan.dart` (pure `SessionPlan.next(...)`) so T003 passes.
 - [ ] T005 Add `sessionPlanOverrideProvider` (data-model.md `SessionPlanOverride.habitId`,
       `.minutes`, cleared on start) and `sessionPlanProvider` in `lib/providers/app_providers.dart`;
       replace `focusHabitChoiceProvider` and update its users (`lib/screens/focus_screen.dart`,
