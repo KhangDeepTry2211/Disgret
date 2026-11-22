@@ -33,8 +33,8 @@ Tham số: action, và minutes với break_started. Flutter chưa sẵn sàng th
 | action | Gửi khi | Flutter làm gì |
 |---|---|---|
 | intervention_shown | Màn chặn vừa mở | Đếm số lần chặn; lần rời app này không nhắc thêm khi quay lại |
-| resume_focus | Bấm "Quay lại học" hoặc Back trên màn chặn (qua Intent) | Về màn Focus. Lần xao nhãng vẫn được đếm khi app hiện lại |
-| open_reels_distracted | Bấm "Xem 1 reel động lực" (qua Intent) | Mở Reels với context distracted |
+| resume_focus | Bấm "Quay lại học" hoặc Back trên màn chặn (qua Intent) | Về màn phiên học (`/focus`). Lần xao nhãng vẫn được đếm khi app hiện lại |
+| open_reels_distracted | Bấm "Xem 1 reel động lực" (qua Intent) | Mở bước động lực `/motivation?context=distracted` (không có phiên thì router về `/today`) |
 | break_started | Chọn số phút nghỉ trên màn chặn (đi thẳng qua kênh, không qua Intent vì DisGret không mở lên) | Tạm dừng phiên |
 | break_ended | Hết giờ nghỉ (đi thẳng qua kênh), và khi bấm thông báo hết giờ (qua Intent) | Phiên chạy tiếp, về màn Focus |
 

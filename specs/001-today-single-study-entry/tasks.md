@@ -135,7 +135,7 @@ and `flutter test` (0 failures) pass before the task is checked off.
 
 ## Phase 7: Polish & cross-cutting
 
-- [ ] T025 Update `README.md` demo script and decomposition map (new routes and files).
+- [X] T025 Update `README.md` demo script and decomposition map (new routes and files).
 - [ ] T026 [P] Verify SC-005 (upgrade keeps data): install `master` APK, create data, install this
       build, compare habits/logs/sessions/streak (quickstart scenario 8).
 - [ ] T027 Run the full gate and quickstart; mark spec status "Implemented".
