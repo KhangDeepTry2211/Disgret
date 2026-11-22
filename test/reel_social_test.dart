@@ -155,9 +155,11 @@ void main() {
       await comments.delete(first.id);
 
       expect(container.read(reelCommentsProvider).map((c) => c.text), ['Hai']);
-      final stored = ReelCommentRepository().getById(first.id)!;
-      expect(stored.deleted, isTrue);
-      expect(stored.text, 'Một');
+      // getById bỏ qua bản đã xoá mềm; bản ghi thô vẫn còn trong box để đồng bộ.
+      expect(ReelCommentRepository().getById(first.id), isNull);
+      final stored = ReelCommentRepository().getAllRaw()[first.id]!;
+      expect(stored['deleted'], isTrue);
+      expect(stored['text'], 'Một');
 
       // Mở lại app (tạo provider mới) vẫn không thấy bình luận đã xoá.
       final reopened = ProviderContainer();
@@ -418,7 +420,8 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Xoá'));
       await tester.pumpAndSettle();
       expect(find.text('Xoá tôi đi'), findsNothing);
-      expect(ReelCommentRepository().getAll().single.deleted, isTrue);
+      expect(ReelCommentRepository().getAll(), isEmpty);
+      expect(ReelCommentRepository().getAllRaw().values.single['deleted'], isTrue);
       expect(
         find.text('Chưa có bình luận. Viết cảm nhận của bạn về video này nhé!'),
         findsOneWidget,

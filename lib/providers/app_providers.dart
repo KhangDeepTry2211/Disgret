@@ -7,6 +7,7 @@ import '../data/achievements.dart';
 import '../data/date_utils.dart';
 import '../data/habit_science.dart';
 import '../data/hive_boxes.dart';
+import '../data/local_store.dart';
 import '../data/mock_data.dart';
 import '../data/models/goal.dart';
 import '../data/models/habit.dart';
@@ -531,23 +532,36 @@ class AppDataActions {
     await _ref
         .read(profileRepositoryProvider)
         .saveCelebratedLevel(Achievements.levelFor(Achievements.totalCompletions(histories)));
-    _reloadAll();
+    reloadLocalData(_ref);
   }
 
-  Future<void> clearAll() async {
-    await HiveBoxes.clearUserData();
-    _reloadAll();
+  /// Chưa đăng nhập: xoá thật mọi box, app như mới cài.
+  /// F2 Đã đăng nhập ([syncDeletion] = true): đánh dấu xoá mềm mọi bản ghi để lần xoá được
+  /// đồng bộ lên mây và sang các máy khác; trạng thái riêng của máy (onboarding) thì xoá thật.
+  Future<void> clearAll({bool syncDeletion = false}) async {
+    if (syncDeletion) {
+      for (final box in HiveBoxes.synced) {
+        await LocalStore.markAllDeleted(box);
+      }
+      await LocalStore.purge(HiveBoxes.device);
+    } else {
+      await HiveBoxes.clearUserData();
+    }
+    reloadLocalData(_ref);
   }
+}
 
-  void _reloadAll() {
-    _ref.invalidate(profileProvider);
-    _ref.invalidate(goalsProvider);
-    _ref.invalidate(habitsProvider);
-    _ref.invalidate(habitLogsProvider);
-    _ref.invalidate(blockedAppsProvider);
-    _ref.invalidate(reelLikesProvider);
-    _ref.invalidate(reelCommentsProvider);
-  }
+/// Đọc lại mọi dữ liệu từ Hive: dùng sau khi tạo dữ liệu mẫu, xoá dữ liệu, hoặc khi bản từ mây
+/// về (F2) vừa ghi đè xuống máy.
+void reloadLocalData(Ref ref) {
+  ref.invalidate(profileProvider);
+  ref.invalidate(goalsProvider);
+  ref.invalidate(habitsProvider);
+  ref.invalidate(habitLogsProvider);
+  ref.invalidate(blockedAppsProvider);
+  ref.invalidate(reelLikesProvider);
+  ref.invalidate(reelCommentsProvider);
+  ref.invalidate(focusStatsProvider);
 }
 
 final appDataActionsProvider = Provider(AppDataActions.new);

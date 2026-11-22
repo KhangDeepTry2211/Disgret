@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'data/models/reel.dart';
+import 'providers/account_providers.dart';
 import 'providers/app_providers.dart';
 import 'providers/focus_session_provider.dart';
 import 'router/app_router.dart';
@@ -122,6 +123,8 @@ class _DisGretAppState extends ConsumerState<DisGretApp> {
   @override
   Widget build(BuildContext context) {
     ref.listen(focusSessionProvider, _onSessionChanged);
+    // F2 Đăng nhập thì bắt đầu đồng bộ, đăng xuất thì dừng.
+    ref.watch(syncControllerProvider);
 
     return MaterialApp.router(
       title: 'DisGret',

@@ -24,6 +24,8 @@ Future<void> main() async {
 
   await Hive.initFlutter();
   await HiveBoxes.openAll();
+  // F2 Chuyển dữ liệu cũ sang dạng có updatedAtMs / deleted để đồng bộ được.
+  await HiveBoxes.migrate();
 
   // F1 Nối Firebase. Lỗi thì app vẫn chạy bằng Hive như trước.
   await FirebaseSetup.init();

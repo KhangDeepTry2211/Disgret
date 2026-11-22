@@ -281,6 +281,16 @@ class AppIcons {
   static const IconData away = Icons.logout_rounded;
   static const IconData schedule = Icons.schedule_rounded;
   static const IconData replay = Icons.restart_alt_rounded;
+
+  // F2 Tài khoản và đồng bộ.
+  static const IconData account = Icons.account_circle_outlined;
+  static const IconData logout = Icons.logout_rounded;
+  static const IconData synced = Icons.cloud_done_outlined;
+  static const IconData syncing = Icons.cloud_sync_outlined;
+  static const IconData offline = Icons.cloud_off_outlined;
+  static const IconData syncError = Icons.error_outline_rounded;
+  static const IconData showPassword = Icons.visibility_outlined;
+  static const IconData hidePassword = Icons.visibility_off_outlined;
   static const IconData check = Icons.check_circle_outline_rounded;
   static const IconData missing = Icons.highlight_off_rounded;
   static const IconData permissions = Icons.shield_outlined;

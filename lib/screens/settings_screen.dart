@@ -1,15 +1,17 @@
 // 5.1 Màn Cài đặt: xem hồ sơ, lối vào Thống kê (8.2), Reset break (7.1, 2.1, 2.3)
-// và quản lý dữ liệu.
+// và quản lý dữ liệu. F2: mục Tài khoản (đăng nhập, đồng bộ).
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models/user_profile.dart';
+import '../providers/account_providers.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../router/app_router.dart';
 import '../services/focus_session_timer.dart';
 import '../theme/app_theme.dart';
+import '../widgets/account_section.dart';
 import '../widgets/app_dialogs.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -26,17 +28,21 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _clearAllData(BuildContext context, WidgetRef ref) async {
     final actions = ref.read(appDataActionsProvider);
+    // F2 Đã đăng nhập thì lần xoá được đồng bộ lên mây, nên mọi máy cùng tài khoản đều mất.
+    final signedIn = ref.read(currentUsernameProvider) != null;
     final confirmed = await showConfirmDialog(
       context,
       title: 'Xoá toàn bộ dữ liệu?',
-      message:
-          'Mục tiêu, thói quen, lịch sử ghi nhận và hồ sơ của bạn sẽ bị xoá, '
-          'app quay về như mới cài. Không thể hoàn tác.',
-      confirmLabel: 'Xoá hết',
+      message: signedIn
+          ? 'Mục tiêu, thói quen, lịch sử ghi nhận và hồ sơ sẽ bị xoá trên TÀI KHOẢN, '
+                'tức là sẽ xoá trên mọi thiết bị đang đăng nhập. Không thể hoàn tác.'
+          : 'Mục tiêu, thói quen, lịch sử ghi nhận và hồ sơ của bạn sẽ bị xoá, '
+                'app quay về như mới cài. Không thể hoàn tác.',
+      confirmLabel: signedIn ? 'Xoá trên mọi thiết bị' : 'Xoá hết',
     );
     if (!confirmed) return;
 
-    await actions.clearAll();
+    await actions.clearAll(syncDeletion: signedIn);
     ref.invalidate(focusSessionProvider); // Phiên đang chạy (nếu có) cũng bị huỷ.
     if (!context.mounted) return;
     context.go(AppRoutes.onboarding);
@@ -53,6 +59,9 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
+          // F2 Đăng nhập và đồng bộ.
+          const AccountSection(),
+          const SizedBox(height: AppSpacing.lg),
           Text('Động lực của bạn', style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           Wrap(

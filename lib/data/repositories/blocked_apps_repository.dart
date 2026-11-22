@@ -1,10 +1,11 @@
-// 2.1 Danh sách app – lưu packageName của các app cần nhắc, nằm trong box hồ sơ.
-import 'package:hive/hive.dart';
-
+// 2.1 Danh sách app – lưu packageName của các app cần nhắc.
+// F2: là bản ghi id "blocked_apps" trong box profile, được đồng bộ như dữ liệu khác.
 import '../hive_boxes.dart';
+import '../local_store.dart';
 
 class BlockedAppsRepository {
-  static const String _key = 'blocked_packages';
+  /// Id cố định của bản ghi, cũng là id document trên Firestore.
+  static const String recordId = 'blocked_apps';
 
   /// Mặc định bật khi chưa từng chỉnh. TikTok có hai package tuỳ khu vực.
   static const Set<String> defaultPackages = {
@@ -16,12 +17,11 @@ class BlockedAppsRepository {
     'com.android.chrome',
   };
 
-  Box<dynamic> get _box => Hive.box<dynamic>(HiveBoxes.profile);
-
   Set<String> get packages {
-    final saved = _box.get(_key) as List<dynamic>?;
+    final saved = LocalStore.read(HiveBoxes.profile, recordId)?['packages'] as List?;
     return saved == null ? defaultPackages : saved.cast<String>().toSet();
   }
 
-  Future<void> save(Set<String> packages) => _box.put(_key, packages.toList());
+  Future<void> save(Set<String> packages) =>
+      LocalStore.write(HiveBoxes.profile, recordId, {'packages': packages.toList()});
 }

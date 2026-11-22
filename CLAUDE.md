@@ -5,7 +5,7 @@ Vòng chính: Habit tracker (mục tiêu) → Anti-reel reels (động lực) �
 Nhánh phụ: đang học mà mở TikTok → Reset break (màn can thiệp) → quay lại học / xem reel / nghỉ có hẹn giờ.
 
 ## Ràng buộc MVP
-- Chỉ Android. Dữ liệu chính lưu local bằng Hive. Firebase đã được nối (F1, xem mục Firebase bên dưới) nhưng CHƯA có đăng nhập và đồng bộ: app phải luôn chạy được chỉ với Hive.
+- Chỉ Android. Dữ liệu chính lưu local bằng Hive. Firebase đã nối (F1) và có đăng nhập + đồng bộ Firestore (F2), xem 2 mục bên dưới. Chưa đăng nhập hoặc không có mạng thì app vẫn phải chạy được chỉ với Hive.
 - Flutter + Riverpod + go_router + Material 3. Toàn bộ chữ trên giao diện bằng tiếng Việt.
 - Phần theo dõi app khác viết bằng Kotlin native, gọi qua MethodChannel tên "focus/native".
 - Mỗi phần code ghi mã thành phần theo sơ đồ phân rã trong comment, ví dụ `// 2.3 Màn can thiệp`.
@@ -74,7 +74,8 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Đề xuất reel (1.3) thêm luật +1 điểm nếu reel có tag trùng với tag của một reel đã thích (ReelRecommender.score, tham số likedTags).
   - intervention_shown: meta gồm packageName, appLabel, waitSeconds
   - chose_break: meta gồm minutes
-- Danh sách app cần nhắc (2.1): danh sách packageName, lưu trong box `profile` với khóa `blocked_packages`; chưa có thì dùng danh sách mặc định trong BlockedAppsRepository.
+- Danh sách app cần nhắc (2.1): danh sách packageName, là bản ghi id `blocked_apps` ({packages: [...]}) trong box `profile`; chưa có thì dùng danh sách mặc định trong BlockedAppsRepository.
+- UserProfile là bản ghi id `profile` trong box `profile`. Cờ đã qua onboarding (`onboarding_done`) và cấp đã chúc mừng (`celebrated_level`) nằm trong box `device` (riêng của máy, không đồng bộ). Trước F2 các khoá này nằm trong box profile (`user`, `blocked_packages`, ...); HiveBoxes.migrate() tự chuyển khi mở app.
 
 ## Thống kê và dữ liệu mẫu (8.2)
 - Màn Thống kê mở từ Cài đặt. Phần tính nằm ở lib/services/focus_stats.dart (hàm thuần, có unit test), màn hình chỉ hiển thị.
@@ -101,6 +102,19 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   - Chỉ chạy app: `git pull` rồi `flutter pub get`, `flutter run`. Không cần cài gì thêm vì file cấu hình đã có trong repo.
   - Cần quản lý Firebase (deploy rules, xem dữ liệu, cấu hình lại): nhờ Khang thêm email vào project (Console → Project settings → Users and permissions), rồi cài Node.js, `npm install -g firebase-tools`, `dart pub global activate flutterfire_cli`, chạy `firebase login`.
   - Thêm nền tảng (ví dụ iOS trên Mac): `flutterfire configure --project=disgret-qs8m --platforms=android,ios,web`, rồi commit lại `lib/firebase_options.dart` và file cấu hình mới.
+
+## Tài khoản + đồng bộ (F2)
+- Đăng nhập (lib/services/auth_service.dart): tên đăng nhập 3–20 ký tự [a-z0-9_.] (tự chuyển chữ thường, bỏ khoảng trắng), app đổi thành email ẩn `<ten>@disgret.app`; mật khẩu ≥ 6 ký tự. Hàm thuần trong `AuthRules` (normalizeUsername, usernameError, passwordError, emailFor, messageForCode đổi mã FirebaseAuthException sang tiếng Việt). displayName = tên đăng nhập. FirebaseSetup.isReady = false thì coi như chưa đăng nhập, báo "Không kết nối được máy chủ".
+- Provider (lib/providers/account_providers.dart): authStateProvider (User?, theo `userChanges()`), currentUsernameProvider, syncStatusProvider (SyncState: status offline / syncing / synced / error, lastSyncedAt, error), syncServiceProvider, syncControllerProvider (DisGretApp theo dõi: đăng nhập thì start, đăng xuất thì stop), accountActionsProvider (signIn, signUp, signOut).
+- Lưu trữ (lib/data/local_store.dart): mỗi bản ghi đồng bộ là Map trong Hive có thêm `updatedAtMs` (millisecondsSinceEpoch, UTC) và `deleted`. Các trường này do LocalStore / HiveRepository quản lý, model không phải khai báo (riêng ReelComment có sẵn `deleted` cùng ý nghĩa; `updatedAt` dạng ISO của nó là trường riêng của model). HiveRepository: save() tự gán updatedAtMs; delete() là xoá mềm; getAll()/getById() bỏ qua bản đã xoá; getAllRaw(), applyRemote() (ghi không kích hoạt đẩy lên), purgeAll() cho đồng bộ. Mỗi lần ghi từ app, `LocalStore.changes` báo (box, id) cho sync_service. Migrate lúc mở app: thiếu updatedAtMs thì gán bây giờ, thiếu deleted thì false.
+- Luật gộp (lib/services/sync_merge.dart, hàm thuần, test trong test/sync_test.dart): "bản mới hơn thắng" theo updatedAtMs; bằng nhau giữ local; chỉ một bên có thì bên đó thắng; xoá mềm là bản ghi bình thường nên xoá mới hơn thì thắng, sửa sau khi xoá thì bản sửa thắng.
+- Đồng bộ (lib/services/sync_service.dart): Firestore `users/{uid}/{box}/{id}`, đúng rules F1. Đăng nhập: tải toàn bộ về và gộp → đẩy bản local mới hơn (nên dữ liệu có sẵn trên máy được gộp vào tài khoản) → nghe snapshots() từng box (bỏ qua document có hasPendingWrites, tức chính máy này vừa ghi). Đẩy lên: gom thay đổi ~1 giây rồi ghi WriteBatch (tối đa 400 thao tác/batch); mất mạng thì Firestore giữ trong cache và tự đẩy khi có mạng. Bản từ mây về thắng thì ghi xuống Hive và gọi reloadLocalData() để giao diện tải lại. Không bao giờ xoá thật document trên mây.
+- Đăng xuất (hỏi xác nhận): đẩy nốt thay đổi (chờ tối đa 5 giây) → dừng nghe → xoá thật mọi box (kể cả box device) → đăng xuất Firebase. Máy quay về như mới cài (vào onboarding), không tạo hồ sơ mặc định: nếu tạo hồ sơ mới thì updatedAtMs của nó mới hơn, lần đăng nhập sau sẽ ghi đè hồ sơ trên mây.
+- Xoá toàn bộ dữ liệu khi đã đăng nhập: xoá mềm mọi bản ghi (AppDataActions.clearAll(syncDeletion: true)) để đồng bộ lên mây, hộp thoại ghi rõ "sẽ xoá trên mọi thiết bị". Chưa đăng nhập thì xoá thật như cũ. "Tạo dữ liệu mẫu" ghi qua repository nên tự đồng bộ.
+- Box ĐỒNG BỘ (HiveBoxes.synced): profile (UserProfile + blocked_apps), goals, habits, habit_logs, sessions, events, reel_reactions, reel_comments.
+- KHÔNG đồng bộ: box device (onboarding_done, celebrated_level), reel gốc (assets/reels/reels.json), trạng thái phiên Focus đang chạy (chỉ nằm trong bộ nhớ, Session chỉ được lưu khi phiên kết thúc), quyền Android và FocusGuardService.
+- Giao diện tạm: mục "Tài khoản" đầu màn Cài đặt (lib/widgets/account_section.dart): chưa đăng nhập thì ô Tên đăng nhập / Mật khẩu + Đăng nhập / Đăng ký; đã đăng nhập thì tên, trạng thái đồng bộ, lần gần nhất, Đăng xuất.
+- Hạn chế đã biết: máy mới cài phải qua onboarding trước khi vào được Cài đặt để đăng nhập, nên hồ sơ động lực vừa làm ở máy đó (mới hơn) sẽ thay hồ sơ trên mây; mục tiêu/thói quen tạo lúc onboarding được gộp thêm vào tài khoản.
 
 ## MethodChannel focus/native
 Phần Kotlin nằm trong android/app/src/main/kotlin/com/nhom/focus/focus_app/. Phía Flutter mọi lời gọi đi qua lib/services/native_bridge.dart; trên web các hàm này không gọi gì và trả về giá trị mặc định.
