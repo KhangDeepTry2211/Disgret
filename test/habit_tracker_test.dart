@@ -3,6 +3,7 @@
 // thói quen đã cất (HabitCard, ADR-0004).
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:focus_app/data/habit_science.dart';
 import 'package:focus_app/data/mock_data.dart';
 import 'package:focus_app/data/models/goal.dart';
 import 'package:focus_app/data/models/habit.dart';
@@ -14,6 +15,8 @@ import 'package:focus_app/data/repositories/habit_log_repository.dart';
 import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/widgets/habit_card.dart';
+import 'package:focus_app/widgets/habit_heat_map.dart';
+import 'package:focus_app/widgets/habit_journey.dart';
 import 'package:focus_app/widgets/habit_today_card.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -516,9 +519,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Màn chi tiết: số liệu, biểu đồ sức mạnh, hành trình, lịch 16 tuần, ghi chú', (
-      tester,
-    ) async {
+    testWidgets('Màn chi tiết: số liệu, lịch tháng, biểu đồ sức mạnh, ghi chú', (tester) async {
       await _seedSampleData();
       await _pump(tester);
       await _openHabitsTab(tester);
@@ -542,22 +543,43 @@ void main() {
       await tester.scrollUntilVisible(find.byType(LineChart), 200, scrollable: _pageScroll);
       expect(find.byType(LineChart), findsOneWidget);
 
-      // Đủ 66 ngày nên có đủ 4 huy hiệu.
-      await tester.scrollUntilVisible(
-        find.text('66/66 ngày hoàn thành'),
-        200,
-        scrollable: _pageScroll,
-      );
-      await tester.scrollUntilVisible(find.text('Thành thói quen'), 100, scrollable: _pageScroll);
-      expect(find.bySemanticsLabel('Huy hiệu Thành thói quen, 66 ngày, đã đạt'), findsOneWidget);
-
       await tester.scrollUntilVisible(
         find.text('Ôn xong chương 4, mai làm đề.'),
         200,
         scrollable: _pageScroll,
       );
-      expect(find.bySemanticsLabel(RegExp(r'^Lịch 16 tuần: hoàn thành')), findsOneWidget);
       expect(find.text('Mệt nên chỉ đọc lại ghi chú.'), findsOneWidget);
+      // Parked (ADR-0004, spec 001 FR-014): no 66-day journey and no 16-week heat map.
+      expect(find.textContaining('Hành trình'), findsNothing);
+      expect(find.text('Lịch 16 tuần'), findsNothing);
+      expect(find.byType(HabitJourney), findsNothing);
+      expect(find.byType(HabitHeatCalendar), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Đã cất: hành trình 66 ngày và lịch 16 tuần vẫn dựng được khi gọi trực tiếp', (
+      tester,
+    ) async {
+      await _seedSampleData();
+      final habit = HabitRepository().getById('demo_habit_review')!;
+      final history = HabitHistory.of(habit, HabitLogRepository().getAll());
+      await pumpStandalone(
+        tester,
+        Scaffold(
+          body: ListView(
+            children: [
+              HabitJourney(days: HabitScience.journeyDays(history)),
+              HabitHeatCalendar(history: history, today: DateTime(2026, 3, 5)),
+            ],
+          ),
+        ),
+        size: const Size(412, 915),
+      );
+
+      // Đủ 66 ngày nên có đủ 4 huy hiệu.
+      expect(find.text('66/66 ngày hoàn thành'), findsOneWidget);
+      expect(find.bySemanticsLabel('Huy hiệu Thành thói quen, 66 ngày, đã đạt'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'^Lịch 16 tuần: hoàn thành')), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

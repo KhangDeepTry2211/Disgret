@@ -5,8 +5,7 @@
 //   số lần hoàn thành, điểm sức mạnh;
 // - lịch tháng: ngày đã xong tô màu của thói quen;
 // - biểu đồ đường điểm sức mạnh 60 ngày (fl_chart);
-// - Hành trình 66 ngày với 4 huy hiệu;
-// - lịch nhiệt 16 tuần kiểu GitHub;
+// - (Hành trình 66 ngày và lịch nhiệt 16 tuần: parked, ADR-0004);
 // - dòng thời gian ghi chú.
 // Mọi con số lấy từ habit_science.dart; màn hình chỉ hiển thị.
 import 'package:fl_chart/fl_chart.dart';
@@ -24,8 +23,6 @@ import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/goal_habit_sheets.dart';
-import '../widgets/gradient_progress_bar.dart';
-import '../widgets/habit_heat_map.dart';
 import '../widgets/habit_icon_view.dart';
 import '../widgets/month_calendar.dart';
 
@@ -112,23 +109,8 @@ class HabitDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          _Section(
-            title: 'Hành trình ${HabitScience.habitFormationDays} ngày',
-            child: _Journey(days: HabitScience.journeyDays(history)),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _Section(
-            title: 'Lịch 16 tuần',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HabitHeatCalendar(history: history, today: today),
-                const SizedBox(height: AppSpacing.md),
-                const HeatLegend(),
-              ],
-            ),
-          ),
+          // The 66-day journey and the 16-week heat map are parked (ADR-0004,
+          // docs/architecture/parked-features.md).
           const SizedBox(height: AppSpacing.md),
           _Section(
             title: 'Ghi chú',
@@ -526,81 +508,6 @@ class _StrengthChart extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Thanh Hành trình 66 ngày và 4 huy hiệu: đạt thì màu nhấn, chưa đạt thì xám.
-class _Journey extends StatelessWidget {
-  const _Journey({required this.days});
-
-  final int days;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    const total = HabitScience.habitFormationDays;
-    final next = HabitScience.nextBadge(days);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('${days.clamp(0, total)}/$total ngày hoàn thành', style: theme.textTheme.titleMedium),
-        Text(
-          next == null
-              ? 'Bạn đã đi hết hành trình. Thói quen này đã thành của bạn!'
-              : 'Còn ${next.days - days} ngày nữa tới huy hiệu "${next.name}". '
-                    'Không cần liên tiếp.',
-          style: theme.textTheme.bodySmall,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        GradientProgressBar(value: days / total),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final badge in HabitScience.badges)
-              Expanded(
-                child: Semantics(
-                  container: true,
-                  label:
-                      'Huy hiệu ${badge.name}, ${badge.days} ngày, '
-                      '${days >= badge.days ? 'đã đạt' : 'chưa đạt'}',
-                  excludeSemantics: true,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: AppHabit.iconTile,
-                        height: AppHabit.iconTile,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: days >= badge.days ? scheme.tertiary : null,
-                          border: days >= badge.days
-                              ? null
-                              : Border.all(color: scheme.outlineVariant, width: 1.5),
-                        ),
-                        child: Icon(
-                          AppIcons.badge,
-                          color: days >= badge.days ? scheme.onTertiary : scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        badge.name,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: days >= badge.days ? scheme.onSurface : scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      Text('${badge.days} ngày', style: theme.textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
     );
   }
 }

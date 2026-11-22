@@ -127,9 +127,9 @@ and `flutter test` (0 failures) pass before the task is checked off.
 **Goal**: no entry to achievements, heat map, 66-day journey (ADR-0004).
 **Independent test**: quickstart scenario 7.
 
-- [ ] T023 [P] [US4] Widget tests: no "Thành tích" menu item; habit detail has no heat map or
+- [X] T023 [P] [US4] Widget tests: no "Thành tích" menu item; habit detail has no heat map or
       journey section; no level-up dialog after crossing a threshold (FR-014).
-- [ ] T024 [US4] Remove the achievements menu item (`habits_screen.dart`), the push in
+- [X] T024 [US4] Remove the achievements menu item (`habits_screen.dart`), the push in
       `lib/widgets/level_badge.dart`, the level listener in `main_shell.dart`, and the heat map +
       journey sections in `lib/screens/habit_detail_screen.dart`; keep logic files and their tests.
 
