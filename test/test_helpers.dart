@@ -4,14 +4,18 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/app.dart';
 import 'package:focus_app/data/hive_boxes.dart';
 import 'package:focus_app/data/models/reel.dart';
 import 'package:focus_app/data/repositories/reel_repository.dart';
+import 'package:focus_app/providers/account_providers.dart';
 import 'package:focus_app/providers/app_providers.dart';
 import 'package:focus_app/providers/focus_session_provider.dart';
+import 'package:focus_app/services/auth_service.dart';
 import 'package:focus_app/services/native_bridge.dart';
+import 'package:focus_app/services/sync_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -40,6 +44,7 @@ Future<void> pumpApp(
   DateTime Function()? clock,
   void Function(bool enabled)? onScreenAwakeChanged,
   FakeNativeBridge? native,
+  List<Override> overrides = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -55,6 +60,7 @@ Future<void> pumpApp(
         ),
         nativeBridgeProvider.overrideWithValue(native ?? FakeNativeBridge()),
         if (clock != null) clockProvider.overrideWithValue(clock),
+        ...overrides,
       ],
       child: const DisGretApp(),
     ),
@@ -77,6 +83,102 @@ void showApp(WidgetTester tester) {
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+}
+
+/// F3 Cài đặt nằm trong Hồ sơ: bấm avatar trên AppBar Trang chủ rồi bấm dòng "Cài đặt".
+Future<void> openSettingsFromHome(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('Hồ sơ'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(ListTile, 'Cài đặt'));
+  await tester.pumpAndSettle();
+}
+
+/// F3 Đăng nhập giả, không gọi Firebase: tên "taken" coi như đã có người dùng, mật khẩu
+/// "sai_mat_khau" coi như sai. Ghi lại các lần gọi.
+class FakeAuthService extends AuthService {
+  FakeAuthService({AuthUser? signedIn}) : _user = signedIn {
+    _controller.add(signedIn);
+  }
+
+  static const String takenName = 'taken';
+  static const String wrongPassword = 'sai_mat_khau';
+
+  final StreamController<AuthUser?> _controller = StreamController.broadcast();
+  AuthUser? _user;
+  final List<String> calls = [];
+
+  AuthUser? get user => _user;
+
+  @override
+  Stream<AuthUser?> authStateChanges() async* {
+    yield _user;
+    yield* _controller.stream;
+  }
+
+  @override
+  Future<String> signUp(String username, String password) async {
+    calls.add('signUp:$username');
+    if (AuthRules.normalizeUsername(username) == takenName) {
+      throw AuthFailure(
+        AuthRules.messageForCode(AuthFailure.usernameTaken),
+        code: AuthFailure.usernameTaken,
+      );
+    }
+    return _signIn(username);
+  }
+
+  @override
+  Future<String> signIn(String username, String password) async {
+    calls.add('signIn:$username');
+    if (password == wrongPassword) {
+      throw AuthFailure(AuthRules.messageForCode('invalid-credential'), code: 'invalid-credential');
+    }
+    return _signIn(username);
+  }
+
+  String _signIn(String username) {
+    _user = AuthUser(
+      uid: 'uid_$username',
+      username: AuthRules.normalizeUsername(username),
+      createdAt: DateTime(2026, 11, 1),
+    );
+    _controller.add(_user);
+    return _user!.uid;
+  }
+
+  @override
+  Future<void> signOut() async {
+    calls.add('signOut');
+    _user = null;
+    _controller.add(null);
+  }
+}
+
+/// F3 Giả lập có máy chủ và đăng nhập bằng [auth]. Đồng bộ thật bị thay bằng bản không làm gì
+/// để test không gọi Firestore.
+List<Override> fakeAccountOverrides(FakeAuthService auth) => [
+  firebaseReadyProvider.overrideWithValue(true),
+  authServiceProvider.overrideWithValue(auth),
+  syncServiceProvider.overrideWithValue(FakeSyncService()),
+];
+
+/// SyncService không gọi Firestore: start / stop / resync xong ngay.
+class FakeSyncService extends SyncService {
+  FakeSyncService() : super(onDataChanged: () {}, onStateChanged: (_) {});
+
+  final List<String> started = [];
+
+  @override
+  Future<void> start(String uid) async => started.add(uid);
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> resync() async {}
+
+  @override
+  Future<void> flushNow({Duration timeout = const Duration(seconds: 5)}) async {}
 }
 
 /// Cuộn tới rồi bấm, vì nội dung có thể nằm ngoài màn hình nhỏ.

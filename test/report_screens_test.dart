@@ -219,7 +219,7 @@ void main() {
     testWidgets('Tạo dữ liệu mẫu không hiện hộp thoại chúc mừng', (tester) async {
       await _onboard();
       await pumpApp(tester, clock: () => _now);
-      await _tap(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
       await tester.scrollUntilVisible(find.text('Tạo dữ liệu mẫu'), 200);
       await _tap(tester, find.text('Tạo dữ liệu mẫu'));
 

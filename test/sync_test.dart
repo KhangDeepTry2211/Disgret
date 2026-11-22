@@ -13,7 +13,6 @@ import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/providers/app_providers.dart';
 import 'package:focus_app/services/auth_service.dart';
 import 'package:focus_app/services/sync_merge.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 
 import 'test_helpers.dart';
@@ -263,26 +262,6 @@ void main() {
       await container.read(appDataActionsProvider).clearAll();
 
       expect(GoalRepository().getAllRaw(), isEmpty);
-    });
-  });
-
-  group('Mục Tài khoản trong Cài đặt', () {
-    setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
-    setUp(openMemoryBoxes);
-    tearDown(() async => Hive.close());
-
-    testWidgets('Không có Firebase (như khi test) thì báo không kết nối, app vẫn chạy', (
-      tester,
-    ) async {
-      await ProfileRepository().completeOnboarding(
-        const UserProfile(motivationTypes: [MotivationType.career], preferredReelLength: 30),
-      );
-      await pumpApp(tester);
-      await tapAndSettle(tester, find.byTooltip('Cài đặt'));
-
-      expect(find.text('Tài khoản'), findsOneWidget);
-      expect(find.textContaining(AuthRules.noServer), findsOneWidget);
-      expect(tester.takeException(), isNull);
     });
   });
 }

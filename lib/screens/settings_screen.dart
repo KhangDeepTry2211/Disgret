@@ -1,5 +1,5 @@
 // 5.1 Màn Cài đặt: xem hồ sơ, lối vào Thống kê (8.2), Reset break (7.1, 2.1, 2.3)
-// và quản lý dữ liệu. F2: mục Tài khoản (đăng nhập, đồng bộ).
+// và quản lý dữ liệu. F3: dòng Tài khoản dẫn tới Hồ sơ.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,7 +11,6 @@ import '../providers/focus_session_provider.dart';
 import '../router/app_router.dart';
 import '../services/focus_session_timer.dart';
 import '../theme/app_theme.dart';
-import '../widgets/account_section.dart';
 import '../widgets/app_dialogs.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -59,8 +58,20 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          // F2 Đăng nhập và đồng bộ.
-          const AccountSection(),
+          // F3 Đăng nhập, đăng ký và đồng bộ nằm ở trang Hồ sơ.
+          Card(
+            child: ListTile(
+              leading: const Icon(AppIcons.account),
+              title: const Text('Tài khoản'),
+              subtitle: Text(
+                ref.watch(currentUsernameProvider) == null
+                    ? 'Đang dùng thử · tạo tài khoản hoặc đăng nhập'
+                    : '@${ref.watch(currentUsernameProvider)} · trạng thái đồng bộ',
+              ),
+              trailing: const Icon(AppIcons.chevron),
+              onTap: () => context.push(AppRoutes.profile),
+            ),
+          ),
           const SizedBox(height: AppSpacing.lg),
           Text('Động lực của bạn', style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),

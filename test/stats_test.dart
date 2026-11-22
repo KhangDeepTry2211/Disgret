@@ -167,7 +167,7 @@ void main() {
 
     Future<void> openStats(WidgetTester tester, {bool createDemoData = false}) async {
       await pumpApp(tester, clock: () => DateTime(2026, 3, 10, 21));
-      await tapAndSettle(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
       if (createDemoData) {
         // Danh sách chỉ dựng mục đang hiện trên màn nên phải cuộn tới trước.
         await tester.scrollUntilVisible(find.text('Tạo dữ liệu mẫu'), 200);

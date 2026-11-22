@@ -42,6 +42,9 @@ class SyncService {
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   String? _uid;
+
+  /// Lượt [start] đang chạy hoặc vừa xong, để gọi lại cùng uid thì chờ đúng lượt đó.
+  Future<void>? _startFuture;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   final Set<LocalChange> _pending = {};
   Timer? _debounceTimer;
@@ -56,10 +59,28 @@ class SyncService {
   CollectionReference<Map<String, dynamic>> _collection(String uid, String box) =>
       _db.collection('users').doc(uid).collection(box);
 
-  Future<void> start(String uid) async {
-    if (_uid == uid) return;
-    await stop();
+  /// Bắt đầu đồng bộ cho [uid]. Gọi lại với cùng uid (màn đăng nhập và syncControllerProvider
+  /// đều gọi) thì trả về đúng lượt đang chạy; Future xong khi đã tải về, gộp và đẩy lên lần đầu.
+  Future<void> start(String uid) {
+    final running = _startFuture;
+    if (_uid == uid && running != null) return running;
+    final stopping = stop();
     _uid = uid;
+    return _startFuture = _run(uid, stopping);
+  }
+
+  /// Tải lại toàn bộ và gộp lại từ đầu (nút "Đồng bộ ngay").
+  Future<void> resync() async {
+    final uid = _uid;
+    if (uid == null) return;
+    await flushNow();
+    await stop();
+    await start(uid);
+  }
+
+  Future<void> _run(String uid, Future<void> stopping) async {
+    await stopping;
+    if (_uid != uid) return;
     _starting = true;
     _error = null;
     _emit();
@@ -99,16 +120,19 @@ class SyncService {
   Future<void> stop() async {
     final wasRunning = _uid != null;
     _uid = null;
+    _startFuture = null;
     _debounceTimer?.cancel();
-    for (final subscription in _subscriptions) {
-      await subscription.cancel();
-    }
+    // Dọn danh sách ngay (đồng bộ), rồi mới chờ huỷ, để lượt start mới không bị xoá nhầm.
+    final subscriptions = [..._subscriptions];
     _subscriptions.clear();
     _pending.clear();
     _commitsInFlight = 0;
     _offline = false;
     _starting = false;
     if (wasRunning) onStateChanged(const SyncState());
+    for (final subscription in subscriptions) {
+      await subscription.cancel();
+    }
   }
 
   /// Đẩy ngay các thay đổi đang chờ, đợi tối đa [timeout] (mất mạng thì không chờ mãi).

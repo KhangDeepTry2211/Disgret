@@ -58,8 +58,7 @@ void main() {
 
   Future<void> openSettings(WidgetTester tester, FakeNativeBridge native) async {
     await pumpApp(tester, size: _phone, native: native);
-    await tester.tap(find.byTooltip('Cài đặt'));
-    await tester.pumpAndSettle();
+    await openSettingsFromHome(tester);
   }
 
   group('2.1 Lưu danh sách app cần nhắc', () {
@@ -522,8 +521,7 @@ void main() {
       tester,
     ) async {
       await pumpApp(tester, size: _phone, clock: () => now, native: native);
-      await tester.tap(find.byTooltip('Cài đặt'));
-      await tester.pumpAndSettle();
+      await openSettingsFromHome(tester);
 
       native.emit(NativeAction.resumeFocus);
       await tester.pumpAndSettle();

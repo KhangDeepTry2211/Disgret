@@ -84,5 +84,11 @@ class HiveBoxes {
     for (final name in synced) {
       await LocalStore.addMissingSyncFields(name);
     }
+
+    // F3 Người đã dùng app từ trước khi có màn chào thì coi như đã chọn "Dùng thử",
+    // để mở app không bị đưa về màn chào.
+    if (deviceBox.get('onboarding_done') == true && !deviceBox.containsKey('guest_mode')) {
+      await deviceBox.put('guest_mode', true);
+    }
   }
 }

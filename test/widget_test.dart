@@ -107,6 +107,12 @@ Future<void> _addFocusLog(int minutes) => HabitLogRepository().save(
   ),
 );
 
+/// F3 Mở app như mới cài thì gặp màn chào: chọn "Dùng thử" để vào onboarding.
+Future<void> _chooseGuest(WidgetTester tester) async {
+  await _tap(tester, find.text('Dùng thử không cần tài khoản'));
+  await _tap(tester, find.widgetWithText(TextButton, 'Tiếp tục'));
+}
+
 void main() {
   setUpAll(() {
     // Môi trường test không có mạng nên không tải font.
@@ -127,6 +133,7 @@ void main() {
       tester,
     ) async {
       await _pumpApp(tester);
+      await _chooseGuest(tester);
 
       expect(find.text('DisGret'), findsOneWidget);
       expect(find.bySemanticsLabel('Logo DisGret'), findsOneWidget);
@@ -173,6 +180,7 @@ void main() {
       tester,
     ) async {
       await _pumpApp(tester);
+      await _chooseGuest(tester);
       await _tap(tester, find.text('Tiếp tục'));
       await _tap(tester, find.text('Có thu nhập tốt, không phải lo chuyện tiền'));
       expect(find.text('Câu 2/4'), findsOneWidget);
@@ -198,6 +206,7 @@ void main() {
       tester,
     ) async {
       await _pumpApp(tester);
+      await _chooseGuest(tester);
       await _tap(tester, find.text('Tiếp tục'));
       await _answerQuiz(tester);
       await _enterField(tester, 'Tên mục tiêu', 'Giữ lại');
@@ -216,7 +225,7 @@ void main() {
       await _seedGoalAndHabit();
       await _pumpApp(tester);
 
-      await _tap(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
       await _tapSettingsItem(tester, 'Xem lại màn giới thiệu');
       await _tap(tester, find.text('Tiếp tục'));
       await _answerQuiz(tester);
@@ -236,7 +245,7 @@ void main() {
         const UserProfile(motivationTypes: [MotivationType.money], preferredReelLength: 60),
       );
       await _pumpApp(tester);
-      await _tap(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
       expect(find.widgetWithText(Chip, 'Tiền bạc'), findsOneWidget);
 
       await _tap(tester, find.text('Làm lại quiz động lực'));
@@ -263,7 +272,7 @@ void main() {
         const UserProfile(motivationTypes: [MotivationType.money], preferredReelLength: 30),
       );
       await _pumpApp(tester);
-      await _tap(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
       await _tap(tester, find.text('Làm lại quiz động lực'));
       await _tap(tester, find.text('Có công việc mình thật sự muốn làm'));
       expect(find.text('Câu 2/4'), findsOneWidget);
@@ -657,11 +666,13 @@ void main() {
       await _pumpApp(tester);
       expect(find.text('Tạo mục tiêu đầu tiên'), findsOneWidget);
 
-      await _tap(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
       await _tapSettingsItem(tester, 'Tạo dữ liệu mẫu');
       expect(find.text('Đã tạo dữ liệu mẫu'), findsOneWidget);
 
       // Nút quay lại trên AppBar, nhãn của nó cũng phải là tiếng Việt.
+      // Cài đặt mở từ Hồ sơ nên quay lại 2 lần mới về Trang chủ.
+      await _tap(tester, find.byTooltip('Quay lại'));
       await _tap(tester, find.byTooltip('Quay lại'));
 
       expect(find.bySemanticsLabel('Chuỗi 5 ngày học liên tiếp'), findsOneWidget);
@@ -670,12 +681,12 @@ void main() {
       expect(find.text('10/30 phút hôm nay'), findsOneWidget);
     });
 
-    testWidgets('Xoá toàn bộ dữ liệu: Huỷ thì giữ, xác nhận thì về onboarding như mới cài', (
+    testWidgets('Xoá toàn bộ dữ liệu: Huỷ thì giữ, xác nhận thì về màn chào như mới cài', (
       tester,
     ) async {
       await _seedGoalAndHabit();
       await _pumpApp(tester);
-      await _tap(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
 
       await _tapSettingsItem(tester, 'Xoá toàn bộ dữ liệu');
       expect(find.text('Xoá toàn bộ dữ liệu?'), findsOneWidget);
@@ -685,7 +696,9 @@ void main() {
       await _tapSettingsItem(tester, 'Xoá toàn bộ dữ liệu');
       await _tap(tester, find.text('Xoá hết'));
 
-      expect(find.text('Tiếp tục'), findsOneWidget);
+      // F3 Như mới cài: chưa đăng nhập, chưa chọn dùng thử thì vào màn chào.
+      expect(find.text('Dùng thử không cần tài khoản'), findsOneWidget);
+      expect(ProfileRepository().isGuestMode, isFalse);
       expect(GoalRepository().getAll(), isEmpty);
       expect(ProfileRepository().isOnboardingDone, isFalse);
     });

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models/reel.dart';
+import '../providers/account_providers.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../screens/blocked_apps_screen.dart';
@@ -11,6 +12,10 @@ import '../screens/focus_screen.dart';
 import '../screens/habit_detail_screen.dart';
 import '../screens/habit_form_screen.dart';
 import '../screens/achievements_screen.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/auth/signup_flow.dart';
+import '../screens/auth/welcome_screen.dart';
+import '../screens/profile_screen.dart';
 import '../screens/habits_screen.dart';
 import '../screens/my_habits_screen.dart';
 import '../screens/report_screen.dart';
@@ -28,6 +33,12 @@ class AppRoutes {
   AppRoutes._();
 
   static const String onboarding = '/onboarding';
+
+  // F3 Màn chào, đăng nhập, đăng ký, hồ sơ.
+  static const String welcome = '/welcome';
+  static const String login = '/login';
+  static const String signup = '/signup';
+  static const String profile = '/profile';
   static const String home = '/home';
   static const String reels = '/reels';
   static const String focus = '/focus';
@@ -64,16 +75,36 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 final routerProvider = Provider<GoRouter>((ref) {
   final profile = ref.read(profileRepositoryProvider);
 
+  // F3 Đăng nhập / đăng xuất thì chạy lại redirect (ví dụ đăng xuất xong về màn chào).
+  final authChanged = ValueNotifier<int>(0);
+  ref.listen(currentUserProvider, (previous, next) => authChanged.value++);
+  ref.onDispose(authChanged.dispose);
+
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.home,
+    refreshListenable: authChanged,
     // Đường dẫn không tồn tại (chỉ gặp trên web) thì đưa về Trang chủ.
     onException: (context, state, router) => router.go(AppRoutes.home),
-    // Lần đầu mở app thì vào onboarding, các lần sau vào thẳng home.
     redirect: (context, state) {
-      final atOnboarding = state.matchedLocation == AppRoutes.onboarding;
+      final location = state.matchedLocation;
+      // F3 Chưa đăng nhập, chưa chọn "Dùng thử" và chưa từng vào app (onboarding) → màn chào.
+      final passedWelcome =
+          ref.read(currentUserProvider) != null || profile.isGuestMode || profile.isOnboardingDone;
+      final atAuth =
+          location == AppRoutes.welcome ||
+          location == AppRoutes.login ||
+          location == AppRoutes.signup;
+      if (!passedWelcome) return atAuth ? null : AppRoutes.welcome;
+      // Màn đăng nhập / đăng ký tự chuyển trang khi xong (còn màn chờ tải dữ liệu, bước Chào
+      // mừng), nên không đẩy đi giữa chừng dù đã đăng nhập.
+      if (location == AppRoutes.login || location == AppRoutes.signup) return null;
+      // Quiz động lực (onboarding) chạy sau khi đăng ký hoặc chọn dùng thử, nếu chưa làm.
+      final atOnboarding = location == AppRoutes.onboarding;
       if (!profile.isOnboardingDone && !atOnboarding) return AppRoutes.onboarding;
-      if (profile.isOnboardingDone && atOnboarding) return AppRoutes.home;
+      if (profile.isOnboardingDone && (atOnboarding || location == AppRoutes.welcome)) {
+        return AppRoutes.home;
+      }
       // Màn Tổng kết chỉ có nghĩa khi vừa có phiên học kết thúc.
       final hasFinishedSession = ref.read(focusSessionProvider).phase == FocusPhase.finished;
       if (state.matchedLocation == AppRoutes.summary && !hasFinishedSession) return AppRoutes.home;
@@ -86,6 +117,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: AppRoutes.onboarding, builder: (context, state) => const OnboardingScreen()),
+      GoRoute(path: AppRoutes.welcome, builder: (context, state) => const WelcomeScreen()),
+      GoRoute(path: AppRoutes.login, builder: (context, state) => const LoginScreen()),
+      GoRoute(path: AppRoutes.signup, builder: (context, state) => const SignupFlow()),
+      GoRoute(path: AppRoutes.profile, builder: (context, state) => const ProfileScreen()),
       // 4 tab dưới cùng. Mỗi tab tự giữ trạng thái khi chuyển qua lại.
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => MainShell(navigationShell: navigationShell),

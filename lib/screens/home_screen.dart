@@ -17,6 +17,7 @@ import '../widgets/gradient_pill_button.dart';
 import '../widgets/gradient_progress_bar.dart';
 import '../widgets/habit_card.dart';
 import '../widgets/streak_ring.dart';
+import '../widgets/user_avatar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -34,12 +35,10 @@ class HomeScreen extends ConsumerWidget {
             Text('DisGret'),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(AppIcons.settings),
-            tooltip: 'Cài đặt',
-            onPressed: () => context.push(AppRoutes.settings),
-          ),
+        // F3 Avatar mở Hồ sơ (Cài đặt nằm trong Hồ sơ), có chấm đám mây trạng thái đồng bộ.
+        actions: const [
+          ProfileAvatarButton(),
+          SizedBox(width: AppSpacing.sm),
         ],
       ),
       body: goal == null ? const EmptyGoalView() : _TodayView(goal: goal),

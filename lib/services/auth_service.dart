@@ -7,9 +7,15 @@ import 'firebase_setup.dart';
 
 /// Lỗi đăng nhập đã đổi sang câu tiếng Việt để hiện cho người dùng.
 class AuthFailure implements Exception {
-  const AuthFailure(this.message);
+  const AuthFailure(this.message, {this.code});
+
+  /// Mã lỗi Firebase gặp lúc tên đăng nhập đã có người dùng (đăng ký quay về bước chọn tên).
+  static const String usernameTaken = 'email-already-in-use';
 
   final String message;
+
+  /// Mã lỗi gốc của Firebase, null nếu là lỗi nhập liệu hoặc không có máy chủ.
+  final String? code;
 
   @override
   String toString() => message;
@@ -72,23 +78,34 @@ class AuthService {
   FirebaseAuth get _auth => FirebaseAuth.instance;
 
   /// Người dùng hiện tại; Firebase chưa sẵn sàng thì luôn là chưa đăng nhập.
-  Stream<User?> authStateChanges() =>
-      FirebaseSetup.isReady ? _auth.userChanges() : Stream.value(null);
+  /// Dùng userChanges() để biết cả lúc tên hiển thị vừa được đặt sau khi đăng ký.
+  Stream<AuthUser?> authStateChanges() => FirebaseSetup.isReady
+      ? _auth.userChanges().map((user) => user == null ? null : AuthUser.fromFirebase(user))
+      : Stream.value(null);
 
-  Future<void> signUp(String username, String password) => _run(
+  /// Tạo tài khoản, trả về uid.
+  Future<String> signUp(String username, String password) => _run(
     () async {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: AuthRules.emailFor(username),
         password: password,
       );
       await credential.user?.updateDisplayName(AuthRules.normalizeUsername(username));
+      return credential.user!.uid;
     },
     username,
     password,
   );
 
-  Future<void> signIn(String username, String password) => _run(
-    () => _auth.signInWithEmailAndPassword(email: AuthRules.emailFor(username), password: password),
+  /// Đăng nhập, trả về uid.
+  Future<String> signIn(String username, String password) => _run(
+    () async {
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: AuthRules.emailFor(username),
+        password: password,
+      );
+      return credential.user!.uid;
+    },
     username,
     password,
   );
@@ -98,14 +115,37 @@ class AuthService {
   }
 
   /// Kiểm tra dữ liệu nhập, gọi Firebase, đổi lỗi sang tiếng Việt.
-  Future<void> _run(Future<void> Function() action, String username, String password) async {
+  Future<String> _run(Future<String> Function() action, String username, String password) async {
     final inputError = AuthRules.usernameError(username) ?? AuthRules.passwordError(password);
     if (inputError != null) throw AuthFailure(inputError);
     if (!FirebaseSetup.isReady) throw const AuthFailure(AuthRules.noServer);
     try {
-      await action();
+      return await action();
     } on FirebaseAuthException catch (error) {
-      throw AuthFailure(AuthRules.messageForCode(error.code));
+      throw AuthFailure(AuthRules.messageForCode(error.code), code: error.code);
     }
   }
+}
+
+/// Người dùng đã đăng nhập, chỉ giữ những gì giao diện cần. Không dùng thẳng User của Firebase
+/// để test tạo được người dùng giả mà không cần Firebase.
+class AuthUser {
+  const AuthUser({required this.uid, required this.username, this.createdAt});
+
+  factory AuthUser.fromFirebase(User user) {
+    final name = user.displayName;
+    return AuthUser(
+      uid: user.uid,
+      username: name != null && name.isNotEmpty
+          ? name
+          : AuthRules.usernameFromEmail(user.email ?? ''),
+      createdAt: user.metadata.creationTime,
+    );
+  }
+
+  final String uid;
+  final String username;
+
+  /// Ngày tạo tài khoản (ngày tham gia).
+  final DateTime? createdAt;
 }

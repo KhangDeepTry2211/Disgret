@@ -628,10 +628,12 @@ void main() {
       tester,
     ) async {
       await openApp(tester);
-      await tapAndSettle(tester, find.byTooltip('Cài đặt'));
+      await openSettingsFromHome(tester);
       await tester.scrollUntilVisible(find.text('Chế độ demo'), 200);
       await tapAndSettle(tester, find.text('Chế độ demo'));
       expect(ProfileRepository().profile?.demoMode, isTrue);
+      // Cài đặt mở từ Hồ sơ nên quay lại 2 lần mới về Trang chủ.
+      await tapAndSettle(tester, find.byTooltip('Quay lại'));
       await tapAndSettle(tester, find.byTooltip('Quay lại'));
 
       await tapTab(tester, 'Focus');

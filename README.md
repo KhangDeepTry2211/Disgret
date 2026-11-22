@@ -93,7 +93,7 @@ Reset break cần 2 quyền bắt buộc và 1 quyền nên có:
 | Hiện trên app khác (Display over other apps) | Hiện màn can thiệp đè lên app đó |
 | Thông báo (không bắt buộc) | Thông báo đang học và "Hết giờ nghỉ rồi!" |
 
-**Cách 1, trong app:** Trang chủ → biểu tượng bánh răng (Cài đặt) → **Quyền cho Reset break** →
+**Cách 1, trong app:** Trang chủ → avatar góc phải (Hồ sơ) → **Cài đặt** → **Quyền cho Reset break** →
 bấm từng dòng, bật DisGret trong trang Cài đặt của máy rồi bấm Back. Khi bấm bắt đầu học mà
 thiếu quyền, app cũng hỏi.
 
@@ -122,13 +122,13 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
 
 ### Trên lớp
 
-1. **Onboarding.** Mở DisGret → chọn độ dài reel → **Tiếp tục** → trả lời 4 câu quiz động lực.
+1. **Onboarding.** Mở DisGret → màn chào: **Dùng thử không cần tài khoản** (hoặc **Tạo tài khoản mới**) → chọn độ dài reel → **Tiếp tục** → trả lời 4 câu quiz động lực.
    Ở bước mục tiêu: nhập mục tiêu (ví dụ "Qua môn Tư Duy Tính Toán"), lý do, thói quen "Ôn bài",
    số phút tối thiểu chọn **Tự nhập → 1** → **Vào DisGret**.
    > Vì sao 1 phút: trong phiên "5 phút" của kịch bản, thời gian ở YouTube và chờ ở màn chặn bị trừ
    > vào thời gian tập trung, nên phiên chỉ còn khoảng 1–2 phút tập trung thật. Mức tối thiểu
    > 1 phút đảm bảo cuối phiên thói quen hoàn thành và streak tăng.
-2. **Cài đặt** (bánh răng ở Trang chủ): bật **Chế độ demo** (1 phút chỉ dài 20 giây), bấm
+2. **Cài đặt** (avatar góc phải Trang chủ → Hồ sơ → Cài đặt): bật **Chế độ demo** (1 phút chỉ dài 20 giây), bấm
    **Tạo dữ liệu mẫu** → quay lại: Trang chủ có vòng streak **5 ngày**, câu bản sắc và điểm
    sức mạnh trung bình.
    - (Không bắt buộc) Trang chủ: thẻ "Đọc sách 10 trang" nhắc "Đừng bỏ 2 lần liên tiếp".
@@ -165,7 +165,8 @@ Mỗi file ghi mã thành phần ở dòng đầu. `kotlin/` là
 | Mã | Thành phần | File chính |
 |---|---|---|
 | 1.1 | Hồ sơ động lực (quiz) | `lib/data/motivation_quiz.dart`, `lib/screens/quiz_screen.dart`, `lib/widgets/quiz_question_view.dart`, `lib/data/models/user_profile.dart` |
-| F2 | Đăng nhập tên + mật khẩu, đồng bộ Hive ⇄ Firestore | `lib/services/auth_service.dart`, `lib/services/sync_service.dart`, `lib/services/sync_merge.dart`, `lib/data/local_store.dart`, `lib/providers/account_providers.dart`, `lib/widgets/account_section.dart` |
+| F3 | Màn chào, đăng nhập, đăng ký nhiều bước, Hồ sơ, dùng thử | `lib/screens/auth/welcome_screen.dart`, `lib/screens/auth/login_screen.dart`, `lib/screens/auth/signup_flow.dart`, `lib/screens/auth/auth_widgets.dart`, `lib/screens/profile_screen.dart`, `lib/widgets/user_avatar.dart` |
+| F2 | Đăng nhập tên + mật khẩu, đồng bộ Hive ⇄ Firestore | `lib/services/auth_service.dart`, `lib/services/sync_service.dart`, `lib/services/sync_merge.dart`, `lib/data/local_store.dart`, `lib/providers/account_providers.dart` |
 | F1 | Nối Firebase | `lib/services/firebase_setup.dart`, `lib/firebase_options.dart`, `android/app/google-services.json`, `firebase.json`, `firestore.rules` |
 | 1.2 | Kho nội dung reel | `assets/reels/reels.json`, `lib/data/models/reel.dart`, `lib/data/repositories/reel_repository.dart` |
 | 1.3 | Đề xuất reel theo luật, ghim reel | `lib/services/reel_recommender.dart` |

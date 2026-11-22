@@ -12,6 +12,7 @@ class ProfileRepository {
   static const String profileId = 'profile';
   static const String _onboardingDoneKey = 'onboarding_done';
   static const String _celebratedLevelKey = 'celebrated_level';
+  static const String guestModeKey = 'guest_mode';
 
   Box<dynamic> get _device => Hive.box<dynamic>(HiveBoxes.device);
 
@@ -32,8 +33,22 @@ class ProfileRepository {
     await _device.put(_onboardingDoneKey, true);
   }
 
-  /// Cho phép xem lại onboarding, hồ sơ đã lưu vẫn được giữ.
-  Future<void> resetOnboarding() => _device.put(_onboardingDoneKey, false);
+  /// Đánh dấu đã xong onboarding mà không đổi hồ sơ: dùng khi đăng nhập vào tài khoản đã làm
+  /// quiz động lực ở máy khác.
+  Future<void> markOnboardingDone() => _device.put(_onboardingDoneKey, true);
+
+  /// Cho phép xem lại onboarding, hồ sơ đã lưu vẫn được giữ. Bật luôn guestMode để router
+  /// không đưa về màn chào (người đang ở trong app thì đã qua màn chào rồi).
+  Future<void> resetOnboarding() async {
+    await _device.put(_onboardingDoneKey, false);
+    if (!isGuestMode) await _device.put(guestModeKey, true);
+  }
+
+  /// F3 Đã chọn "Dùng thử không cần tài khoản" ở màn chào. Riêng của máy, không đồng bộ;
+  /// đăng xuất thì box device bị xoá nên cờ này cũng tắt.
+  bool get isGuestMode => _device.get(guestModeKey, defaultValue: false) as bool;
+
+  Future<void> setGuestMode(bool enabled) => _device.put(guestModeKey, enabled);
 
   /// 4.2 Cấp thành tích cao nhất đã hiện hộp thoại chúc mừng, để mỗi cấp chỉ chúc mừng một lần.
   int get celebratedLevel => _device.get(_celebratedLevelKey, defaultValue: 0) as int;

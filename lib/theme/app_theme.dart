@@ -221,6 +221,27 @@ class AppHabit {
   static const Duration tickAnimation = Duration(milliseconds: 450);
 }
 
+/// F3 Thông số riêng của màn chào, đăng nhập, đăng ký và Hồ sơ.
+class AppAuth {
+  AppAuth._();
+
+  /// Logo trên màn chào.
+  static const double welcomeLogo = 96;
+
+  /// Avatar nhỏ trên AppBar Trang chủ và chấm đám mây trạng thái đồng bộ chồng ở góc.
+  static const double avatarSmall = 32;
+  static const double syncBadge = 16;
+
+  /// Avatar chữ cái lớn ở Hồ sơ và bước "Chào mừng" khi đăng ký.
+  static const double avatarLarge = 88;
+
+  /// Thanh tiến độ mảnh của luồng đăng ký.
+  static const double progressHeight = 3;
+
+  /// Bề rộng tối đa của nội dung trên màn rộng (web), để ô nhập không kéo dài hết màn hình.
+  static const double maxContentWidth = 460;
+}
+
 /// 5.2 Thông số riêng của màn Reels (1.4).
 class AppReels {
   AppReels._();
@@ -289,6 +310,11 @@ class AppIcons {
   static const IconData syncing = Icons.cloud_sync_outlined;
   static const IconData offline = Icons.cloud_off_outlined;
   static const IconData syncError = Icons.error_outline_rounded;
+  static const IconData guest = Icons.person_outline_rounded;
+  static const IconData valid = Icons.check_circle_rounded;
+  static const IconData ruleUnmet = Icons.radio_button_unchecked_rounded;
+  static const IconData chevron = Icons.chevron_right_rounded;
+  static const IconData syncNow = Icons.sync_rounded;
   static const IconData showPassword = Icons.visibility_outlined;
   static const IconData hidePassword = Icons.visibility_off_outlined;
   static const IconData check = Icons.check_circle_outline_rounded;
