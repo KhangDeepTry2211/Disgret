@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/models/goal.dart';
 import '../data/models/habit.dart';
 import '../data/models/reel.dart';
+import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
@@ -37,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(AppIcons.settings),
-            tooltip: 'Cài đặt',
+            tooltip: AppStrings.settings,
             onPressed: () => context.push(AppRoutes.settings),
           ),
         ],

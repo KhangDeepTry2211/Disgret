@@ -19,7 +19,7 @@ and `flutter test` (0 failures) pass before the task is checked off.
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `lib/l10n/app_strings.dart` with a `AppStrings` class of `static const String`
+- [X] T001 Create `lib/l10n/app_strings.dart` with a `AppStrings` class of `static const String`
       values (and small functions for interpolated text such as `startMinutes(int n)`) for every
       string introduced by this feature. **Done when** the file compiles and is referenced by at
       least one screen (ADR-0005).
