@@ -45,24 +45,42 @@ class EventRepository extends HiveRepository<Event> {
   }
 
   /// 1.4 Ghi lại một lượt xem reel, để sau này đo reel nào khiến người dùng bắt đầu học.
-  Future<void> logReelWatched({
+  ///
+  /// Returns the event id. Passing that [id] again replaces the same record instead of adding a
+  /// second one (one record per reel shown, spec 002 edge case "app goes to the background").
+  Future<String> logReelWatched({
     required String reelId,
     required int secondsWatched,
     required bool completed,
     bool startedFocus = false,
-  }) {
-    return log(
-      EventType.reelWatched,
-      meta: {
-        ReelWatchMeta.reelId: reelId,
-        ReelWatchMeta.secondsWatched: secondsWatched,
-        ReelWatchMeta.completed: completed,
-        if (startedFocus) ReelWatchMeta.startedFocus: true,
-      },
+    String? id,
+  }) async {
+    final eventId = id ?? newId();
+    await save(
+      Event(
+        id: eventId,
+        type: EventType.reelWatched,
+        time: DateTime.now(),
+        meta: {
+          ReelWatchMeta.reelId: reelId,
+          ReelWatchMeta.secondsWatched: secondsWatched,
+          ReelWatchMeta.completed: completed,
+          if (startedFocus) ReelWatchMeta.startedFocus: true,
+        },
+      ),
     );
+    return eventId;
   }
 
   /// 1.4 Ghi thích, bỏ thích, bình luận, chia sẻ reel (meta chỉ có reelId).
   Future<void> logReelAction(EventType type, String reelId) =>
       log(type, meta: {ReelActionMeta.reelId: reelId});
+
+  /// Spec 002: the motivation step was skipped at reel [position] (1-based).
+  Future<void> logMotivationSkipped({required String context, required int position}) {
+    return log(
+      EventType.motivationSkipped,
+      meta: {MotivationSkippedMeta.context: context, MotivationSkippedMeta.position: position},
+    );
+  }
 }

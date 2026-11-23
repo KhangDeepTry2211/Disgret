@@ -7,6 +7,12 @@ enum EventType {
   choseReel('chose_reel'),
   choseBreak('chose_break'),
   sessionDistracted('session_distracted'),
+
+  /// Spec 002: the motivation step was skipped ("Bỏ qua"); see [MotivationSkippedMeta].
+  motivationSkipped('motivation_skipped'),
+
+  // Social reel events from before spec 002. Never logged any more; kept only so events stored
+  // by older versions still parse ([fromValue] throws on unknown values).
   reelLiked('reel_liked'),
   reelUnliked('reel_unliked'),
   reelCommented('reel_commented'),
@@ -28,7 +34,8 @@ class ReelWatchMeta {
   static const String secondsWatched = 'secondsWatched';
   static const String completed = 'completed';
 
-  /// Chỉ có khi người dùng bấm "Bắt đầu 5 phút" ngay từ reel này.
+  /// Only present when a session was started from this reel ("Bắt đầu N phút",
+  /// "Chỉ 5 phút thôi" or "Bỏ qua").
   static const String startedFocus = 'startedFocus';
 }
 
@@ -37,6 +44,17 @@ class ReelActionMeta {
   ReelActionMeta._();
 
   static const String reelId = 'reelId';
+}
+
+/// Meta keys of motivation_skipped (spec 002 data-model.md).
+class MotivationSkippedMeta {
+  MotivationSkippedMeta._();
+
+  /// [ReelContext.start] or [ReelContext.distracted].
+  static const String context = 'context';
+
+  /// 1-based index of the reel on screen when the step was skipped.
+  static const String position = 'position';
 }
 
 /// Tên các khoá trong meta của sự kiện session_distracted.

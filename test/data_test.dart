@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:focus_app/data/hive_boxes.dart';
 import 'package:focus_app/data/models/event.dart';
 import 'package:focus_app/data/models/goal.dart';
 import 'package:focus_app/data/models/habit.dart';
@@ -242,6 +243,62 @@ void main() {
         'completed': true,
         'startedFocus': true,
       });
+    });
+  });
+
+  group('Sự kiện của bước động lực (spec 002)', () {
+    test('logReelWatched với cùng id thay bản ghi cũ, không thêm bản ghi thứ hai', () async {
+      final repository = EventRepository();
+      final id = await repository.logReelWatched(reelId: 'r1', secondsWatched: 4, completed: false);
+      await repository.logReelWatched(
+        reelId: 'r1',
+        secondsWatched: 9,
+        completed: true,
+        startedFocus: true,
+        id: id,
+      );
+
+      final event = repository.getAll().single;
+      expect(event.id, id);
+      expect(event.meta, {
+        'reelId': 'r1',
+        'secondsWatched': 9,
+        'completed': true,
+        'startedFocus': true,
+      });
+    });
+
+    test('motivation_skipped lưu ngữ cảnh và vị trí reel', () async {
+      final repository = EventRepository();
+      await repository.logMotivationSkipped(context: ReelContext.start, position: 2);
+
+      final event = repository.getAll().single;
+      expect(event.type, EventType.motivationSkipped);
+      expect(event.toMap()['type'], 'motivation_skipped');
+      expect(event.meta, {'context': 'start', 'position': 2});
+    });
+
+    test('Sự kiện thích, bình luận, chia sẻ của bản cũ vẫn đọc được', () async {
+      final box = Hive.box<dynamic>(HiveBoxes.events);
+      for (final type in ['reel_liked', 'reel_unliked', 'reel_commented', 'reel_shared']) {
+        await box.put(type, {
+          'id': type,
+          'type': type,
+          'time': '2026-11-01T10:00:00.000',
+          'meta': {'reelId': 'r1'},
+        });
+      }
+
+      final types = EventRepository().getAll().map((event) => event.type);
+      expect(
+        types,
+        unorderedEquals([
+          EventType.reelLiked,
+          EventType.reelUnliked,
+          EventType.reelCommented,
+          EventType.reelShared,
+        ]),
+      );
     });
   });
 

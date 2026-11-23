@@ -32,7 +32,7 @@ contracts/motivation-step.md, quickstart.md)
 - [X] T004 [P] Update `test/reel_recommender_test.dart`: no liked-tags bonus; `limitFor('start')` = 3,
       `limitFor('distracted')` = 1; pinned first unchanged. Then change
       `lib/services/reel_recommender.dart` (remove `likedReelIds`, add `limitFor`).
-- [ ] T005 Add `EventType.motivationSkipped` (data-model.md `motivation_skipped.context`,
+- [X] T005 Add `EventType.motivationSkipped` (data-model.md `motivation_skipped.context`,
       `.position`) and `EventRepository.logMotivationSkipped` in `lib/data/models/event.dart` and
       `lib/data/repositories/event_repository.dart`; annotate the four social values as never
       logged; unit test in `test/data_test.dart` that old `reel_liked` events still parse.
