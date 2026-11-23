@@ -94,15 +94,18 @@ void main() {
         'start_only',
         'both',
       ]);
-      expect(_ids(recommender.recommend(null, ReelContext.distracted, const [], now: _now)), [
-        'distracted_only',
-        'both',
-      ]);
+      expect(
+        _ids(recommender.recommend(null, ReelContext.distracted, const [], now: _now, limit: 3)),
+        ['distracted_only', 'both'],
+      );
     });
 
     test('Không có reel đúng ngữ cảnh thì trả về rỗng', () {
       final recommender = ReelRecommender([_reel('a')]);
-      expect(recommender.recommend(null, ReelContext.distracted, const [], now: _now), isEmpty);
+      expect(
+        recommender.recommend(null, ReelContext.distracted, const [], now: _now, limit: 3),
+        isEmpty,
+      );
     });
 
     test('Trả về tối đa 3 reel, điểm cao đứng trước', () {
@@ -242,17 +245,17 @@ void main() {
     final profile = _profile([MotivationType.money]);
 
     test('Ngữ cảnh được ghim: reel ghim đứng đầu dù ít điểm nhất', () {
-      expect(_ids(recommender.recommend(profile, ReelContext.distracted, const [], now: _now)), [
-        'ghim',
-        'a',
-        'b',
-      ]);
+      expect(
+        _ids(recommender.recommend(profile, ReelContext.distracted, const [], now: _now, limit: 3)),
+        ['ghim', 'a', 'b'],
+      );
     });
 
     test('Reel ghim vẫn đứng đầu dù vừa xem gần nhất', () {
       final history = [_watched('ghim', ago: const Duration(minutes: 1))];
       expect(
-        _ids(recommender.recommend(profile, ReelContext.distracted, history, now: _now)).first,
+        _ids(recommender.recommend(profile, ReelContext.distracted, history, now: _now, limit: 3))
+            .first,
         'ghim',
       );
     });
@@ -260,11 +263,10 @@ void main() {
     test('Các reel còn lại vẫn xếp theo điểm, tổng tối đa 3', () {
       // a vừa xem nên bị trừ điểm, b và c lên trước.
       final history = [_watched('a', ago: const Duration(minutes: 1))];
-      expect(_ids(recommender.recommend(profile, ReelContext.distracted, history, now: _now)), [
-        'ghim',
-        'b',
-        'c',
-      ]);
+      expect(
+        _ids(recommender.recommend(profile, ReelContext.distracted, history, now: _now, limit: 3)),
+        ['ghim', 'b', 'c'],
+      );
     });
 
     test('Ngữ cảnh khác không bị ảnh hưởng: reel ghim chỉ xếp theo điểm', () {
@@ -280,10 +282,38 @@ void main() {
         for (final reel in reels)
           if (reel != pinnedReel) reel,
       ]);
-      expect(_ids(unpinned.recommend(profile, ReelContext.distracted, const [], now: _now)), [
-        'a',
-        'b',
-        'c',
+      expect(
+        _ids(unpinned.recommend(profile, ReelContext.distracted, const [], now: _now, limit: 3)),
+        ['a', 'b', 'c'],
+      );
+    });
+  });
+
+  group('Giới hạn theo ngữ cảnh (spec 002 FR-002)', () {
+    test('Trước khi học tối đa 3 reel, sau khi xao nhãng đúng 1 reel', () {
+      expect(ReelRecommender.limitFor(ReelContext.start), 3);
+      expect(ReelRecommender.limitFor(ReelContext.distracted), 1);
+    });
+
+    test('Mặc định dùng giới hạn của ngữ cảnh', () {
+      final recommender = ReelRecommender(testReels);
+      final profile = _profile([MotivationType.proveYourself]);
+
+      expect(recommender.recommend(profile, ReelContext.start, const [], now: _now), hasLength(3));
+      expect(_ids(recommender.recommend(profile, ReelContext.distracted, const [], now: _now)), [
+        'r6',
+      ]);
+    });
+
+    test('Sau khi xao nhãng mà không có reel ghim: 1 reel điểm cao nhất', () {
+      final recommender = ReelRecommender([
+        _reel('low', context: [ReelContext.distracted]),
+        _reel('high', tags: [MotivationType.money], context: [ReelContext.distracted]),
+      ]);
+      final profile = _profile([MotivationType.money]);
+
+      expect(_ids(recommender.recommend(profile, ReelContext.distracted, const [], now: _now)), [
+        'high',
       ]);
     });
   });
@@ -302,11 +332,10 @@ void main() {
       final profile = _profile([MotivationType.proveYourself]);
       final history = [_watched('r6', ago: const Duration(minutes: 1))];
 
-      expect(_ids(recommender.recommend(profile, ReelContext.distracted, history, now: _now)), [
-        'r6',
-        'r2',
-        'r5',
-      ]);
+      expect(
+        _ids(recommender.recommend(profile, ReelContext.distracted, history, now: _now, limit: 3)),
+        ['r6', 'r2', 'r5'],
+      );
     });
 
     test('Trước khi học: r6 không xuất hiện, kết quả không đổi', () {
@@ -341,7 +370,7 @@ void main() {
     test('Ngữ cảnh sau khi xao nhãng chỉ có r2, r5, r6', () {
       final profile = _profile([MotivationType.proveYourself]);
       expect(
-        _ids(recommender.recommend(profile, ReelContext.distracted, const [], now: _now)),
+        _ids(recommender.recommend(profile, ReelContext.distracted, const [], now: _now, limit: 3)),
         unorderedEquals(['r2', 'r5', 'r6']),
       );
     });

@@ -29,7 +29,7 @@ contracts/motivation-step.md, quickstart.md)
       `start` with remaining reels; `skip`/`start`/`backToSession` → `done`; empty playlist → `done`;
       end-card actions per context. **Done when** tests exist and fail.
 - [ ] T003 Implement `lib/services/motivation_dose.dart` so T002 passes.
-- [ ] T004 [P] Update `test/reel_recommender_test.dart`: no liked-tags bonus; `limitFor('start')` = 3,
+- [X] T004 [P] Update `test/reel_recommender_test.dart`: no liked-tags bonus; `limitFor('start')` = 3,
       `limitFor('distracted')` = 1; pinned first unchanged. Then change
       `lib/services/reel_recommender.dart` (remove `likedReelIds`, add `limitFor`).
 - [ ] T005 Add `EventType.motivationSkipped` (data-model.md `motivation_skipped.context`,

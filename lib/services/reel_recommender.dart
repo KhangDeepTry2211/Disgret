@@ -8,28 +8,30 @@ import '../data/models/user_profile.dart';
 class ReelRecommender {
   const ReelRecommender(this.reels);
 
-  /// Trả về tối đa chừng này reel mỗi lượt.
+  /// At most this many reels per opening of the motivation step (before a session).
   static const int maxResults = 3;
+
+  /// Playlist length per context (spec 002 FR-002): up to 3 before a session, 1 after a
+  /// distraction.
+  static int limitFor(String context) => context == ReelContext.distracted ? 1 : maxResults;
 
   /// Reel xem trong khoảng thời gian này được coi là "mới xem".
   static const Duration recentWindow = Duration(hours: 24);
 
   final List<Reel> reels;
 
-  /// Điểm = 2 × số tag trùng động lực + 1 nếu chưa xem trong 24 giờ qua − 2 nếu vừa xem gần nhất
-  /// + 1 nếu có tag trùng với tag của một reel người dùng đã thích ([likedTags]).
+  /// Điểm = 2 × số tag trùng động lực + 1 nếu chưa xem trong 24 giờ qua − 2 nếu vừa xem gần nhất.
+  /// Likes no longer count (spec 002 FR-002).
   static int score(
     Reel reel, {
     required List<MotivationType> motivationTypes,
     required Set<String> recentlyWatchedIds,
     required String? lastWatchedId,
-    Set<MotivationType> likedTags = const {},
   }) {
     final matchingTags = reel.tags.where(motivationTypes.contains).length;
     var points = 2 * matchingTags;
     if (!recentlyWatchedIds.contains(reel.id)) points += 1;
     if (reel.id == lastWatchedId) points -= 2;
-    if (reel.tags.any(likedTags.contains)) points += 1;
     return points;
   }
 
@@ -38,17 +40,14 @@ class ReelRecommender {
   /// Điểm bằng nhau thì giữ thứ tự trong reels.json.
   /// Reel ghim cho ngữ cảnh này (trường pinFirst) luôn đứng đầu, bỏ qua điểm và luật
   /// "vừa xem gần nhất"; các chỗ còn lại vẫn xếp theo điểm.
+  /// Returns at most [limit] reels, by default [limitFor] the context.
   List<Reel> recommend(
     UserProfile? profile,
     String context,
     List<Event> history, {
     DateTime? now,
-    Set<String> likedReelIds = const {},
+    int? limit,
   }) {
-    final likedTags = {
-      for (final reel in reels)
-        if (likedReelIds.contains(reel.id)) ...reel.tags,
-    };
     final currentTime = now ?? DateTime.now();
     final watched = history
         .where(
@@ -75,7 +74,6 @@ class ReelRecommender {
           motivationTypes: motivationTypes,
           recentlyWatchedIds: recentlyWatchedIds,
           lastWatchedId: lastWatchedId,
-          likedTags: likedTags,
         ),
     };
 
@@ -85,7 +83,7 @@ class ReelRecommender {
         // Hàm sort của Dart không đảm bảo giữ thứ tự cũ khi bằng điểm nên phải so thêm vị trí.
         return byPoints != 0 ? byPoints : candidates.indexOf(a).compareTo(candidates.indexOf(b));
       });
-    return [...pinned, ...ranked].take(maxResults).toList();
+    return [...pinned, ...ranked].take(limit ?? limitFor(context)).toList();
   }
 
   String _reelIdOf(Event event) => event.meta[ReelWatchMeta.reelId] as String;

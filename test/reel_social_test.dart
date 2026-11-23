@@ -18,7 +18,6 @@ import 'package:focus_app/providers/app_providers.dart';
 import 'package:focus_app/router/app_router.dart';
 import 'package:focus_app/screens/main_shell.dart';
 import 'package:focus_app/services/focus_stats.dart';
-import 'package:focus_app/services/reel_recommender.dart';
 import 'package:focus_app/services/reel_share.dart';
 import 'package:focus_app/theme/app_theme.dart';
 import 'package:focus_app/widgets/reel_action_column.dart';
@@ -34,15 +33,6 @@ import 'test_helpers.dart';
 const String _r1 = 'assets/reels/r1.mp4';
 
 final DateTime _now = DateTime(2026, 3, 2, 12);
-
-Reel _reel(String id, List<MotivationType> tags) => Reel(
-  id: id,
-  assetPath: '$id.mp4',
-  title: id,
-  tags: tags,
-  lengthSec: 15,
-  context: const [ReelContext.start],
-);
 
 List<Event> _events(EventType type) =>
     EventRepository().getAll().where((event) => event.type == type).toList();
@@ -182,54 +172,6 @@ void main() {
       expect(ago(const Duration(hours: 3)), '3 giờ trước');
       expect(ago(const Duration(days: 5)), '5 ngày trước');
       expect(timeAgo(_now, DateTime(2025, 12, 25)), '25/12/2025');
-    });
-  });
-
-  group('Luật điểm "tag trùng reel đã thích"', () {
-    final liked = _reel('liked', [MotivationType.money]);
-    final sameTag = _reel('same', [MotivationType.money, MotivationType.freedom]);
-    final otherTag = _reel('other', [MotivationType.family]);
-
-    int score(Reel reel, {Set<MotivationType> likedTags = const {}}) => ReelRecommender.score(
-      reel,
-      motivationTypes: const [],
-      recentlyWatchedIds: const {},
-      lastWatchedId: null,
-      likedTags: likedTags,
-    );
-
-    test('+1 điểm nếu có tag trùng, chỉ cộng một lần dù trùng nhiều tag', () {
-      expect(score(sameTag), 1);
-      expect(score(sameTag, likedTags: {MotivationType.money}), 2);
-      expect(score(sameTag, likedTags: {MotivationType.money, MotivationType.freedom}), 2);
-      expect(score(otherTag, likedTags: {MotivationType.money}), 1);
-    });
-
-    test('Không có reel đã thích: thứ tự như cũ (theo reels.json)', () {
-      final result = ReelRecommender([otherTag, sameTag, liked]).recommend(null, 'start', const []);
-      expect(result.map((r) => r.id), ['other', 'same', 'liked']);
-    });
-
-    test('Có reel đã thích: reel cùng tag được đưa lên trước', () {
-      final result = ReelRecommender([otherTag, sameTag, liked])
-          .recommend(null, 'start', const [], likedReelIds: {'liked'});
-      // "same" và "liked" cùng có tag money nên +1, "other" thì không.
-      expect(result.map((r) => r.id), ['same', 'liked', 'other']);
-    });
-
-    test('Reel ghim vẫn đứng đầu dù có reel khác được cộng điểm', () {
-      final pinned = Reel(
-        id: 'pinned',
-        assetPath: 'pinned.mp4',
-        title: 'pinned',
-        tags: const [MotivationType.family],
-        lengthSec: 15,
-        context: const [ReelContext.start],
-        pinFirst: const [ReelContext.start],
-      );
-      final result = ReelRecommender([sameTag, pinned])
-          .recommend(null, 'start', const [], likedReelIds: {'same'});
-      expect(result.first.id, 'pinned');
     });
   });
 

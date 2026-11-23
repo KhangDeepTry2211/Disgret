@@ -198,7 +198,7 @@ class _ReelFeedState extends ConsumerState<_ReelFeed> {
       widget.reelContext,
       _events.getAll(),
       now: ref.read(clockProvider)(),
-      likedReelIds: ref.read(reelLikesProvider),
+      limit: ReelRecommender.maxResults,
     );
     _currentPage = 0;
     _tracker = ReelWatchTracker();
