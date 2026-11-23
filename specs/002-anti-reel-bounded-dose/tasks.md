@@ -19,16 +19,16 @@ contracts/motivation-step.md, quickstart.md)
 
 ## Phase 1: Setup
 
-- [ ] T001 Add motivation-step strings to `lib/l10n/app_strings.dart` ("Bỏ qua", "Tiếp", "Quay lại
+- [X] T001 Add motivation-step strings to `lib/l10n/app_strings.dart` ("Bỏ qua", "Tiếp", "Quay lại
       học", "Chỉ 5 phút thôi", position label).
 
 ## Phase 2: Foundational
 
-- [ ] T002 [P] Write `test/motivation_dose_test.dart` for data-model.md `MotivationDose.playlist`,
+- [X] T002 [P] Write `test/motivation_dose_test.dart` for data-model.md `MotivationDose.playlist`,
       `.index`, `.phase` transitions: `playing` → `endCard` on end or error; `next()` only in
       `start` with remaining reels; `skip`/`start`/`backToSession` → `done`; empty playlist → `done`;
       end-card actions per context. **Done when** tests exist and fail.
-- [ ] T003 Implement `lib/services/motivation_dose.dart` so T002 passes.
+- [X] T003 Implement `lib/services/motivation_dose.dart` so T002 passes.
 - [X] T004 [P] Update `test/reel_recommender_test.dart`: no liked-tags bonus; `limitFor('start')` = 3,
       `limitFor('distracted')` = 1; pinned first unchanged. Then change
       `lib/services/reel_recommender.dart` (remove `likedReelIds`, add `limitFor`).
