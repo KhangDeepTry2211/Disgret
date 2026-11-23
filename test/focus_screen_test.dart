@@ -2,6 +2,7 @@
 // phản hồi nhắc, động lực trong phiên, màn Tổng kết (spec 001).
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:focus_app/data/mascot_mood.dart';
 import 'package:focus_app/data/models/event.dart';
 import 'package:focus_app/data/models/goal.dart';
 import 'package:focus_app/data/models/habit.dart';
@@ -15,7 +16,11 @@ import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/data/repositories/session_repository.dart';
 import 'package:focus_app/router/app_router.dart';
 import 'package:focus_app/screens/main_shell.dart';
+import 'package:focus_app/theme/app_theme.dart';
+import 'package:focus_app/widgets/mascot/mascot_view.dart';
 import 'package:focus_app/widgets/progress_ring.dart';
+import 'package:focus_app/widgets/sea/sea_scene.dart';
+import 'package:focus_app/widgets/streak_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -627,6 +632,49 @@ void main() {
       expect(find.text('Lưu'), findsNothing, reason: 'Đã lưu thì không lưu lại nữa');
     });
 
+    testWidgets('5.3 Gret ăn mừng, biển trong thêm +N% và được +5 ngọc trai cho 25 phút', (
+      tester,
+    ) async {
+      await startSession(tester);
+      await finishSession(tester);
+
+      expect(tester.widget<MascotView>(find.byType(MascotView)).mood, MascotMood.celebrating);
+      final gain = find.textContaining('% độ trong');
+      expect(gain, findsOneWidget);
+      final points = int.parse(
+        RegExp(r'\+(\d+)%').firstMatch(tester.widget<Text>(gain).data!)!.group(1)!,
+      );
+      expect(points, greaterThan(0));
+      expect(find.text('+5 ngọc trai'), findsOneWidget);
+
+      // Saving does not change the gain (research R7).
+      await tapAndSettle(tester, find.text('Lưu'));
+      expect(find.text('+$points% độ trong'), findsOneWidget);
+    });
+
+    testWidgets('5.3 Kết thúc ngay khi chưa tập trung: không có +% và không có ngọc trai', (
+      tester,
+    ) async {
+      await startSession(tester);
+      await tapAndSettle(tester, find.text('Kết thúc sớm'));
+      await tapAndSettle(tester, find.text('Kết thúc'));
+
+      expect(find.text('Tổng kết'), findsOneWidget);
+      expect(find.textContaining('% độ trong'), findsNothing);
+      expect(find.textContaining('ngọc trai'), findsNothing);
+    });
+
+    testWidgets('5.3 Chuỗi tăng sau khi lưu thì thẻ streak sáng lên', (tester) async {
+      await startSession(tester);
+      await finishSession(tester);
+      expect(tester.widget<StreakCard>(find.byType(StreakCard)).highlight, isFalse);
+
+      await tapAndSettle(tester, find.text('Lưu'));
+      final card = tester.widget<StreakCard>(find.byType(StreakCard));
+      expect(card.days, 1);
+      expect(card.highlight, isTrue);
+    });
+
     testWidgets('Phiên chưa đủ phút tối thiểu: không báo +1, streak giữ nguyên', (tester) async {
       await startSession(tester, minutes: 5);
       await finishSession(tester, minutes: 5);
@@ -698,6 +746,108 @@ void main() {
 
       expect(find.text('25 phút'), findsNWidgets(2), reason: 'Tập trung đủ thời lượng đã đặt');
       expect(find.text('+1 ngày streak 🔥'), findsOneWidget);
+    });
+  });
+
+  group('5.3 Gret trong phiên học (spec 003 US3)', () {
+    MascotMood gretMood(WidgetTester tester) =>
+        tester.widget<MascotView>(find.byType(MascotView)).mood;
+    SeaScene sea(WidgetTester tester) => tester.widget<SeaScene>(find.byType(SeaScene));
+
+    /// Turns the system "remove animations" setting off again (pumpApp turns it on).
+    Future<void> animationsOn(WidgetTester tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures();
+      await tester.pump();
+    }
+
+    testWidgets('Đang học: biển phủ màn, Gret tập trung, đồng hồ và 2 thẻ số liệu', (tester) async {
+      await startSession(tester);
+
+      expect(sea(tester).variant, SeaSceneVariant.full);
+      expect(gretMood(tester), MascotMood.focused);
+      expect(find.byType(ProgressRing), findsOneWidget);
+      expect(find.text('Ôn bài'), findsOneWidget);
+      expect(find.text('Tập trung thực'), findsOneWidget);
+      expect(find.text('Số lần xao nhãng'), findsOneWidget);
+      expect(find.text('Kết thúc sớm'), findsOneWidget);
+    });
+
+    testWidgets('Đang nghỉ: Gret ngủ, có nút "Tiếp tục"', (tester) async {
+      await startSession(tester);
+      await distract(tester, 4);
+      await tapAndSettle(tester, find.text('Nghỉ 5 phút'));
+
+      expect(gretMood(tester), MascotMood.sleeping);
+      expect(find.text('Tiếp tục'), findsOneWidget);
+
+      await tapAndSettle(tester, find.text('Tiếp tục'));
+      expect(gretMood(tester), MascotMood.focused);
+    });
+
+    testWidgets('Xao nhãng một lần thì nước đục đi 5%', (tester) async {
+      // Distraction events are stamped with the real time, so the fake clock starts there too.
+      now = DateTime.now();
+      // Habits created today: a new user's sea starts at 70%.
+      await HabitRepository().save(
+        Habit(id: 'h1', goalId: 'g1', name: 'Ôn bài', minMinutesPerDay: 25, startDate: now),
+      );
+      await HabitRepository().save(
+        Habit(id: 'h2', goalId: 'g1', name: 'Làm đề', minMinutesPerDay: 5, startDate: now),
+      );
+      await startSession(tester);
+      final before = sea(tester).clarity;
+
+      await distract(tester, 1);
+
+      expect(before, 70);
+      expect(sea(tester).clarity, closeTo(before - 5, 0.001));
+    });
+
+    testWidgets('Bật hiệu ứng: thỉnh thoảng một xao nhãng trôi tới và bị Gret hất đi', (
+      tester,
+    ) async {
+      await startSession(tester);
+      await animationsOn(tester);
+
+      await tester.pump(AppMotion.distractionEvery);
+      await tester.pump(); // The drift starts counting from this frame.
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const ValueKey('distraction-bubble')), findsOneWidget);
+      expect(sea(tester).gretReaction, 0);
+
+      await tester.pump(AppMotion.distractionDrift);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('distraction-bubble')), findsNothing);
+      expect(sea(tester).gretReaction, 1, reason: 'Gret batted it away');
+
+      await tester.pumpWidget(const SizedBox()); // Remove the looping scene before the test ends.
+    });
+
+    testWidgets('Bật hiệu ứng: quay lại sau khi xao nhãng thì Gret hất văng một chùm', (
+      tester,
+    ) async {
+      await startSession(tester);
+      await animationsOn(tester);
+
+      hideApp(tester);
+      now = now.add(const Duration(seconds: 10));
+      showApp(tester);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(const ValueKey('distraction-burst-0')), findsOneWidget);
+      expect(sea(tester).gretReaction, 1);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('Tắt hiệu ứng (mặc định khi test): không có xao nhãng nào trôi tới', (
+      tester,
+    ) async {
+      await startSession(tester);
+      await tester.pump(AppMotion.distractionEvery * 2);
+
+      expect(find.byKey(const ValueKey('distraction-bubble')), findsNothing);
     });
   });
 

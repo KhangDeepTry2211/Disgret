@@ -28,7 +28,9 @@
 - Retired Hive boxes (`HiveBoxes.retired`): `reel_reactions` and `reel_comments` (old likes and comments). Never opened or read; names never reused; deleted from disk only by the explicit "Xoá toàn bộ dữ liệu" reset (ADR-0003).
   - intervention_shown: meta gồm packageName, appLabel, waitSeconds
   - chose_break: meta gồm minutes
-- Danh sách app cần nhắc (2.1): danh sách packageName, lưu trong box `profile` với khóa `blocked_packages`; chưa có thì dùng danh sách mặc định trong BlockedAppsRepository.
+- Danh sách app cần nhắc (2.1): danh sách packageName, lưu trong box `profile` với khóa `blocked_packages`; chưa có thì dùng danh sách mặc định trong BlockedAppsRepository. Since feature 003 the story onboarding can also set this list ("App nào hay kéo bạn đi nhất?", `BlockedAppsNotifier.replaceAll`, only the five offered apps are toggled).
+- Sea clarity (feature 003, `lib/data/sea_clarity.dart`): derived, never stored. Each day of the last 60 scores credited study minutes (tick = the habit's minimum, 2-minute version = half, focus = real minutes, capped per habit; a day off removes the habit) against planned minutes: `score = clamp(min(1, study / target) − 0.1 × distractions that day, 0, 1)` and `c = clamp(0.7 c + 30 × score, 0, 100)` (a day with nothing planned, studied or distracted is skipped); today is `max(yesterday, next(yesterday, score so far)) − 5 × distractions today`. New users start at 70.
+- Góc của Gret (feature 004, ADR-0009): pearls are derived, never stored: earned = Σ ⌊focusedSeconds / 300⌋ over saved sessions; balance = max(0, earned − price of owned pearl items). Choices live in the `profile` box: `corner_owned` (list of item ids and `mascot_<species>` ids), `corner_worn` (map slot name → item id), `corner_sea` (home | coral | ice | deep), `corner_mascot` (gret | crab | octopus). Missing keys mean nothing owned, home sea, Gret; unknown ids and slots are ignored. Streak unlocks use the best streak ever.
 
 ## Thống kê và dữ liệu mẫu (8.2)
 - Màn Thống kê mở từ Cài đặt. Phần tính nằm ở lib/services/focus_stats.dart (hàm thuần, có unit test), màn hình chỉ hiển thị.

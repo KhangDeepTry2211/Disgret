@@ -63,6 +63,32 @@ class AppStrings {
   static const String sessionOnBreak = 'Đang nghỉ';
   static String sessionRemaining(String clock) => 'Còn $clock';
   static const String openSession = 'Mở phiên học đang chạy';
+  static const String focusRemaining = 'Thời gian còn lại';
+  static String focusBreakRemaining(String clock) => 'Đang nghỉ – còn $clock';
+  static const String focusedLabel = 'Tập trung thực';
+  static const String distractionsLabel = 'Số lần xao nhãng';
+  static const String finishEarly = 'Kết thúc sớm';
+  static const String finishEarlyTitle = 'Kết thúc sớm?';
+  static const String finishEarlyMessage = 'Phiên học vẫn được lưu với thời gian bạn đã tập trung.';
+  static const String finishEarlyConfirm = 'Kết thúc';
+
+  // ---------- 3.4 Tổng kết (restyled by feature 003) ----------
+  static const String summaryTitle = 'Tổng kết';
+  static const String summaryWellDone = 'Làm tốt lắm!';
+  static const String summaryRecorded = 'Đã ghi nhận phiên học';
+  static const String summaryStreakGained = '+1 ngày streak 🔥';
+  static const String summaryHabitDone = 'Đã hoàn thành thói quen hôm nay';
+  static const String summaryFocused = 'Thời gian tập trung';
+  static const String summaryPlanned = 'Thời lượng đã đặt';
+  static String summaryMinutes(int minutes) => '$minutes phút';
+  static const String summaryAway = 'Thời gian ở ngoài';
+  static const String summaryBlocked = 'Reset break đã chặn';
+  static const String summaryBreaks = 'Nghỉ có chủ đích';
+  static String summaryTimes(int times) => '$times lần';
+  static const String summaryRatingPrompt = 'Bạn đánh giá phiên này thế nào?';
+  static String summaryStars(int stars) => '$stars sao';
+  static const String summaryNote = 'Ghi chú ngắn (không bắt buộc)';
+  static String pearlGain(int pearls) => '+$pearls ngọc trai';
 
   // ---------- Tiến độ ----------
   static const String progressHabits = 'Thói quen';
@@ -72,4 +98,141 @@ class AppStrings {
 
   // ---------- Thói quen ----------
   static const String habitsByDay = 'Theo ngày';
+
+  // ---------- 5.3 Gret và biển sống (feature 003) ----------
+  static const String seaTitle = 'Biển của Gret';
+  static const String greetingMorning = 'Chào buổi sáng';
+  static const String greetingAfternoon = 'Chào buổi chiều';
+  static const String greetingEvening = 'Chào buổi tối';
+
+  /// Greeting by time of day: before 11:00 morning, before 18:00 afternoon, then evening.
+  static String greeting(DateTime now) => now.hour < 11
+      ? greetingMorning
+      : now.hour < 18
+      ? greetingAfternoon
+      : greetingEvening;
+
+  static const String clarityClear = 'Biển trong';
+  static const String clarityHazy = 'Hơi đục';
+  static const String clarityMurky = 'Đục';
+  static const String streakLabel = 'chuỗi ngày';
+  static String streakDays(int days) => '$days ngày';
+
+  /// Screen-reader label of the streak (same wording as the former streak ring).
+  static String streakSemantics(int days) => 'Chuỗi $days ngày học liên tiếp';
+  static String clarityPercent(int percent) => '$percent%';
+  static String clarityGain(int points) => '+$points% độ trong';
+  static const String seaReady = 'Biển của bạn đã sẵn sàng';
+
+  static const String headlineTop = 'Bớt lướt.';
+  static const String headlineBottom = 'Học nhiều hơn.';
+  static const String gretGoalPrompt = 'Đặt mục tiêu đầu tiên nhé!';
+
+  // ---------- Onboarding (5.1, restyled by feature 003) ----------
+  static const String storySkip = 'Bỏ qua';
+  static const String storyHello = 'Chào bạn! Mình là Gret. Biển này là biển của bạn đó.';
+  static const String storyScroll =
+      'Mỗi lần bạn lướt reel quá lâu, biển của mình lại đục đi một chút…';
+  static const String storyStudy = 'Còn mỗi phút bạn học, biển lại trong xanh, cá bơi về đông vui.';
+  static const String storyCallBack =
+      'Lỡ bị app khác kéo đi giữa giờ học? Mình sẽ gọi bạn quay lại.';
+
+  /// Screen-reader label of the story progress segments.
+  static String storyProgress(int page, int total) => 'Trang $page/$total';
+  static const String appsQuestion = 'App nào hay kéo bạn đi nhất?';
+  static const String appsHint =
+      'Mở mấy app này lúc đang học, Gret sẽ gọi bạn quay lại. Đổi lại được trong Cài đặt.';
+  static const String reelLengthQuestion = 'Bạn thích reel dài bao nhiêu?';
+  static String reelSeconds(int seconds) => '$seconds giây';
+  static const String continueLabel = 'Tiếp tục';
+  static const String firstGoalTitle = 'Mục tiêu đầu tiên của bạn';
+  static const String firstGoalMessage =
+      'Đặt một mục tiêu và một thói quen nhỏ để bắt đầu ngay hôm nay.';
+  static const String enterApp = 'Vào DisGret';
+  static String quizStep(int number, int total) => 'Câu $number/$total';
+
+  // ---------- 5.4 Góc của Gret (feature 004) ----------
+  static const String cornerTitle = 'Góc của Gret';
+  static const String cornerOpen = 'Mở Góc của Gret';
+  static String cornerPearls(int pearls) => '$pearls ngọc trai';
+  static const String cornerPearlsHint = 'Mỗi 5 phút tập trung được 1 ngọc trai.';
+  static const String cornerTabWardrobe = 'Tủ đồ';
+  static const String cornerTabSea = 'Biển';
+  static const String cornerTabMascots = 'Linh vật';
+  static const String cornerFilterAll = 'Tất cả';
+  static const String cornerFilterOwned = 'Đã có';
+  static const String cornerFilterPearls = 'Ngọc trai';
+  static const String cornerFilterStreak = 'Chuỗi ngày';
+  static const String cornerFilterShop = 'Cửa hàng';
+  static const String rarityCommon = 'Thường';
+  static const String rarityRare = 'Hiếm';
+  static const String raritySpecial = 'Đặc biệt';
+  static const String cornerWearing = 'Đang mặc';
+  static const String cornerChosen = 'Đang chọn';
+  static const String cornerOwned = 'Đã có';
+  static const String cornerFree = 'Có sẵn';
+  static const String cornerSoon = 'Sắp có';
+  static String cornerPrice(int pearls) => '$pearls ngọc';
+  static String cornerStreak(int days) => 'Chuỗi $days ngày';
+  static String cornerOwnedCount(int owned, int total) => '$owned/$total món';
+  static const String cornerNothingWorn = 'Gret chưa mặc gì';
+  static String cornerWornList(String names) => 'Đang mặc: $names';
+  static const String cornerGretOnly = 'Đồ trong tủ chỉ dành cho Gret. Chọn Gret để mặc thử.';
+  static String cornerObtain(int pearls) => 'Đổi $pearls ngọc trai';
+  static const String cornerWear = 'Mặc';
+  static const String cornerTakeOff = 'Cởi ra';
+  static const String cornerChoose = 'Chọn';
+  static String cornerMissing(int pearls) => 'Còn thiếu $pearls ngọc trai. Học thêm nhé!';
+  static String cornerNeedStreak(int days) => 'Mở khi bạn đạt chuỗi $days ngày học.';
+  static const String cornerPremium = 'Món này sẽ bán bằng tiền thật. Sắp có!';
+  static String cornerGot(String name) => '$name đã là của bạn!';
+  static String cornerSeaLocked(int days) => 'Mở ở chuỗi $days ngày';
+  static const String cornerPreviousSea = 'Biển trước';
+  static const String cornerNextSea = 'Biển sau';
+
+  static const String moodHappy = 'đang vui';
+  static const String moodNeutral = 'đang bình thường';
+  static const String moodSad = 'đang buồn';
+  static const String moodFocused = 'đang tập trung';
+  static const String moodSleeping = 'đang ngủ';
+  static const String moodCelebrating = 'đang ăn mừng';
+
+  /// Screen-reader description of a sea scene (spec FR-018).
+  static String seaSemantics(String mood, int percent) => 'Gret $mood. Biển trong $percent%.';
+
+  /// What Gret says when tapped, by mood. Encouraging, never blaming (spec FR-008).
+  static const List<String> gretHappy = [
+    'Biển trong veo luôn! Hôm nay mình bơi được xa ghê.',
+    'Bạn học đều quá, mình thấy rõ cả san hô dưới đáy!',
+    'Cảm ơn bạn đã giữ biển sạch nha.',
+    'Hôm nay mình vui lắm. Học thêm chút nữa không?',
+    'Nước trong thế này, mình muốn nhảy lên khỏi mặt biển luôn!',
+  ];
+  static const List<String> gretNeutral = [
+    'Biển hơi lăn tăn. Một phiên ngắn là trong lại ngay.',
+    'Mình ổn! Học 5 phút với mình không?',
+    'Hôm nay mình đợi bạn đó.',
+    'Mỗi phút học là một chút nước trong hơn.',
+    'Bắt đầu nhỏ thôi cũng được mà.',
+  ];
+  static const List<String> gretSad = [
+    'Biển hơi đục rồi… Học 5 phút với mình nhé?',
+    'Không sao đâu, mình bắt đầu lại từ hôm nay.',
+    'Mình nhớ bạn. Quay lại học chút nha?',
+    'Chỉ cần một phiên là biển đỡ đục nhiều rồi.',
+    'Từng chút một thôi, mình đi cùng bạn.',
+  ];
+  static const List<String> gretFocused = [
+    'Mình đang tập trung cùng bạn đây!',
+    'Biển đang trong dần lên kìa.',
+    'Cố lên, sắp xong rồi!',
+  ];
+  static const List<String> gretSleeping = [
+    'Zzz… Nghỉ ngơi cũng là một phần của học.',
+    'Hết giờ nghỉ mình gọi bạn nha.',
+  ];
+  static const List<String> gretCelebrating = [
+    'Tuyệt vời! Biển trong hơn hẳn rồi!',
+    'Bạn làm được rồi, mình tự hào lắm!',
+  ];
 }

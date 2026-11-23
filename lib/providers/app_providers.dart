@@ -316,6 +316,12 @@ class BlockedAppsNotifier extends Notifier<Set<String>> {
     state = updated;
     await _repository.save(updated);
   }
+
+  /// Replaces the whole list (the onboarding app question, spec 003 FR-011a).
+  Future<void> replaceAll(Set<String> packages) async {
+    state = {...packages};
+    await _repository.save(state);
+  }
 }
 
 final blockedAppsProvider = NotifierProvider<BlockedAppsNotifier, Set<String>>(

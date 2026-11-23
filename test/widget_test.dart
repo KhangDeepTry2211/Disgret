@@ -78,6 +78,12 @@ Future<void> _enterField(WidgetTester tester, String label, String text) async {
   await tester.pump();
 }
 
+/// Từ trang story đầu tiên tới câu quiz đầu tiên: bỏ qua phần kể chuyện, giữ độ dài reel.
+Future<void> _skipToQuiz(WidgetTester tester) async {
+  await _tap(tester, find.text('Bỏ qua'));
+  await _tap(tester, find.text('Tiếp tục'));
+}
+
 /// Trả lời đủ 4 câu quiz: 2 câu "sự nghiệp", 2 câu "chứng minh bản thân".
 Future<void> _answerQuiz(WidgetTester tester) async {
   await _tap(tester, find.text('Có công việc mình thật sự muốn làm'));
@@ -132,11 +138,13 @@ void main() {
       expect(find.bySemanticsLabel('Logo DisGret'), findsOneWidget);
       expect(find.text('Bắt đầu'), findsNothing);
 
-      await _tap(tester, find.text('Tiếp tục'));
+      await _skipToQuiz(tester);
       expect(find.text('Câu 1/4'), findsOneWidget);
       expect(find.text('Điều gì khiến bạn muốn cố gắng nhất?'), findsOneWidget);
 
       await _answerQuiz(tester);
+      expect(find.text('App nào hay kéo bạn đi nhất?'), findsOneWidget);
+      await _tap(tester, find.text('Tiếp tục'));
       expect(find.text('Mục tiêu đầu tiên của bạn'), findsOneWidget);
 
       // Để trống thì báo lỗi và chưa lưu gì.
@@ -172,7 +180,7 @@ void main() {
       tester,
     ) async {
       await _pumpApp(tester);
-      await _tap(tester, find.text('Tiếp tục'));
+      await _skipToQuiz(tester);
       await _tap(tester, find.text('Có thu nhập tốt, không phải lo chuyện tiền'));
       expect(find.text('Câu 2/4'), findsOneWidget);
 
@@ -184,6 +192,7 @@ void main() {
       await _tap(tester, find.text('Làm việc ở đâu, lúc nào là do mình chọn'));
       await _tap(tester, find.text('Không muốn cả đời làm theo ý người khác'));
       await _tap(tester, find.text('Nhiều lựa chọn hơn cho tương lai'));
+      await _tap(tester, find.text('Tiếp tục'));
 
       await _enterField(tester, 'Tên mục tiêu', 'A');
       await _enterField(tester, 'Vì sao bạn muốn điều này?', 'B');
@@ -193,19 +202,24 @@ void main() {
       expect(ProfileRepository().profile?.motivationTypes, [MotivationType.freedom]);
     });
 
-    testWidgets('Ở bước cuối, nút Back quay lại câu quiz trước và giữ nguyên chữ đã nhập', (
+    testWidgets('Ở bước cuối, nút Back quay lại trang trước và giữ nguyên chữ đã nhập', (
       tester,
     ) async {
       await _pumpApp(tester);
-      await _tap(tester, find.text('Tiếp tục'));
+      await _skipToQuiz(tester);
       await _answerQuiz(tester);
+      await _tap(tester, find.text('Tiếp tục'));
       await _enterField(tester, 'Tên mục tiêu', 'Giữ lại');
 
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('App nào hay kéo bạn đi nhất?'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.text('Câu 4/4'), findsOneWidget);
 
       await _tap(tester, find.text('Niềm tin rằng mình làm được'));
+      await _tap(tester, find.text('Tiếp tục'));
       expect(find.text('Giữ lại'), findsOneWidget);
     });
 
@@ -217,8 +231,11 @@ void main() {
 
       await _tap(tester, find.byTooltip('Cài đặt'));
       await _tapSettingsItem(tester, 'Xem lại màn giới thiệu');
-      await _tap(tester, find.text('Tiếp tục'));
+      await _skipToQuiz(tester);
       await _answerQuiz(tester);
+      // Đã có mục tiêu: trang chọn app là trang cuối, không hỏi lại mục tiêu.
+      expect(find.text('Mục tiêu đầu tiên của bạn'), findsNothing);
+      await _tap(tester, find.text('Vào DisGret'));
 
       expect(find.text('Bắt đầu'), findsOneWidget);
       expect(GoalRepository().getAll(), hasLength(1));

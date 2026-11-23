@@ -43,6 +43,7 @@ dependencies:
   video_player: ^2.14.1
   wakelock_plus: ^1.8.2
   fl_chart: ^1.3.1
+  flutter_svg: 2.5.0
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,11 @@ flutter:
   assets:
     - assets/branding/
     - assets/reels/
+    # 5.3 Gret's SVG layers (feature 003, ADR-0008): one 240×200 canvas shared by every layer.
+    - assets/mascot/gret/
+    - assets/mascot/outfits/
+    - assets/mascot/crab/
+    - assets/mascot/octopus/
     # Font Be Vietnam Pro (400, 500, 600, 700) kèm giấy phép OFL: google_fonts tự tìm file theo tên,
     # nên app hiện đúng font khi không có mạng.
     - assets/fonts/

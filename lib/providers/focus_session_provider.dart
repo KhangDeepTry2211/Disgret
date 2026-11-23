@@ -108,6 +108,10 @@ class FocusSessionNotifier extends Notifier<FocusSessionState> {
   Timer? _ticker;
   String? _sessionId;
 
+  /// 5.3 Id of the current (running or finished, not yet reset) session, so the sea clarity can
+  /// tell whether it is already saved (feature 003, research R1 and R7).
+  String? get sessionId => _sessionId;
+
   /// Đồng hồ đang dừng vì người dùng ở màn Reels, không phải do chọn nghỉ.
   bool _pausedForReels = false;
 

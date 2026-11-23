@@ -37,6 +37,16 @@ final List<Reel> testReels = ReelRepository.parse(
 
 /// [clock] là đồng hồ giả: dùng khi test cần thời gian trôi qua, vì trong widget test
 /// DateTime.now() không chạy theo tester.pump().
+/// 5.3 The sea, Gret and other idle animations loop forever, which `pumpAndSettle` cannot wait
+/// for. Tests run with the system "remove animations" setting on, so every looping widget shows
+/// its end state (spec 003 FR-015). Tests of the animations themselves turn it off again.
+void stillAnimations(WidgetTester tester) {
+  tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+    disableAnimations: true,
+  );
+  addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+}
+
 Future<void> pumpApp(
   WidgetTester tester, {
   Size size = smallPhone,
@@ -48,6 +58,7 @@ Future<void> pumpApp(
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  stillAnimations(tester);
 
   await tester.pumpWidget(
     ProviderScope(
@@ -80,6 +91,7 @@ Future<void> pumpStandalone(
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  stillAnimations(tester);
 
   await tester.pumpWidget(
     ProviderScope(

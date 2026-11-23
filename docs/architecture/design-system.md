@@ -18,7 +18,7 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Logo: assets/branding/logo_tam.png (bản tạm 512×512, cắt từ ảnh chụp; sẽ thay bằng file gốc cùng tên khi nhóm có). Hiện trên màn onboarding và AppBar trang chủ.
 - Icon app và màn khởi động: tạo bằng flutter_launcher_icons và flutter_native_splash (cấu hình cuối pubspec.yaml), nền #0A2A6B. assets/launcher/logo_foreground.png là logo có khoảng đệm (chiếm 72% khung) cho icon adaptive và màn khởi động Android 12+, vì launcher cắt icon theo hình tròn; file này không đóng gói vào app. Đổi logo thì chạy lại `dart run flutter_launcher_icons` và `dart run flutter_native_splash:create`.
 - Font: Be Vietnam Pro (google_fonts), hỗ trợ tiếng Việt tốt. Tiêu đề đậm 600–700, nội dung 400. File .ttf (400, 500, 600, 700) và giấy phép OFL nằm trong assets/fonts/; main.dart tắt `GoogleFonts.config.allowRuntimeFetching` nên không cần mạng. Dùng độ đậm mới thì phải thêm file .ttf tương ứng.
-- Bo góc 12 cho thẻ, 999 cho nút dạng viên thuốc. Bóng đổ rất nhẹ hoặc không có; phân tách bằng đường kẻ mảnh.
+- Radius (feature 003): 16 for cards (`AppRadius.card`), 24 for the sea scene and other hero illustrations (`AppRadius.hero`), 999 for pills. Shadows very light or none; separate with thin lines.
 - Icon nét mảnh (outline), dùng icon Material Symbols rounded.
 - Motivation step (`lib/screens/motivation_screen.dart`, route `/motivation`, spec 002, ADR-0003): a bounded dose, not a feed.
   - Top bar: close X (left), position pill "1/3" (same style as the tag chips), "Bỏ qua" (right, before a session only).
@@ -27,7 +27,48 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   - When the reel ends or fails: a dark scrim (`AppColors.reelBlurScrim`) and `ReelEndCard` (`lib/widgets/reel_end_card.dart`) with a title, the primary "Bắt đầu N phút" (`GradientPillButton`, `AppReels.buttonHeight`), the text button "Chỉ 5 phút thôi" and an outlined "Tiếp" while reels remain; after a distraction only "Quay lại học".
   - No like, comment or share control, no counts, no social element anywhere.
 - Thanh điều hướng dưới cùng 3 tab: Hôm nay, Thói quen, Tiến độ (ADR-0002, spec 001). Bước động lực (`/motivation`), phiên học (`/focus`) và Tổng kết (`/summary`) chiếm toàn màn hình, không có thanh tab. Khi đang có phiên, dải "phiên đang chạy" (running_session_banner.dart, nền primary) nằm ngay trên thanh tab: tên thói quen, "Còn mm:ss" hoặc "Đang nghỉ", chạm để về phiên.
-- Hôm nay (today_screen.dart): vòng streak nhỏ (96), thẻ mục tiêu (kèm câu bản sắc), thẻ "Học tiếp" (thói quen + số phút + "Đổi thói quen hoặc thời lượng" mở session_plan_sheet.dart), và đúng MỘT nút vào phiên: GradientPillButton "Bắt đầu" khi còn việc hôm nay; khi đã xong hết hoặc là ngày nghỉ theo lịch thì thay bằng OutlinedButton phụ "Học thêm một phiên".
+- Hôm nay (today_screen.dart, feature 003): the sea (`SeaScene(full)`, 46% of the screen height, at least 300) fills the top of the screen behind a transparent header (logo, greeting by time of day, "DisGret", the Góc của Gret pill with the wardrobe icon and pearl count, settings), which takes the surface colour once content scrolls under it; tapping Gret shows a line just below the header; the cards sit on a sheet with 24 px top corners overlapping the sea: a row of `ClarityCard` and `StreakCard`; the goal card (with identity sentence); the "Học tiếp" card (habit + minutes + "Đổi thói quen hoặc thời lượng" opening session_plan_sheet.dart); and exactly ONE session control: GradientPillButton "Bắt đầu" while something is due, otherwise the secondary OutlinedButton "Học thêm một phiên". All cards enter with `StaggeredEntrance`.
+
+## Gret and the living sea (feature 003, ADR-0008)
+
+- Gret is an original sea mascot drawn as stacked SVG layers on one 240×200 canvas
+  (`assets/mascot/gret/`: body, cheeks, eyes and mouth per mood, z, sparkles). Moods: happy,
+  neutral, sad, focused, sleeping, celebrating. Gret is never drawn hurt and never blames.
+- Illustration palette (the only place colours outside the UI scheme are allowed, `AppSea` and the
+  SVG files): body #22D3EE, fins #1BB8D4, belly #C6F1FA, cheeks #FBD5E3, eyes and mouth #0A2A6B,
+  tongue #FF8FA3, sparkles and fish #FFC93C; sea bands clear → murky blend below 70% clarity;
+  fish at ≥ 70%, litter below 40%. Dark mode shows a night sea with a moon and the same meaning.
+- `SeaScene` variants: hero (Hôm nay, 210 high), compact (onboarding, Tổng kết, Góc của Gret, 170
+  high), full (story onboarding and focus session). It takes an `overlay` (speech bubble, ring) and
+  a `foreground` (focus distraction effects) and a `GretLook` (mascot, outfit, sea place).
+- Onboarding is a story: progress segments, four story pages sharing one sea (hello; scrolling
+  murks the sea; studying clears it; Gret calls you back), then one page per question (reel
+  length, the quiz in Gret's thought bubble with large icon cards and a 400 ms happy reaction, the
+  apps that pull the user away, the first goal) and "Biển của bạn đã sẵn sàng" for 1.2 s.
+- Focus session: the sea fills the screen; the habit name and countdown ring sit in the sky; two
+  stat cards and "Kết thúc sớm" below. Gret focuses (sleeps on a break); every 12 s a distraction
+  drifts in and Gret bats it away; coming back after a distraction bursts three away.
+- Tổng kết: compact sea with a celebrating Gret, "+N% độ trong" counting up, "+N ngọc trai", and a
+  `StreakCard` that pulses when the streak grew.
+- Motion tokens (`AppMotion`): entrance 280 ms with a 60 ms step and 12 dp rise, count-up 600 ms,
+  ring fill 700 ms, sea colour 800 ms, sea loop 8 s, bob 2.4 s, blink every 3–6 s, reaction 400 ms,
+  speech bubble 3 s, sea ready 1.2 s, story page 4 s, distraction every 12 s / drift 2.2 s / burst
+  0.9 s, wiggle 420 ms; curve easeOutCubic.
+- Reduced motion: with the system "remove animations" setting, nothing loops, numbers and scenes
+  show their end state, story pages wait for a tap, the quiz answer and the finish go through at
+  once, and no distraction effect runs.
+
+## Góc của Gret (feature 004, ADR-0009)
+
+- Route `/gret-corner`, opened from the wardrobe button on the Hôm nay sea. App bar: title and the
+  pearl balance chip. Preview: compact sea with the current look and arrows to browse seas (a
+  locked sea is only previewed, with its streak requirement). Tabs Tủ đồ, Biển, Linh vật.
+- Cards: three per row, preview, name, "rarity · status". Rarity colours (`AppCorner`): common =
+  outline, rare #7F77DD, special #E8A600; the worn or chosen card has a primary border. Tapping a
+  card opens a sheet with the single action that applies or the reason it is locked.
+- New mascots reuse Gret's face layers; only a body is drawn per species
+  (`assets/mascot/crab/`, `assets/mascot/octopus/`). Outfits live in `assets/mascot/outfits/`, on
+  the same canvas, drawn in the order back, body, neck, eyes, head.
 - Bảng 12 màu pastel cho thẻ thói quen: AppHabitColors.palette trong app_theme.dart, mỗi màu có nền và màu chữ đậm cùng tông, dùng chung cho sáng và tối.
 - Màn Tạo/Sửa thói quen (habit_form_screen.dart, theo ảnh 07–11 trong design/habit_kit/): một trang cuộn, tab Thói quen / Việc một lần, tên, icon (5 chọn nhanh + "Xem tất cả" mở habit_icon_picker.dart: tìm kiếm không dấu, tab Icon / Emoji), 12 màu, Lặp lại, Làm vào, Kết thúc vào, Nhắc nhở, số phút, "Sau khi…", "Bản 2 phút", nút Lưu viên thuốc màu primary.
 - Tab Thói quen (habits_screen.dart, theo ảnh 01–06 trong design/habit_kit/): đầu màn có logo, tiêu đề, menu ⋮ (Thêm mục tiêu, Quản lý mục tiêu); 3 chế độ Theo ngày / Tuần / Tổng thể (đổi tên từ "Hôm nay" để không trùng tên tab); chip lọc Tất cả / Sáng / Chiều / Tối theo timeOfDay (thói quen "lúc nào cũng được" chỉ hiện ở Tất cả); nút tròn "+" nổi mở màn Tạo thói quen.

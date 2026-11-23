@@ -12,6 +12,9 @@ class AppColors {
 
   static const Color white = Color(0xFFFFFFFF);
 
+  /// Header over the full-bleed sea on Hôm nay (feature 003).
+  static const Color transparent = Color(0x00000000);
+
   // Chế độ tối (A – Biển đêm).
   static const Color darkBackground = Color(0xFF06090F);
   static const Color darkSurface = Color(0xFF0E1726);
@@ -129,12 +132,19 @@ class AppSpacing {
   static const double xxl = 48;
 }
 
-/// 5.2 Bo góc: 12 cho thẻ, 999 cho nút dạng viên thuốc.
+/// 5.2 Bo góc: 16 cho thẻ (feature 003: rounder, friendlier cards), 999 cho nút dạng viên thuốc.
 class AppRadius {
   AppRadius._();
 
-  static const double card = 12;
+  static const double card = 16;
   static const double pill = 999;
+
+  /// 5.3 Frame of the sea scene (hero illustration) on Hôm nay and the onboarding.
+  static const double hero = 24;
+  static const BorderRadius heroBorder = BorderRadius.all(Radius.circular(hero));
+
+  /// A sheet whose top corners overlap the full-bleed sea on Hôm nay.
+  static const BorderRadius sheetTop = BorderRadius.vertical(top: Radius.circular(hero));
 
   static const BorderRadius cardBorder = BorderRadius.all(Radius.circular(card));
   static const BorderRadius pillBorder = BorderRadius.all(Radius.circular(pill));
@@ -243,6 +253,158 @@ class AppReels {
   ];
 }
 
+/// 5.3 Colours of the living sea (feature 003). The water blends from the clear to the murky
+/// bands as the sea clarity drops (`SeaScene`). Three bands, top to bottom.
+class AppSea {
+  AppSea._();
+
+  // Day sea (light mode).
+  static const Color skyDay = Color(0xFFD9F1FC);
+  static const List<Color> clearDay = [Color(0xFF4CC9F0), Color(0xFF1F7AE0), Color(0xFF0A2A6B)];
+  static const List<Color> murkyDay = [Color(0xFF9DB8AE), Color(0xFF66857A), Color(0xFF33504A)];
+
+  // Night sea (dark mode).
+  static const Color skyNight = AppColors.darkBackground;
+  static const Color moon = Color(0xFFFCEFC0);
+  static const List<Color> clearNight = [Color(0xFF1E6FC4), Color(0xFF163E6E), Color(0xFF0A1E3F)];
+  static const List<Color> murkyNight = [Color(0xFF4E6B63), Color(0xFF36504A), Color(0xFF1E302D)];
+
+  static const Color seaweed = Color(0xFF1E6B45);
+  static const Color seaweedDark = Color(0xFF0F6B63);
+  static const Color bubble = Color(0xB3FFFFFF);
+  static const Color fish = Color(0xFFFFC93C);
+  static const Color fishFin = Color(0xFFE8A600);
+  static const Color litter = Color(0xFFB4B2A9);
+  static const Color litterLabel = Color(0xFF9FE1CB);
+
+  // 5.4 Other sea places (Góc của Gret, spec 004). Night versions blend these with the night sky.
+  static const Color coralSky = Color(0xFFFFE9D6);
+  static const List<Color> coralClear = [Color(0xFF3FD0C9), Color(0xFF1AA39A), Color(0xFF0E5E63)];
+  static const Color coralPink = Color(0xFFFF7A8A);
+  static const Color coralOrange = Color(0xFFFF9F5A);
+  static const Color iceSky = Color(0xFFEEF6FB);
+  static const List<Color> iceClear = [Color(0xFFA9DDF2), Color(0xFF5FB3DB), Color(0xFF2B6F9C)];
+  static const Color iceberg = Color(0xFFFFFFFF);
+  static const Color icebergShade = Color(0xFFCFE8F5);
+  static const Color deepSky = Color(0xFF0B1D3A);
+  static const List<Color> deepClear = [Color(0xFF1B3F7A), Color(0xFF12295A), Color(0xFF08142E)];
+  static const Color plankton = Color(0xFF9FF5E6);
+  static const Color jelly = Color(0xB3F4C0D1);
+
+  /// How much of the night sky is mixed into a place's colours in dark mode.
+  static const double nightBlend = 0.45;
+}
+
+/// 5.3 Sizes of Gret (feature 003). All mascot layers share one 240×200 canvas so outfits and
+/// other species line up (spec FR-020).
+class AppMascot {
+  AppMascot._();
+
+  static const double canvasWidth = 240;
+  static const double canvasHeight = 200;
+
+  static const double hero = 132;
+  static const double full = 180;
+  static const double compact = 120;
+  static const double small = 72;
+
+  /// Height of the sea scene variants.
+  static const double heroSceneHeight = 210;
+
+  /// Hôm nay: the sea fills the top of the screen behind the header (share of the screen
+  /// height, at least [todaySeaMin]); the cards sit on a sheet that overlaps its bottom edge.
+  static const double todaySeaShare = 0.46;
+  static const double todaySeaMin = 300;
+  static const double emptySeaShare = 0.38;
+  static const double compactSceneHeight = 170;
+
+  /// Gentle up-and-down movement while idle.
+  static const double bobAmplitude = 4;
+
+  /// Speech-bubble tail and thought-bubble dots.
+  static const Size bubbleTail = Size(16, 8);
+  static const double thoughtDotLarge = 10;
+  static const double thoughtDotSmall = 6;
+
+  /// Gret grows a little while reacting to a quiz answer.
+  static const double reactionScale = 1.12;
+
+  /// How far Gret turns (in full turns) when it bats a distraction away.
+  static const double wiggleTurns = 0.03;
+
+  /// Countdown ring over the focus sea: a share of the scene height, within these bounds.
+  static const double focusRingShare = 0.42;
+  static const double focusRingMin = 140;
+  static const double focusRingMax = 220;
+}
+
+/// 5.3 Story-style onboarding: progress segments at the top (one per page).
+class AppStory {
+  AppStory._();
+
+  static const double segmentHeight = 3;
+  static const double segmentGap = 4;
+}
+
+/// 5.4 Góc của Gret (feature 004): rarity colours and preview sizes.
+class AppCorner {
+  AppCorner._();
+
+  static const Color rare = Color(0xFF7F77DD);
+  static const Color special = Color(0xFFE8A600);
+  static const double cardMascot = 76;
+  static const double sheetMascot = 140;
+  static const double seaThumbWidth = 104;
+  static const double seaThumbHeight = 68;
+  static const double cardAspect = 0.72;
+}
+
+/// 5.3 Small stat cards next to each other on Hôm nay (clarity ring, streak).
+class AppStatCard {
+  AppStatCard._();
+
+  static const double padding = 12;
+  static const double badge = 40;
+  static const double ringStroke = 5;
+  static const double icon = 22;
+
+  /// How much the streak flame grows when it pops once.
+  static const double popScale = 0.25;
+}
+
+/// 5.3 Motion tokens (feature 003, research R6). Every animated widget renders its end state at
+/// once when the system asks to remove animations (spec FR-015).
+class AppMotion {
+  AppMotion._();
+
+  static const Duration entrance = Duration(milliseconds: 280);
+  static const Duration entranceStep = Duration(milliseconds: 60);
+  static const double entranceOffset = 12;
+  static const Duration countUp = Duration(milliseconds: 600);
+  static const Duration ringFill = Duration(milliseconds: 700);
+  static const Duration seaColour = Duration(milliseconds: 800);
+  static const Duration seaLoop = Duration(seconds: 8);
+  static const Duration bob = Duration(milliseconds: 2400);
+  static const Duration blink = Duration(milliseconds: 120);
+  static const int blinkMinSeconds = 3;
+  static const int blinkMaxSeconds = 6;
+  static const Duration reaction = Duration(milliseconds: 400);
+  static const Duration speechBubble = Duration(seconds: 3);
+  static const Duration seaReady = Duration(milliseconds: 1200);
+
+  /// A story page of the onboarding turns by itself after this long.
+  static const Duration storyPage = Duration(seconds: 4);
+
+  /// Focus session: a distraction drifts towards Gret this often, takes [distractionDrift] to
+  /// reach Gret and pop; coming back after a real distraction bursts several in
+  /// [distractionBurst]. Gret's swat wiggle lasts [wiggle].
+  static const Duration distractionEvery = Duration(seconds: 12);
+  static const Duration distractionDrift = Duration(milliseconds: 2200);
+  static const Duration distractionBurst = Duration(milliseconds: 900);
+  static const Duration wiggle = Duration(milliseconds: 420);
+  static const Curve curve = Curves.easeOutCubic;
+}
+
 /// 5.2 Icon nét mảnh dùng trong app. Gom một chỗ để sau này đổi bộ icon chỉ sửa ở đây.
 class AppIcons {
   AppIcons._();
@@ -289,6 +451,28 @@ class AppIcons {
   static const IconData previous = Icons.chevron_left_rounded;
   static const IconData next = Icons.chevron_right_rounded;
   static const IconData close = Icons.close_rounded;
+
+  /// 1.1 Quiz answer cards, one icon per motivation type.
+  static const IconData motivationMoney = Icons.savings_outlined;
+  static const IconData motivationFamily = Icons.family_restroom_rounded;
+  static const IconData motivationCareer = Icons.work_outline_rounded;
+  static const IconData motivationProveYourself = Icons.emoji_events_outlined;
+  static const IconData motivationFreedom = Icons.explore_outlined;
+
+  /// 5.4 Góc của Gret: the wardrobe button and pearls.
+  static const IconData wardrobe = Icons.checkroom_rounded;
+  static const IconData pearl = Icons.bubble_chart_outlined;
+  static const IconData clarity = Icons.water_drop_outlined;
+
+  /// 5.3 Where Gret pops a distraction.
+  static const IconData sparkle = Icons.auto_awesome_rounded;
+
+  /// 5.3 Distractions Gret bats away during a focus session: a reel, a notification, a message.
+  static const List<IconData> distractions = [
+    Icons.play_circle_outline_rounded,
+    Icons.notifications_none_rounded,
+    Icons.chat_bubble_outline_rounded,
+  ];
 
   /// Icon chọn cho thói quen. Thói quen chỉ lưu tên (khoá) để bản release lược được font icon;
   /// khoá "book" là icon mặc định (Habit.defaultIcon).

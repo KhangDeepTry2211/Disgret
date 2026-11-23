@@ -130,7 +130,9 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
 
 ### Trên lớp
 
-1. **Onboarding.** Mở DisGret → chọn độ dài reel → **Tiếp tục** → trả lời 4 câu quiz động lực.
+1. **Onboarding.** Mở DisGret → 4 trang story Gret kể về app (tự lật sau 4 giây, chạm phải/trái
+   để sang/lùi, **Bỏ qua** để vào thẳng câu hỏi) → chọn độ dài reel → **Tiếp tục** → trả lời 4
+   câu quiz động lực trong khung suy nghĩ của Gret → chọn app hay kéo mình đi → **Tiếp tục**.
    Ở bước mục tiêu: nhập mục tiêu (ví dụ "Qua môn Tư Duy Tính Toán"), lý do, thói quen "Ôn bài",
    số phút tối thiểu chọn **Tự nhập → 1** → **Vào DisGret**.
    > Vì sao 1 phút: trong phiên "5 phút" của kịch bản, thời gian ở YouTube và chờ ở màn chặn bị trừ
@@ -148,7 +150,8 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
 3. **Hôm nay → Bắt đầu** → bước động lực toàn màn hình (không có thanh tab): reel **1/3** phát
    một lần; vuốt không đổi reel; chạm để tạm dừng. Hết reel (khoảng 15–25 giây) thì hiện thẻ kết
    thúc: **Bắt đầu N phút**, **Chỉ 5 phút thôi**, **Tiếp**. (Không bắt buộc: **Tiếp** để xem reel
-   2/3.) → **Chỉ 5 phút thôi** → màn phiên học đếm ngược từ 05:00 (thật ra 100 giây). (Hoặc
+   2/3.) → **Chỉ 5 phút thôi** → màn phiên học trong biển của Gret: Gret tập trung, đồng hồ đếm
+   ngược từ 05:00 (thật ra 100 giây), thỉnh thoảng một xao nhãng trôi tới và bị Gret hất văng. (Hoặc
    **Bỏ qua** bất cứ lúc nào để vào học ngay với số phút của Hôm nay.)
    - (Không bắt buộc) Bấm mũi tên quay lại → về Hôm nay, phiên vẫn chạy; dải "phiên đang chạy"
      trên thanh tab có ở cả 3 tab, chạm để về phiên. Bấm **Bắt đầu** lúc này cũng chỉ mở lại
@@ -167,7 +170,11 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
 8. **Hết giờ.** Phiên chạy nốt khoảng nửa phút rồi tự mở **Tổng kết**: thời gian tập trung,
    3 lần xao nhãng, Reset break đã chặn 3 lần, 1 lần nghỉ có chủ đích → chọn số sao →
    **Lưu** → hiện **"+1 ngày streak 🔥"** → **Về Hôm nay**: vòng streak lên **6 ngày**.
-9. **Tiến độ.** Tab **Tiến độ** → đoạn **Phiên học**: biểu đồ phút tập trung 7 ngày, tỉ lệ lựa
+9. **Góc của Gret.** Ở **Hôm nay**, bấm nút móc áo góc phải cảnh biển (kèm số ngọc trai: 1 ngọc
+   cho mỗi 5 phút tập trung) → tab **Tủ đồ**: đổi **Nơ hồng** (20 ngọc) → **Mặc** → về Hôm nay
+   thấy Gret đeo nơ. Tab **Biển**: rạn san hô, biển băng, đáy biển sâu mở theo chuỗi ngày; tab
+   **Linh vật**: cua **Ẩn** (300 ngọc), bạch tuộc **Mochi** "Sắp có" (bán bằng tiền thật sau).
+10. **Tiến độ.** Tab **Tiến độ** → đoạn **Phiên học**: biểu đồ phút tập trung 7 ngày, tỉ lệ lựa
    chọn trên màn can thiệp, tỉ lệ reel dẫn tới bắt đầu học, thời gian quay lại trung bình (dữ liệu
    mẫu cộng với lượt demo vừa xong).
 
@@ -194,6 +201,8 @@ Mỗi file ghi mã thành phần ở dòng đầu. `kotlin/` là
 | 4.2 | Ghi nhận, streak, điểm sức mạnh, màn chi tiết, Báo cáo (trong Tiến độ) | `lib/data/habit_progress.dart`, `lib/data/habit_science.dart`, `lib/data/repositories/habit_log_repository.dart`, `lib/widgets/habit_today_card.dart`, `lib/widgets/habit_week_card.dart`, `lib/widgets/habit_check_ring.dart`, `lib/widgets/habit_heat_map.dart`, `lib/widgets/month_calendar.dart`, `lib/screens/habit_detail_screen.dart`, `lib/screens/report_screen.dart` (`ReportView`), `lib/screens/my_habits_screen.dart`. Đã cất (ADR-0004): `lib/data/achievements.dart`, `lib/widgets/level_badge.dart`, `lib/screens/achievements_screen.dart`, `lib/widgets/habit_card.dart`, `lib/widgets/habit_journey.dart` |
 | 5.1 | Khung app, 3 tab, Hôm nay, kế hoạch phiên, Tiến độ, chuỗi giao diện | `lib/main.dart`, `lib/app.dart`, `lib/router/app_router.dart`, `lib/screens/main_shell.dart`, `lib/screens/today_screen.dart`, `lib/data/session_plan.dart`, `lib/widgets/session_plan_sheet.dart`, `lib/screens/progress_screen.dart`, `lib/screens/settings_screen.dart`, `lib/providers/app_providers.dart`, `lib/l10n/app_strings.dart`, `kotlin/MainActivity.kt` |
 | 5.2 | Giao diện (design system) | `lib/theme/app_theme.dart`, `lib/widgets/app_logo.dart`, `lib/widgets/gradient_pill_button.dart`, `lib/widgets/gradient_progress_bar.dart`, `lib/widgets/progress_ring.dart`, `lib/widgets/streak_ring.dart`, `assets/fonts/`, `assets/branding/`, `assets/launcher/` |
+| 5.3 | Gret và biển sống: độ trong của biển, Gret trên Hôm nay, onboarding dạng story, phiên học trong biển | `lib/data/sea_clarity.dart`, `lib/data/mascot_mood.dart`, `lib/providers/sea_providers.dart`, `lib/widgets/sea/`, `lib/widgets/mascot/`, `lib/widgets/motion/`, `assets/mascot/gret/`, `lib/screens/onboarding_screen.dart`, `lib/screens/focus_screen.dart` |
+| 5.4 | Góc của Gret: ngọc trai, tủ đồ, vùng biển, linh vật | `lib/data/pearls.dart`, `lib/data/gret_corner_catalog.dart`, `lib/data/mascot_species.dart`, `lib/data/repositories/gret_corner_repository.dart`, `lib/providers/gret_corner_providers.dart`, `lib/screens/gret_corner_screen.dart`, `assets/mascot/outfits/`, `assets/mascot/crab/`, `assets/mascot/octopus/` |
 | 6.2 | Mô hình dữ liệu, lưu trữ Hive | `lib/data/models/`, `lib/data/repositories/`, `lib/data/hive_boxes.dart`, `lib/data/date_utils.dart`, `lib/data/mock_data.dart` |
 | 7.1 | Quyền | `lib/screens/reset_break_permissions_screen.dart`, `lib/widgets/reset_break_sheet.dart`, `kotlin/AppPermissions.kt` |
 | 7.2 | Dịch vụ theo dõi app, cầu nối Kotlin | `kotlin/FocusGuardService.kt`, `kotlin/NativeChannel.kt`, `kotlin/NativeActions.kt`, `lib/services/native_bridge.dart` |

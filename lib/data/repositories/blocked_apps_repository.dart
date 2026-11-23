@@ -16,6 +16,16 @@ class BlockedAppsRepository {
     'com.android.chrome',
   };
 
+  /// Apps offered on the onboarding question "App nào hay kéo bạn đi nhất?" (spec 003
+  /// FR-011a), by the name shown on the chip.
+  static const Map<String, Set<String>> onboardingApps = {
+    'TikTok': {'com.zhiliaoapp.musically', 'com.ss.android.ugc.trill'},
+    'YouTube': {'com.google.android.youtube'},
+    'Instagram': {'com.instagram.android'},
+    'Facebook': {'com.facebook.katana'},
+    'Chrome': {'com.android.chrome'},
+  };
+
   Box<dynamic> get _box => Hive.box<dynamic>(HiveBoxes.profile);
 
   Set<String> get packages {
