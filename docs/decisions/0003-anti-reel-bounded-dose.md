@@ -28,6 +28,10 @@ differentiator is personalisation by motivation profile.
 - Keep the `reel_watched` event (with `startedFocus`); add `motivation_skipped` so skips are
   measurable.
 
+Implemented by feature 002 (2026-11-23). The end-card start actions follow spec 001 FR-007:
+"Bắt đầu N phút" (planned duration) and "Chỉ 5 phút thôi". "Bỏ qua" is available before a session
+only; after a distraction the end card offers just "Quay lại học".
+
 ## Consequences
 
 - Less engagement may lower motivation; R2.1 (motivation score before/after) must be watched in the

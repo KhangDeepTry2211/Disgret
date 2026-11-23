@@ -1,8 +1,8 @@
 # Native Bridge: MethodChannel `focus/native`
 
 > Moved verbatim from the original `CLAUDE.md` (section "MethodChannel focus/native") on 2026-11-22 so that `CLAUDE.md` and
-> `AGENTS.md` stay short. The text describes the app **before** features 001 and 002 (four tabs,
-> Reels feed with likes/comments/share); those features update it. It is written in Vietnamese;
+> `AGENTS.md` stay short. Features 001 (three tabs, Hôm nay) and 002 (bounded motivation dose, no
+> social features) have updated the parts they changed. The older text is in Vietnamese;
 > translate a section to English when you substantially edit it (Constitution: docs in English).
 
 ## MethodChannel focus/native

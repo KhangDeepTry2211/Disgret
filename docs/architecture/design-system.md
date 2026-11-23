@@ -1,8 +1,8 @@
 # Design System (5.2)
 
 > Moved verbatim from the original `CLAUDE.md` (section "Giao diện (5.2 Design system)") on 2026-11-22 so that `CLAUDE.md` and
-> `AGENTS.md` stay short. The text describes the app **before** features 001 and 002 (four tabs,
-> Reels feed with likes/comments/share); those features update it. It is written in Vietnamese;
+> `AGENTS.md` stay short. Features 001 (three tabs, Hôm nay) and 002 (bounded motivation dose, no
+> social features) have updated the parts they changed. The older text is in Vietnamese;
 > translate a section to English when you substantially edit it (Constitution: docs in English).
 
 ## Giao diện (5.2 Design system)
@@ -20,10 +20,12 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Font: Be Vietnam Pro (google_fonts), hỗ trợ tiếng Việt tốt. Tiêu đề đậm 600–700, nội dung 400. File .ttf (400, 500, 600, 700) và giấy phép OFL nằm trong assets/fonts/; main.dart tắt `GoogleFonts.config.allowRuntimeFetching` nên không cần mạng. Dùng độ đậm mới thì phải thêm file .ttf tương ứng.
 - Bo góc 12 cho thẻ, 999 cho nút dạng viên thuốc. Bóng đổ rất nhẹ hoặc không có; phân tách bằng đường kẻ mảnh.
 - Icon nét mảnh (outline), dùng icon Material Symbols rounded.
-- Bước động lực (reels_screen.dart, route `/motivation`; nội dung sẽ đổi ở spec 002): nút X góc trái để đóng, "Bỏ qua" góc phải (chỉ trước phiên); dưới video là "Bắt đầu N phút" (số phút của Hôm nay) và nút chữ "Chỉ 5 phút thôi", trong phiên thì "Quay lại học". Vuốt dọc, video hiện trọn vẹn không bị cắt (co vừa khung), phía sau là chính video đó làm mờ (tắt bằng `AppReels.blurBackground`; trên web nền chỉ là màu đen). Chữ và nút nổi ở đáy, có lớp mờ gradient đen để chữ dễ đọc.
-  - Tim / Bình luận / Chia sẻ (reel_action_column.dart): cột dọc bên phải, trên nút "Bắt đầu N phút"; icon Material, bóng mờ AppReels.onVideoShadows, màu đã thích AppColors.reelLiked. Tim đổi đặc/rỗng và nảy nhẹ; chạm ĐÚP vào video = thích (tim lớn BurstHeart bay lên, không bỏ thích). Chạm đơn tạm dừng/phát NGAY, không chờ: chạm thứ hai trong AppReels.doubleTapWindow thì hoàn lại lần đổi đó rồi thích (không dùng onDoubleTap vì nó làm chạm đơn trễ ~300ms). Số bình luận thật hiện dưới nút Bình luận, bằng 0 thì ẩn số; không có số lượt thích giả.
-  - Bình luận (reel_comments_sheet.dart): bottom sheet cao ~60%, mới nhất ở dưới, tối đa 300 ký tự, nhấn giữ bình luận của mình để xoá (có xác nhận). Mở sheet thì tạm dừng video, đóng thì phát lại.
-  - Chia sẻ (reel_share.dart): share_plus, chỉ chia sẻ đoạn chữ (không gửi video). Không mở được bảng chia sẻ thì chép clipboard + SnackBar "Đã chép nội dung chia sẻ".
+- Motivation step (`lib/screens/motivation_screen.dart`, route `/motivation`, spec 002, ADR-0003): a bounded dose, not a feed.
+  - Top bar: close X (left), position pill "1/3" (same style as the tag chips), "Bỏ qua" (right, before a session only).
+  - One reel at a time: no swipe, no scrollable list, each reel plays once (no loop); a tap anywhere pauses or resumes at once. The video is shown whole (fitted, never cropped) over a blurred copy of itself (`AppReels.blurBackground`; black on web) and is lifted above the bottom text when there is room (`AppReels.overlayHeight`).
+  - While playing, the bottom shows the title and tag chips on a dark gradient; after a distraction also the primary "Quay lại học".
+  - When the reel ends or fails: a dark scrim (`AppColors.reelBlurScrim`) and `ReelEndCard` (`lib/widgets/reel_end_card.dart`) with a title, the primary "Bắt đầu N phút" (`GradientPillButton`, `AppReels.buttonHeight`), the text button "Chỉ 5 phút thôi" and an outlined "Tiếp" while reels remain; after a distraction only "Quay lại học".
+  - No like, comment or share control, no counts, no social element anywhere.
 - Thanh điều hướng dưới cùng 3 tab: Hôm nay, Thói quen, Tiến độ (ADR-0002, spec 001). Bước động lực (`/motivation`), phiên học (`/focus`) và Tổng kết (`/summary`) chiếm toàn màn hình, không có thanh tab. Khi đang có phiên, dải "phiên đang chạy" (running_session_banner.dart, nền primary) nằm ngay trên thanh tab: tên thói quen, "Còn mm:ss" hoặc "Đang nghỉ", chạm để về phiên.
 - Hôm nay (today_screen.dart): vòng streak nhỏ (96), thẻ mục tiêu (kèm câu bản sắc), thẻ "Học tiếp" (thói quen + số phút + "Đổi thói quen hoặc thời lượng" mở session_plan_sheet.dart), và đúng MỘT nút vào phiên: GradientPillButton "Bắt đầu" khi còn việc hôm nay; khi đã xong hết hoặc là ngày nghỉ theo lịch thì thay bằng OutlinedButton phụ "Học thêm một phiên".
 - Bảng 12 màu pastel cho thẻ thói quen: AppHabitColors.palette trong app_theme.dart, mỗi màu có nền và màu chữ đậm cùng tông, dùng chung cho sáng và tối.

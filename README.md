@@ -12,7 +12,7 @@ Quy ước code nằm trong [AGENTS.md](AGENTS.md); màu sắc, mô hình dữ l
 |---|---|
 | **Thói quen** (Habit tracker) | Đặt mục tiêu kèm câu bản sắc "Tôi là người…". Tạo thói quen lặp lại (hằng ngày, hằng tuần theo số ngày hoặc thứ, hằng tháng) hoặc việc một lần, chọn icon/emoji, màu, buổi trong ngày, ngày kết thúc, "Sau khi…" và phiên bản 2 phút. Chạm thẻ để đánh dấu xong, giữ lâu để làm bản 2 phút hoặc nghỉ phép. Mỗi thói quen có điểm sức mạnh 0–100%; vòng streak nhỏ ở **Hôm nay** đếm số ngày liên tiếp. |
 | **Hôm nay** (màn đầu tiên) | Chỉ trả lời "bây giờ học gì, trong bao lâu": mục tiêu, thói quen tiếp theo, số phút, streak nhỏ và **một** nút **Bắt đầu**. Đổi thói quen hoặc số phút cho phiên tới bằng "Đổi thói quen hoặc thời lượng". |
-| **Động lực** (anti-reel) | Bấm **Bắt đầu** thì mở toàn màn hình 1–3 reel động lực hợp với hồ sơ của mình (làm quiz lúc mở app lần đầu), rồi chọn **Bắt đầu N phút**, **Chỉ 5 phút thôi** hoặc **Bỏ qua**. |
+| **Động lực** (anti-reel) | Bấm **Bắt đầu** thì xem tối đa 3 reel động lực hợp với hồ sơ của mình (làm quiz lúc mở app lần đầu). Không vuốt, không thích, không bình luận: mỗi reel phát một lần rồi dừng ở thẻ kết thúc với **Bắt đầu N phút**, **Chỉ 5 phút thôi** và **Tiếp** (nếu còn reel). **Bỏ qua** để vào học ngay. Sau xao nhãng chỉ xem đúng 1 reel rồi **Quay lại học** ([ADR-0003](docs/decisions/0003-anti-reel-bounded-dose.md)). |
 | **Focus** (phiên học) | Đồng hồ đếm ngược toàn màn hình. Rời app giữa chừng thì bị tính một lần xao nhãng; ở các tab, dải "phiên đang chạy" phía trên thanh tab đưa về phiên bằng 1 chạm. Hết giờ hiện màn Tổng kết, lưu lại thì cộng phút vào thói quen. |
 | **Reset break** | Đang học mà mở TikTok, YouTube, Chrome… thì DisGret hiện màn can thiệp: chờ vài giây rồi chọn **Quay lại học**, **Xem 1 reel động lực** hoặc **Nghỉ có chủ đích** (có hẹn giờ). |
 
@@ -65,8 +65,9 @@ Phần tính nằm ở `lib/data/habit_science.dart` (hàm thuần, có unit tes
 | Ý định thực hiện | Mỗi thói quen ghi "Sau khi…" và "Tại…". | Implementation intentions (Gollwitzer & Sheeran, 2006). |
 | Bản sắc | Mục tiêu có câu "Tôi là người…". | Thói quen dựa trên bản sắc (James Clear, *Atomic Habits*). |
 
-Khi mở Reels sau xao nhãng (từ màn can thiệp hoặc từ sheet nhắc trong app), reel
-**"Get back to work!"** luôn đứng đầu vì được ghim (`pinFirst` trong `assets/reels/reels.json`).
+Khi mở bước động lực sau xao nhãng (từ màn can thiệp hoặc từ sheet nhắc trong app), reel
+**"Get back to work!"** là reel duy nhất được chiếu vì được ghim (`pinFirst` trong
+`assets/reels/reels.json`).
 
 ## Cách chạy
 
@@ -144,16 +145,19 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
      Tab **Tiến độ** → đoạn **Thói quen**: 4 ô số liệu, biểu đồ cột và đường (đổi kỳ được), lịch %
      hoàn thành.
      Đừng đánh dấu xong thói quen nào hôm nay, nếu không streak đã lên 6 trước khi demo phiên học.
-3. **Hôm nay → Bắt đầu** → bước động lực toàn màn hình (không có thanh tab): xem một reel, vuốt
-   lên xem reel khác nếu muốn → **Chỉ 5 phút thôi** → màn phiên học đếm ngược từ 05:00 (thật ra
-   100 giây). (Hoặc **Bỏ qua** để vào học ngay với số phút của Hôm nay.)
+3. **Hôm nay → Bắt đầu** → bước động lực toàn màn hình (không có thanh tab): reel **1/3** phát
+   một lần; vuốt không đổi reel; chạm để tạm dừng. Hết reel (khoảng 15–25 giây) thì hiện thẻ kết
+   thúc: **Bắt đầu N phút**, **Chỉ 5 phút thôi**, **Tiếp**. (Không bắt buộc: **Tiếp** để xem reel
+   2/3.) → **Chỉ 5 phút thôi** → màn phiên học đếm ngược từ 05:00 (thật ra 100 giây). (Hoặc
+   **Bỏ qua** bất cứ lúc nào để vào học ngay với số phút của Hôm nay.)
    - (Không bắt buộc) Bấm mũi tên quay lại → về Hôm nay, phiên vẫn chạy; dải "phiên đang chạy"
      trên thanh tab có ở cả 3 tab, chạm để về phiên. Bấm **Bắt đầu** lúc này cũng chỉ mở lại
      phiên đang chạy, không tạo phiên mới.
 4. **Lần chặn 1.** Bấm Home, mở YouTube → màn can thiệp đếm ngược **10 giây** →
    **Quay lại học** → về màn phiên học, số lần xao nhãng là 1.
-5. **Lần chặn 2.** Mở YouTube → chờ **15 giây** → **Xem 1 reel động lực** → bước động lực mở với
-   **"Get back to work!"** đứng đầu (đồng hồ phiên tạm dừng khi xem) → **Quay lại học**.
+5. **Lần chặn 2.** Mở YouTube → chờ **15 giây** → **Xem 1 reel động lực** → bước động lực chiếu
+   đúng một reel **"Get back to work!"** (1/1, không có **Bỏ qua** hay **Tiếp**; đồng hồ phiên tạm
+   dừng khi xem) → **Quay lại học**.
 6. **Lần chặn 3.** Mở YouTube → chờ **20 giây** → **Nghỉ có chủ đích** → **5 phút** → giờ nghỉ
    bắt đầu, YouTube không bị chặn nữa.
 7. **Mở lại DisGret trước khi hết giờ nghỉ.** Màn phiên học hiện "Đang nghỉ – còn …". Chờ hết giờ
@@ -177,14 +181,14 @@ Mỗi file ghi mã thành phần ở dòng đầu. `kotlin/` là
 | 1.1 | Hồ sơ động lực (quiz) | `lib/data/motivation_quiz.dart`, `lib/screens/quiz_screen.dart`, `lib/widgets/quiz_question_view.dart`, `lib/data/models/user_profile.dart` |
 | 1.2 | Kho nội dung reel | `assets/reels/reels.json`, `lib/data/models/reel.dart`, `lib/data/repositories/reel_repository.dart` |
 | 1.3 | Đề xuất reel theo luật, ghim reel | `lib/services/reel_recommender.dart` |
-| 1.4 | Bước động lực (route `/motivation`, nội dung reel), ghi lượt xem, Tim / Bình luận / Chia sẻ | `lib/screens/reels_screen.dart`, `lib/services/reel_watch_tracker.dart`, `lib/services/reel_share.dart`, `lib/widgets/reel_action_column.dart`, `lib/widgets/reel_comments_sheet.dart`, `lib/data/models/reel_reaction.dart`, `lib/data/models/reel_comment.dart`, `lib/data/repositories/reel_reaction_repository.dart`, `lib/data/repositories/reel_comment_repository.dart` |
+| 1.4 | Bước động lực (route `/motivation`): liều reel có điểm dừng, thẻ kết thúc, ghi lượt xem và lượt bỏ qua | `lib/screens/motivation_screen.dart`, `lib/services/motivation_dose.dart`, `lib/widgets/reel_end_card.dart`, `lib/services/reel_watch_tracker.dart` |
 | 2.1 | Danh sách app cần nhắc | `lib/screens/blocked_apps_screen.dart`, `lib/data/repositories/blocked_apps_repository.dart`, `kotlin/InstalledApps.kt` |
 | 2.2 | Phát hiện mở app bị chặn | `kotlin/FocusGuardService.kt` |
 | 2.3 | Màn can thiệp | `kotlin/InterventionActivity.kt`, `res/layout/activity_intervention.xml`, `res/values/strings.xml`, `res/values/colors.xml` |
 | 2.4 | Nghỉ có chủ đích | `kotlin/FocusGuardService.kt`, `lib/providers/focus_session_provider.dart` |
 | 3.1 | Bắt đầu phiên (một lối vào), đồng hồ, dải phiên đang chạy | `lib/services/study_starter.dart`, `lib/screens/focus_screen.dart`, `lib/services/focus_session_timer.dart`, `lib/providers/focus_session_provider.dart`, `lib/widgets/running_session_banner.dart`, `lib/widgets/minutes_picker.dart` |
 | 3.2 | Phát hiện lơ là | `lib/services/focus_session_timer.dart`, `lib/providers/focus_session_provider.dart`, `lib/app.dart` |
-| 3.3 | Phản hồi sau xao nhãng | `lib/widgets/focus_feedback.dart`, `lib/app.dart`, `lib/screens/reels_screen.dart` (dừng đồng hồ khi xem động lực) |
+| 3.3 | Phản hồi sau xao nhãng | `lib/widgets/focus_feedback.dart`, `lib/app.dart`, `lib/screens/motivation_screen.dart` (dừng đồng hồ khi xem động lực) |
 | 3.4 | Tổng kết phiên | `lib/screens/summary_screen.dart`, `lib/data/models/session.dart`, `lib/services/time_format.dart` |
 | 4.1 | Đặt mục tiêu, tạo/sửa/xoá thói quen, lịch lặp lại, chọn icon | `lib/screens/habits_screen.dart`, `lib/screens/habit_form_screen.dart`, `lib/data/habit_schedule.dart`, `lib/data/habit_icon_catalog.dart`, `lib/widgets/habit_icon_picker.dart`, `lib/widgets/habit_icon_view.dart`, `lib/screens/onboarding_screen.dart`, `lib/widgets/goal_habit_sheets.dart`, `lib/widgets/goal_form_fields.dart`, `lib/widgets/habit_form_fields.dart`, `lib/widgets/empty_goal_view.dart`, `lib/widgets/edit_delete_menu.dart`, `lib/widgets/app_dialogs.dart` |
 | 4.2 | Ghi nhận, streak, điểm sức mạnh, màn chi tiết, Báo cáo (trong Tiến độ) | `lib/data/habit_progress.dart`, `lib/data/habit_science.dart`, `lib/data/repositories/habit_log_repository.dart`, `lib/widgets/habit_today_card.dart`, `lib/widgets/habit_week_card.dart`, `lib/widgets/habit_check_ring.dart`, `lib/widgets/habit_heat_map.dart`, `lib/widgets/month_calendar.dart`, `lib/screens/habit_detail_screen.dart`, `lib/screens/report_screen.dart` (`ReportView`), `lib/screens/my_habits_screen.dart`. Đã cất (ADR-0004): `lib/data/achievements.dart`, `lib/widgets/level_badge.dart`, `lib/screens/achievements_screen.dart`, `lib/widgets/habit_card.dart`, `lib/widgets/habit_journey.dart` |
