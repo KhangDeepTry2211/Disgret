@@ -537,7 +537,6 @@ final focusStatsProvider = FutureProvider.autoDispose<FocusStats>((ref) async {
   return FocusStats.from(
     events: ref.read(eventRepositoryProvider).getAll(),
     sessions: ref.read(sessionRepositoryProvider).getAll(),
-    reactions: ref.read(reelReactionRepositoryProvider).getAll(),
     // Tính cả thói quen đã "xoá nhưng giữ lịch sử" để số ngày hoàn thành không bị mất.
     habits: ref.watch(allHabitsProvider),
     logs: ref.watch(habitLogsProvider),

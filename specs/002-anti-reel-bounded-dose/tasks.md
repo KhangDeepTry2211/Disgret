@@ -72,10 +72,10 @@ contracts/motivation-step.md, quickstart.md)
 
 **Independent test**: quickstart scenario 6.
 
-- [ ] T012 [P] [US3] Tests: one `reel_watched` per reel shown with `startedFocus` true only after a
+- [X] T012 [P] [US3] Tests: one `reel_watched` per reel shown with `startedFocus` true only after a
       start action; `motivation_skipped` with context and position on skip; stats view has no
       "Reel đã thích" (FR-008, FR-010, SC-005).
-- [ ] T013 [US3] Wire logging in `motivation_screen.dart`; remove `reelsLiked` from
+- [X] T013 [US3] Wire logging in `motivation_screen.dart`; remove `reelsLiked` from
       `lib/services/focus_stats.dart` and its row in `lib/screens/stats_screen.dart` (now
       `StatsView`); update `test/stats_test.dart`.
 

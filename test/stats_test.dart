@@ -143,6 +143,20 @@ void main() {
       expect(stats.startedFocusRate, 0.25);
     });
 
+    test('Skip records and old like events do not count as reels watched', () {
+      final stats = _stats(
+        events: [
+          _event(
+            EventType.motivationSkipped,
+            meta: {MotivationSkippedMeta.context: 'start', MotivationSkippedMeta.position: 1},
+          ),
+          _event(EventType.reelLiked, meta: {'reelId': 'r1'}),
+        ],
+      );
+      expect(stats.reelsWatched, 0);
+      expect(stats.startedFocusRate, isNull);
+    });
+
     test('Thời gian quay lại trung bình lấy từ session_distracted, làm tròn tới giây', () {
       Event distracted(int seconds) => _event(
         EventType.sessionDistracted,
@@ -226,6 +240,9 @@ void main() {
       await tester.scrollUntilVisible(find.textContaining('tính trên 7 lần xao nhãng'), 200);
       expect(find.text('Đã xem 8 reel'), findsOneWidget);
       expect(find.text('3 lần · 38%'), findsOneWidget);
+      expect(find.text('Bắt đầu học ngay sau khi xem'), findsOneWidget);
+      // Spec 002 FR-010: likes are gone from the statistics.
+      expect(find.textContaining('Reel đã thích'), findsNothing);
       // (100 + 80 + 120 + 60 + 90 + 120 + 90) / 7 = 94 giây.
       expect(find.text('Trung bình 1 phút 34 giây'), findsOneWidget);
       expect(tester.takeException(), isNull);

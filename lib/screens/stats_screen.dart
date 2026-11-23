@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../services/focus_stats.dart';
 import '../services/time_format.dart';
@@ -309,11 +310,10 @@ class _ReelsCard extends StatelessWidget {
           const _Hint('Chưa xem reel nào. Bấm "Bắt đầu" ở Hôm nay để xem reel trước khi học.')
         else
           _ShareRow(
-            label: 'Bấm "Bắt đầu 5 phút" ngay sau khi xem',
+            label: AppStrings.reelsFollowedByStart,
             count: stats.reelsStartedFocus,
             share: rate,
           ),
-        _Hint('Reel đã thích: ${stats.reelsLiked}'),
       ],
     );
   }

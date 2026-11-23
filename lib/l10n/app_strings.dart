@@ -68,6 +68,7 @@ class AppStrings {
   static const String progressHabits = 'Thói quen';
   static const String progressSessions = 'Phiên học';
   static const String progressEmpty = 'Tiến độ sẽ hiện ở đây sau phiên học đầu tiên.';
+  static const String reelsFollowedByStart = 'Bắt đầu học ngay sau khi xem';
 
   // ---------- Thói quen ----------
   static const String habitsByDay = 'Theo ngày';
