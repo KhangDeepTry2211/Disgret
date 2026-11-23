@@ -5,15 +5,11 @@ import 'models/event.dart';
 import 'models/goal.dart';
 import 'models/habit.dart';
 import 'models/habit_log.dart';
-import 'models/reel_comment.dart';
-import 'models/reel_reaction.dart';
 import 'models/session.dart';
 import 'repositories/event_repository.dart';
 import 'repositories/goal_repository.dart';
 import 'repositories/habit_log_repository.dart';
 import 'repositories/habit_repository.dart';
-import 'repositories/reel_comment_repository.dart';
-import 'repositories/reel_reaction_repository.dart';
 import 'repositories/session_repository.dart';
 
 /// Một phiên học mẫu của thói quen "Làm bài tập", tính từ hôm nay lùi về trước.
@@ -270,7 +266,6 @@ class MockData {
     await _createHistory(logs, waterHabit, today, _waterHistory);
     await _createSessions(exerciseHabit, now: now, today: today);
     await _createEvents(now);
-    await _createReelSocial(now);
   }
 
   /// 4.2 Ghi lịch sử tick tay, bỏ qua, bản 2 phút, nghỉ phép và ghi chú của một thói quen.
@@ -419,42 +414,6 @@ class MockData {
       await add(choices[i], block.daysAgo, {
         if (choices[i] == EventType.choseBreak) ChoseBreakMeta.minutes: 5,
       });
-    }
-  }
-
-  /// 1.4 Vài lượt thích và bình luận mẫu; tác giả là "Người dùng mẫu". Id cố định nên không trùng.
-  static Future<void> _createReelSocial(DateTime now) async {
-    final reactions = ReelReactionRepository();
-    for (final reelId in ['r1', 'r3']) {
-      await reactions.save(
-        ReelReaction(reelId: reelId, liked: true, likedAt: now.subtract(const Duration(days: 2))),
-      );
-    }
-
-    final comments = ReelCommentRepository();
-    const samples = [
-      (id: 'demo_comment_1', reelId: 'r1', text: 'Xem xong là muốn học ngay!', minutesAgo: 3000),
-      (
-        id: 'demo_comment_2',
-        reelId: 'r1',
-        text: 'Mình đang ôn thi, cần cái này.',
-        minutesAgo: 2900,
-      ),
-      (id: 'demo_comment_3', reelId: 'r3', text: 'Cố lên cả nhóm nhé 💪', minutesAgo: 1500),
-      (id: 'demo_comment_4', reelId: 'r5', text: 'Câu cuối đúng ghê.', minutesAgo: 1450),
-    ];
-    for (final sample in samples) {
-      final time = now.subtract(Duration(minutes: sample.minutesAgo));
-      await comments.save(
-        ReelComment(
-          id: sample.id,
-          reelId: sample.reelId,
-          text: sample.text,
-          createdAt: time,
-          updatedAt: time,
-          author: ReelComment.demoAuthor,
-        ),
-      );
     }
   }
 }

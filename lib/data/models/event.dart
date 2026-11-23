@@ -39,13 +39,6 @@ class ReelWatchMeta {
   static const String startedFocus = 'startedFocus';
 }
 
-/// Meta của reel_liked, reel_unliked, reel_commented, reel_shared: chỉ có reelId.
-class ReelActionMeta {
-  ReelActionMeta._();
-
-  static const String reelId = 'reelId';
-}
-
 /// Meta keys of motivation_skipped (spec 002 data-model.md).
 class MotivationSkippedMeta {
   MotivationSkippedMeta._();

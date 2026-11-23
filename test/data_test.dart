@@ -302,6 +302,50 @@ void main() {
     });
   });
 
+  group('Retired social boxes (spec 002 FR-009, SC-006)', () {
+    test('Retired names are not opened and never reused', () {
+      expect(HiveBoxes.retired, ['reel_reactions', 'reel_comments']);
+      expect(HiveBoxes.all.toSet().intersection(HiveBoxes.retired.toSet()), isEmpty);
+    });
+
+    testWidgets('The app starts normally on a device with old likes and comments', (tester) async {
+      final reactions = await Hive.openBox<dynamic>('reel_reactions', bytes: Uint8List(0));
+      await reactions.put('r1', {'reelId': 'r1', 'liked': true});
+      final comments = await Hive.openBox<dynamic>('reel_comments', bytes: Uint8List(0));
+      await comments.put('c1', {'id': 'c1', 'reelId': 'r1', 'text': 'Hay quá'});
+      await ProfileRepository().completeOnboarding(
+        const UserProfile(motivationTypes: [MotivationType.career], preferredReelLength: 30),
+      );
+      await GoalRepository().save(const Goal(id: 'g1', title: 'Qua môn Toán', reason: 'Lý do'));
+      await HabitRepository().save(
+        const Habit(id: 'h1', goalId: 'g1', name: 'Ôn bài', minMinutesPerDay: 25),
+      );
+
+      await pumpApp(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('Qua môn Toán'), findsOneWidget, reason: 'Non-social data intact');
+      expect(find.text('Ôn bài'), findsOneWidget);
+      expect(reactions.length, 1, reason: 'Old social data is left untouched');
+      expect(comments.length, 1);
+    });
+
+    test('"Xoá toàn bộ dữ liệu" also deletes retired boxes from disk', () async {
+      final dir = await Directory.systemTemp.createTemp('disgret_hive');
+      addTearDown(() => dir.delete(recursive: true));
+      Hive.init(dir.path);
+      final old = await Hive.openBox<dynamic>('reel_reactions');
+      await old.put('r1', {'reelId': 'r1', 'liked': true});
+      await old.close();
+      final file = File('${dir.path}/reel_reactions.hive');
+      expect(file.existsSync(), isTrue);
+
+      await HiveBoxes.clearUserData();
+
+      expect(file.existsSync(), isFalse);
+    });
+  });
+
   group('HabitLogRepository', () {
     final today = DateTime(2026, 3, 2, 9);
 

@@ -57,9 +57,6 @@ class AppColors {
   static const Color onVideoTrack = Color(0x4DFFFFFF);
   static const Color onVideoChip = Color(0x33FFFFFF);
 
-  /// Trái tim đã thích trên video (nút Tim và trái tim lớn khi chạm đúp).
-  static const Color reelLiked = Color(0xFFFF4D6D);
-
   /// Bóng mờ sau icon và nhãn nổi trên video, để đọc rõ cả trên video sáng.
   static const Color onVideoShadow = Color(0x99000000);
   static const Color scrimClear = Color(0x00000000);
@@ -233,29 +230,14 @@ class AppReels {
   static const double blurSigma = 30;
 
   /// Chiều cao khối tiêu đề, chip tag và nút ở đáy trang, tính cả trường hợp xấu nhất:
-  /// tiêu đề 2 dòng và chip tag xuống 2 hàng trên màn hình hẹp. Cột Tim / Bình luận / Chia sẻ
-  /// nổi đè lên video (có bóng mờ) nên không tính vào đây.
-  static const double overlayHeight = 240; // Includes the "Chỉ 5 phút thôi" button (spec 001).
+  /// tiêu đề 2 dòng và chip tag xuống 2 hàng trên màn hình hẹp, plus the "Quay lại học" button
+  /// after a distraction. The video is lifted above this block when there is room.
+  static const double overlayHeight = 240;
 
   /// Height of the pill buttons under the video and on the end card.
   static const double buttonHeight = 56;
 
-  /// Cột nút Tim, Bình luận, Chia sẻ bên phải video.
-  static const double actionIconSize = 30;
-  static const double actionWidth = 56;
-
-  /// Trái tim lớn nổi lên khi chạm đúp.
-  static const double burstHeartSize = 96;
-  static const Duration burstDuration = Duration(milliseconds: 800);
-  static const Duration likeBounceDuration = Duration(milliseconds: 280);
-
-  /// Hai lần chạm cách nhau không quá chừng này (và cùng chỗ) là chạm đúp.
-  static const Duration doubleTapWindow = Duration(milliseconds: 300);
-  static const double doubleTapSlop = 48;
-
-  /// Chiều cao bottom sheet bình luận so với màn hình.
-  static const double commentSheetFraction = 0.6;
-
+  /// Shadow behind the end-card title, readable on bright video.
   static const List<Shadow> onVideoShadows = [
     Shadow(color: AppColors.onVideoShadow, blurRadius: 8, offset: Offset(0, 1)),
   ];
@@ -272,11 +254,6 @@ class AppIcons {
   static const IconData settings = Icons.settings_outlined;
   static const IconData goal = Icons.flag_outlined;
   static const IconData play = Icons.play_arrow_rounded;
-  static const IconData like = Icons.favorite_border_rounded;
-  static const IconData likeFilled = Icons.favorite_rounded;
-  static const IconData comment = Icons.chat_bubble_outline_rounded;
-  static const IconData share = Icons.share_outlined;
-  static const IconData send = Icons.send_rounded;
   static const IconData star = Icons.star_outline_rounded;
   static const IconData starFilled = Icons.star_rounded;
   static const IconData blocked = Icons.block_outlined;

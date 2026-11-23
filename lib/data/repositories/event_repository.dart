@@ -72,10 +72,6 @@ class EventRepository extends HiveRepository<Event> {
     return eventId;
   }
 
-  /// 1.4 Ghi thích, bỏ thích, bình luận, chia sẻ reel (meta chỉ có reelId).
-  Future<void> logReelAction(EventType type, String reelId) =>
-      log(type, meta: {ReelActionMeta.reelId: reelId});
-
   /// Spec 002: the motivation step was skipped at reel [position] (1-based).
   Future<void> logMotivationSkipped({required String context, required int position}) {
     return log(

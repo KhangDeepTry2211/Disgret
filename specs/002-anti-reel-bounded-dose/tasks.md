@@ -83,13 +83,13 @@ contracts/motivation-step.md, quickstart.md)
 
 **Independent test**: quickstart scenarios 5 and 7.
 
-- [ ] T014 [US4] Delete `lib/widgets/reel_action_column.dart`, `lib/widgets/reel_comments_sheet.dart`,
+- [X] T014 [US4] Delete `lib/widgets/reel_action_column.dart`, `lib/widgets/reel_comments_sheet.dart`,
       `lib/services/reel_share.dart`, `lib/data/models/reel_comment.dart`,
       `lib/data/models/reel_reaction.dart`, `lib/data/repositories/reel_comment_repository.dart`,
       `lib/data/repositories/reel_reaction_repository.dart`, `test/reel_social_test.dart`; remove
       their providers from `app_providers.dart`, sample likes/comments from `mock_data.dart`, like
       tokens from `app_theme.dart`; remove `share_plus` from `pubspec.yaml` and run `flutter pub get`.
-- [ ] T015 [US4] `lib/data/hive_boxes.dart`: move `reel_reactions`, `reel_comments` to `retired` (not
+- [X] T015 [US4] `lib/data/hive_boxes.dart`: move `reel_reactions`, `reel_comments` to `retired` (not
       opened); `clearUserData()` also deletes retired boxes from disk; test in `test/data_test.dart`
       that start-up with pre-existing retired boxes succeeds (FR-009, SC-006).
 
