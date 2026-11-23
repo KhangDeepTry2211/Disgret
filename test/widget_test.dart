@@ -714,6 +714,7 @@ void main() {
       await _tap(tester, find.text('Bắt đầu'));
       // Bước động lực toàn màn hình: không có thanh tab.
       expect(find.byType(NavigationBar), findsNothing);
+      await finishReel(tester);
       expect(find.text('Bắt đầu 25 phút'), findsOneWidget);
       expect(find.text('Chỉ 5 phút thôi'), findsOneWidget);
 

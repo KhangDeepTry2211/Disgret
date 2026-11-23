@@ -237,6 +237,9 @@ class AppReels {
   /// nổi đè lên video (có bóng mờ) nên không tính vào đây.
   static const double overlayHeight = 240; // Includes the "Chỉ 5 phút thôi" button (spec 001).
 
+  /// Height of the pill buttons under the video and on the end card.
+  static const double buttonHeight = 56;
+
   /// Cột nút Tim, Bình luận, Chia sẻ bên phải video.
   static const double actionIconSize = 30;
   static const double actionWidth = 56;

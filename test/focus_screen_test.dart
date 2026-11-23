@@ -157,6 +157,7 @@ void main() {
       expect(find.text('45 phút'), findsOneWidget);
 
       await tapAndSettle(tester, find.text('Bắt đầu'));
+      await finishReel(tester);
       expect(find.text('Bắt đầu 45 phút'), findsOneWidget);
       await tapAndSettle(tester, find.text('Bắt đầu 45 phút'));
 
@@ -284,6 +285,7 @@ void main() {
     testWidgets('"Chỉ 5 phút thôi" bắt đầu phiên 5 phút cho thói quen của Hôm nay', (tester) async {
       await openApp(tester);
       await tapAndSettle(tester, find.text('Bắt đầu'));
+      await finishReel(tester);
       await tapAndSettle(tester, find.text('Chỉ 5 phút thôi'));
 
       expect(find.text('05:00'), findsOneWidget);
@@ -293,6 +295,7 @@ void main() {
     testWidgets('"Bắt đầu N phút" dùng đúng số phút của kế hoạch', (tester) async {
       await openApp(tester);
       await tapAndSettle(tester, find.text('Bắt đầu'));
+      await finishReel(tester);
       await tester.tap(find.text('Bắt đầu 25 phút'));
       await tester.pumpAndSettle();
 
@@ -353,7 +356,11 @@ void main() {
 
       expect(find.text('0'), findsOneWidget);
       expect(find.byType(SnackBar), findsNothing);
-      expect(EventRepository().getAll(), isEmpty);
+      // "Bỏ qua" logs motivation_skipped (spec 002); no distraction is logged.
+      expect(
+        EventRepository().getAll().where((event) => event.type == EventType.sessionDistracted),
+        isEmpty,
+      );
     });
 
     testWidgets('Kéo thanh thông báo (chỉ inactive, không hidden) thì không tính', (tester) async {
@@ -540,11 +547,12 @@ void main() {
       expect(find.text('25:00'), findsOneWidget);
     });
 
-    testWidgets('Không có phiên thì có "Bắt đầu N phút", "Chỉ 5 phút thôi" và "Bỏ qua"', (
+    testWidgets('Không có phiên: thẻ kết thúc có "Bắt đầu N phút", "Chỉ 5 phút thôi" và "Bỏ qua"', (
       tester,
     ) async {
       await openApp(tester);
       await tapAndSettle(tester, find.text('Bắt đầu'));
+      await finishReel(tester);
 
       expect(find.text('Bắt đầu 25 phút'), findsOneWidget);
       expect(find.text('Chỉ 5 phút thôi'), findsOneWidget);

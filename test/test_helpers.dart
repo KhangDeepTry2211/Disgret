@@ -43,6 +43,7 @@ Future<void> pumpApp(
   DateTime Function()? clock,
   void Function(bool enabled)? onScreenAwakeChanged,
   FakeNativeBridge? native,
+  List<Reel>? reels,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -51,7 +52,7 @@ Future<void> pumpApp(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        reelsProvider.overrideWith((ref) => testReels),
+        reelsProvider.overrideWith((ref) => reels ?? testReels),
         // Plugin giữ màn hình sáng không chạy trong môi trường test.
         screenAwakeProvider.overrideWithValue(
           (enabled) async => onScreenAwakeChanged?.call(enabled),
@@ -126,6 +127,16 @@ void showApp(WidgetTester tester) {
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+}
+
+/// Plays every playing reel to its end, so the motivation step shows its end card (spec 002).
+/// Needs a [FakeVideoPlayerPlatform] as `VideoPlayerPlatform.instance`.
+Future<void> finishReel(WidgetTester tester) async {
+  final player = VideoPlayerPlatform.instance as FakeVideoPlayerPlatform;
+  for (final asset in player.playingAssets) {
+    player.complete(asset);
+  }
+  await tester.pumpAndSettle();
 }
 
 /// Cuộn tới rồi bấm, vì nội dung có thể nằm ngoài màn hình nhỏ.
@@ -282,6 +293,14 @@ class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   bool isLooping(String asset) => _looping.contains(_idOf(asset));
 
   void setPosition(String asset, Duration position) => _positions[_idOf(asset)] = position;
+
+  /// The video plays to its end, as the platform reports it (no loop).
+  void complete(String asset) {
+    final id = _idOf(asset);
+    _playing.remove(id);
+    _positions[id] = videoDuration;
+    _events[id]!.add(VideoEvent(eventType: VideoEventType.completed));
+  }
 
   int _idOf(String asset) => _assets.entries.firstWhere((entry) => entry.value == asset).key;
 

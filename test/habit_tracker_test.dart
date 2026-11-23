@@ -351,6 +351,7 @@ void main() {
 
       // Một lối vào duy nhất: bước động lực toàn màn hình, số phút theo thói quen đã chọn.
       expect(find.byType(NavigationBar), findsNothing);
+      await finishReel(tester);
       expect(find.text('Bắt đầu 10 phút'), findsOneWidget);
 
       await _tap(tester, find.text('Bỏ qua'));

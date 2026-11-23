@@ -17,7 +17,7 @@ import '../screens/my_habits_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/quiz_screen.dart';
-import '../screens/reels_screen.dart';
+import '../screens/motivation_screen.dart';
 import '../screens/reset_break_permissions_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/progress_screen.dart';
@@ -120,11 +120,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       // Các màn này nằm ngoài tab nên chiếm toàn màn hình.
-      // Motivation step: shows the existing reel content until spec 002 replaces it.
+      // Motivation step: a bounded dose of reels (spec 002).
       GoRoute(
         path: AppRoutes.motivation,
-        builder: (context, state) =>
-            ReelsScreen(reelContext: state.uri.queryParameters['context'] ?? ReelContext.start),
+        builder: (context, state) => MotivationScreen(
+          reelContext: state.uri.queryParameters['context'] ?? ReelContext.start,
+        ),
       ),
       GoRoute(path: AppRoutes.focus, builder: (context, state) => const FocusScreen()),
       GoRoute(path: AppRoutes.summary, builder: (context, state) => const SummaryScreen()),

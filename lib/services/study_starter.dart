@@ -22,18 +22,20 @@ class StudyStarter {
   /// - A session is already running: only opens `/focus`.
   /// - No habit in the plan: does nothing.
   /// - The Reset break check is declined: stays where the user is.
-  static Future<void> start(BuildContext context, WidgetRef ref, {required int minutes}) async {
+  ///
+  /// Returns true when a session is running afterwards (started now or already running).
+  static Future<bool> start(BuildContext context, WidgetRef ref, {required int minutes}) async {
     final router = GoRouter.of(context);
     final phase = ref.read(focusSessionProvider).phase;
     if (phase == FocusPhase.running) {
       router.go(AppRoutes.focus);
-      return;
+      return true;
     }
     final container = ProviderScope.containerOf(context, listen: false);
-    if (phase != FocusPhase.setup || _starting[container] == true) return;
+    if (phase != FocusPhase.setup || _starting[container] == true) return false;
 
     final habit = ref.read(sessionPlanProvider).habit;
-    if (habit == null) return;
+    if (habit == null) return false;
 
     _starting[container] = true;
     final bool canStart;
@@ -42,11 +44,12 @@ class StudyStarter {
     } finally {
       _starting[container] = null;
     }
-    if (!canStart || !context.mounted) return;
+    if (!canStart || !context.mounted) return false;
 
     // If a session started meanwhile, start() does nothing: never two sessions at once.
     ref.read(focusSessionProvider.notifier).start(habit: habit, minutes: minutes);
     ref.read(sessionPlanOverrideProvider.notifier).clear();
     router.go(AppRoutes.focus);
+    return true;
   }
 }

@@ -41,18 +41,18 @@ contracts/motivation-step.md, quickstart.md)
 
 **Independent test**: quickstart scenarios 1–3.
 
-- [ ] T006 [P] [US1] Widget tests `test/motivation_screen_test.dart` (fake video platform from
+- [X] T006 [P] [US1] Widget tests `test/motivation_screen_test.dart` (fake video platform from
       `test_helpers.dart`): position "1/3"; vertical/horizontal drag does not change reel (FR-001);
       no loop and end card on end (FR-003, FR-004); "Tiếp" only when a reel remains; "Bỏ qua" calls
       `StudyStarter` with plan minutes; tap toggles pause (FR-006); no like/comment/share widgets
       (FR-007).
-- [ ] T007 [US1] Implement `lib/screens/motivation_screen.dart` (single `VideoPlayerController` per
+- [X] T007 [US1] Implement `lib/screens/motivation_screen.dart` (single `VideoPlayerController` per
       reel, `setLooping(false)`, preload next, blurred background kept) and
       `lib/widgets/reel_end_card.dart` (start actions wired to `StudyStarter`, covering 001-T011);
       route `/motivation` to it; delete
       `lib/screens/reels_screen.dart` and `test/reels_screen_test.dart` (moving still-relevant cases
       — watch-time accounting, background save, small-screen overflow — into T006's file).
-- [ ] T008 [US1] Edge cases: empty playlist → start session directly; video error → end card
+- [X] T008 [US1] Edge cases: empty playlist → start session directly; video error → end card
       immediately; system Back in `start` → `/today` without session; app paused → pause video and
       log once.
 
@@ -60,10 +60,10 @@ contracts/motivation-step.md, quickstart.md)
 
 **Independent test**: quickstart scenario 4.
 
-- [ ] T009 [P] [US2] Widget tests: `context=distracted` shows exactly one reel (pinned first), no
+- [X] T009 [P] [US2] Widget tests: `context=distracted` shows exactly one reel (pinned first), no
       "Tiếp", no "Bỏ qua", end card only "Quay lại học" → `/focus`; clock paused while open and
       resumed after (FR-011).
-- [ ] T010 [US2] Implement distracted behaviour in `motivation_screen.dart` / `MotivationDose`.
+- [X] T010 [US2] Implement distracted behaviour in `motivation_screen.dart` / `MotivationDose`.
 - [ ] T011 [US2] Manual check on emulator with `docs/architecture/native-manual-checklist.md`
       (item "Xem 1 reel động lực") plus quickstart scenario 4: one reel → back to session; record the
       result in the commit message.

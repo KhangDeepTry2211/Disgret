@@ -34,8 +34,8 @@ class ReelWatchMeta {
   static const String secondsWatched = 'secondsWatched';
   static const String completed = 'completed';
 
-  /// Only present when a session was started from this reel ("Bắt đầu N phút",
-  /// "Chỉ 5 phút thôi" or "Bỏ qua").
+  /// Only present when a session was started from this reel's end card ("Bắt đầu N phút" or
+  /// "Chỉ 5 phút thôi").
   static const String startedFocus = 'startedFocus';
 }
 

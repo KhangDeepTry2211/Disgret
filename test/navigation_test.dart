@@ -130,6 +130,7 @@ void main() {
 
       await tapAndSettle(tester, find.text('Bắt đầu'));
       expect(find.byType(NavigationBar), findsNothing);
+      await finishReel(tester);
       expect(find.text('Bắt đầu 30 phút'), findsOneWidget);
 
       await tapAndSettle(tester, find.text('Bỏ qua'));
@@ -182,6 +183,7 @@ void main() {
       expect(find.text('Hôm nay bạn đã xong hết!'), findsOneWidget);
       expect(find.byType(GradientPillButton), findsNothing);
       await tapAndSettle(tester, find.text('Học thêm một phiên'));
+      await finishReel(tester);
       expect(find.text('Bắt đầu 30 phút'), findsOneWidget, reason: 'First habit, its minutes');
     });
 

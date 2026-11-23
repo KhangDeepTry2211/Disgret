@@ -350,6 +350,7 @@ void main() {
       await pumpApp(tester, size: _phone, native: FakeNativeBridge(usageAccess: false));
       await tester.tap(find.text('Bắt đầu'));
       await tester.pumpAndSettle();
+      await finishReel(tester);
 
       await tester.tap(find.text('Chỉ 5 phút thôi'));
       await tester.pumpAndSettle();
