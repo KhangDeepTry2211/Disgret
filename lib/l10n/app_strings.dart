@@ -190,6 +190,34 @@ class AppStrings {
   static const String cornerPreviousSea = 'Biển trước';
   static const String cornerNextSea = 'Biển sau';
 
+  // ---------- 5.5 Bản đồ biển (feature 005) ----------
+  static const String mapView = 'Bản đồ';
+  static String mapExplored(int percent) => 'Đã khám phá $percent%';
+  static const String mapHint = 'Sương mù tan dần mỗi ngày bạn làm thói quen.';
+  static String mapRegionLine(String sea, int percent) => '$sea · $percent%';
+  static String mapDays(int days, int total) => '$days/$total';
+  static String mapDaysLong(int days, int total) => '$days/$total ngày';
+  static const String mapStageHidden = 'Chưa khám phá';
+  static const String mapStageFound = 'Đã tìm thấy';
+  static const String mapStageWarmUp = 'Khởi động';
+  static const String mapStageSteady = 'Bền bỉ';
+  static const String mapStageSolid = 'Vững vàng';
+  static const String mapStageFormed = 'Thành thói quen';
+  static const String mapFishCave = 'Hang cá';
+  static const String mapShipwreck = 'Tàu đắm';
+  static const String mapKelpGarden = 'Vườn tảo';
+  static const String mapTreasure = 'Kho báu';
+  static const String mapCoralTemple = 'Đền san hô';
+  static const String mapOldAnchor = 'Mỏ neo cổ';
+  static String mapDiscoverHint(String habit) => 'Làm "$habit" lần đầu để khám phá điểm này.';
+  static const String mapEmptyRegion = 'Vùng này chưa có điểm nào. Thêm một thói quen để khám phá.';
+  static const String mapGretHere = 'Gret đang ở đây';
+  static String mapRegionSemantics(String goal, String sea, int percent) =>
+      'Vùng $goal, $sea, đã khám phá $percent%';
+  static String mapPointSemantics(String habit, String kind, String progress) =>
+      '$habit: $kind, $progress';
+  static String mapHiddenSemantics(String habit) => '$habit: chưa khám phá';
+
   static const String moodHappy = 'đang vui';
   static const String moodNeutral = 'đang bình thường';
   static const String moodSad = 'đang buồn';

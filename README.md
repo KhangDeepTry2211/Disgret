@@ -174,7 +174,11 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
    cho mỗi 5 phút tập trung) → tab **Tủ đồ**: đổi **Nơ hồng** (20 ngọc) → **Mặc** → về Hôm nay
    thấy Gret đeo nơ. Tab **Biển**: rạn san hô, biển băng, đáy biển sâu mở theo chuỗi ngày; tab
    **Linh vật**: cua **Ẩn** (300 ngọc), bạch tuộc **Mochi** "Sắp có" (bán bằng tiền thật sau).
-10. **Tiến độ.** Tab **Tiến độ** → đoạn **Phiên học**: biểu đồ phút tập trung 7 ngày, tỉ lệ lựa
+10. **Bản đồ biển.** Tab **Thói quen** → nút bản đồ trên thanh tiêu đề: mỗi mục tiêu là một
+   vùng biển, mỗi thói quen là một điểm khám phá ("?" khi chưa làm ngày nào, rồi "n/66").
+   Sương mù tan dần theo số ngày đã làm; chạm vào vùng để xem từng điểm và mốc 7/21/40/66 ngày.
+   Gret đứng ở vùng vừa học, và phiên học diễn ra ở biển của vùng đó.
+11. **Tiến độ.** Tab **Tiến độ** → đoạn **Phiên học**: biểu đồ phút tập trung 7 ngày, tỉ lệ lựa
    chọn trên màn can thiệp, tỉ lệ reel dẫn tới bắt đầu học, thời gian quay lại trung bình (dữ liệu
    mẫu cộng với lượt demo vừa xong).
 
@@ -203,6 +207,7 @@ Mỗi file ghi mã thành phần ở dòng đầu. `kotlin/` là
 | 5.2 | Giao diện (design system) | `lib/theme/app_theme.dart`, `lib/widgets/app_logo.dart`, `lib/widgets/gradient_pill_button.dart`, `lib/widgets/gradient_progress_bar.dart`, `lib/widgets/progress_ring.dart`, `lib/widgets/streak_ring.dart`, `assets/fonts/`, `assets/branding/`, `assets/launcher/` |
 | 5.3 | Gret và biển sống: độ trong của biển, Gret trên Hôm nay, onboarding dạng story, phiên học trong biển | `lib/data/sea_clarity.dart`, `lib/data/mascot_mood.dart`, `lib/providers/sea_providers.dart`, `lib/widgets/sea/`, `lib/widgets/mascot/`, `lib/widgets/motion/`, `assets/mascot/gret/`, `lib/screens/onboarding_screen.dart`, `lib/screens/focus_screen.dart` |
 | 5.4 | Góc của Gret: ngọc trai, tủ đồ, vùng biển, linh vật | `lib/data/pearls.dart`, `lib/data/gret_corner_catalog.dart`, `lib/data/mascot_species.dart`, `lib/data/repositories/gret_corner_repository.dart`, `lib/providers/gret_corner_providers.dart`, `lib/screens/gret_corner_screen.dart`, `assets/mascot/outfits/`, `assets/mascot/crab/`, `assets/mascot/octopus/` |
+| 5.5 | Bản đồ biển: mỗi mục tiêu một vùng, mỗi thói quen một điểm khám phá | `lib/data/sea_map.dart`, `lib/providers/sea_map_providers.dart`, `lib/widgets/sea/sea_map_painter.dart`, `lib/widgets/sea/sea_map_view.dart`, `lib/screens/habits_screen.dart` |
 | 6.2 | Mô hình dữ liệu, lưu trữ Hive | `lib/data/models/`, `lib/data/repositories/`, `lib/data/hive_boxes.dart`, `lib/data/date_utils.dart`, `lib/data/mock_data.dart` |
 | 7.1 | Quyền | `lib/screens/reset_break_permissions_screen.dart`, `lib/widgets/reset_break_sheet.dart`, `kotlin/AppPermissions.kt` |
 | 7.2 | Dịch vụ theo dõi app, cầu nối Kotlin | `kotlin/FocusGuardService.kt`, `kotlin/NativeChannel.kt`, `kotlin/NativeActions.kt`, `lib/services/native_bridge.dart` |

@@ -8,9 +8,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../data/gret_corner_catalog.dart';
 import '../l10n/app_strings.dart';
 import '../providers/focus_session_provider.dart';
 import '../providers/gret_corner_providers.dart';
+import '../providers/sea_map_providers.dart';
 import '../providers/sea_providers.dart';
 import '../router/app_router.dart';
 import '../services/time_format.dart';
@@ -145,6 +147,9 @@ class _FocusSeaState extends ConsumerState<_FocusSea> {
     final session = widget.session;
     final breakRemaining = session.breakRemaining;
     final sea = ref.watch(seaStateProvider);
+    final look = ref.watch(gretLookProvider);
+    // 5.5 The session happens in the sea of the habit's goal region (spec 005 FR-005).
+    final place = ref.watch(sessionSeaPlaceProvider) ?? look.place;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -159,7 +164,7 @@ class _FocusSeaState extends ConsumerState<_FocusSea> {
             clarity: sea.clarity,
             mood: sea.mood,
             variant: SeaSceneVariant.full,
-            look: ref.watch(gretLookProvider),
+            look: GretLook(species: look.species, outfit: look.outfit, place: place),
             gretReaction: _swats,
             foreground: DistractionSwatLayer(
               active: breakRemaining == null,

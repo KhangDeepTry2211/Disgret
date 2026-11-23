@@ -168,7 +168,12 @@ class _PearlChip extends StatelessWidget {
             children: [
               const Icon(AppIcons.pearl, size: AppSpacing.md, color: AppSea.fishFin),
               const SizedBox(width: AppSpacing.xs),
-              Text('$pearls', style: theme.textTheme.labelLarge),
+              Text(
+                '$pearls',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+              ),
             ],
           ),
         ),

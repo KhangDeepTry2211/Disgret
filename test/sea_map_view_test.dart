@@ -1,0 +1,160 @@
+// 5.5 Bản đồ biển in the Thói quen tab, and the focus session in the goal's sea (spec 005).
+import 'package:flutter_test/flutter_test.dart';
+import 'package:focus_app/data/mascot_species.dart';
+import 'package:focus_app/data/models/goal.dart';
+import 'package:focus_app/data/models/habit.dart';
+import 'package:focus_app/data/models/habit_log.dart';
+import 'package:focus_app/data/models/motivation_type.dart';
+import 'package:focus_app/data/models/user_profile.dart';
+import 'package:focus_app/data/repositories/goal_repository.dart';
+import 'package:focus_app/data/repositories/habit_log_repository.dart';
+import 'package:focus_app/data/repositories/habit_repository.dart';
+import 'package:focus_app/data/repositories/profile_repository.dart';
+import 'package:focus_app/l10n/app_strings.dart';
+import 'package:focus_app/widgets/sea/sea_scene.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+
+import 'test_helpers.dart';
+
+const Size _phone = Size(412, 915);
+
+void main() {
+  late DateTime now;
+
+  Future<void> saveHabit(String id, String goalId, String name, {int sortOrder = 0}) =>
+      HabitRepository().save(
+        Habit(
+          id: id,
+          goalId: goalId,
+          name: name,
+          minMinutesPerDay: 15,
+          sortOrder: sortOrder,
+          startDate: now.subtract(const Duration(days: 30)),
+        ),
+      );
+
+  /// Ticks [habitId] on the last [days] days.
+  Future<void> doneOn(String habitId, int days) async {
+    for (var d = 1; d <= days; d++) {
+      await HabitLogRepository().save(
+        HabitLog(
+          id: 'manual_${habitId}_$d',
+          habitId: habitId,
+          date: now.subtract(Duration(days: d)),
+          source: HabitLogSource.manual,
+          minutes: 15,
+        ),
+      );
+    }
+  }
+
+  Future<void> openMap(WidgetTester tester, {Size size = _phone}) async {
+    await pumpApp(tester, size: size, clock: () => now);
+    await tapAndSettle(tester, find.widgetWithText(NavigationDestination, AppStrings.tabHabits));
+    await tapAndSettle(tester, find.byTooltip(AppStrings.mapView));
+  }
+
+  setUpAll(() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
+  setUp(() async {
+    await openMemoryBoxes();
+    now = DateTime.now();
+    VideoPlayerPlatform.instance = FakeVideoPlayerPlatform();
+    await ProfileRepository().completeOnboarding(
+      const UserProfile(motivationTypes: [MotivationType.career], preferredReelLength: 30),
+    );
+    await GoalRepository().save(const Goal(id: 'g1', title: 'Qua môn Toán', reason: 'Ra trường'));
+    await GoalRepository().save(const Goal(id: 'g2', title: 'IELTS 7.0', reason: 'Du học'));
+  });
+
+  tearDown(() async {
+    await Hive.close();
+  });
+
+  testWidgets('the tab still opens on Theo ngày; Bản đồ is one tap away', (tester) async {
+    await saveHabit('h1', 'g1', 'Ôn bài');
+    await pumpApp(tester, size: _phone, clock: () => now);
+    await tapAndSettle(tester, find.widgetWithText(NavigationDestination, AppStrings.tabHabits));
+
+    expect(find.byKey(const ValueKey('sea-map')), findsNothing);
+    await tapAndSettle(tester, find.byTooltip(AppStrings.mapView));
+    expect(find.byKey(const ValueKey('sea-map')), findsOneWidget);
+    expect(find.text('Sáng'), findsNothing, reason: 'No time filter on the map');
+  });
+
+  testWidgets('one region per goal; a done habit shows n/66, a new one is a "?"', (tester) async {
+    await saveHabit('h1', 'g1', 'Ôn bài', sortOrder: 1);
+    await saveHabit('h2', 'g1', 'Làm đề', sortOrder: 2);
+    await saveHabit('h3', 'g2', 'Nghe podcast');
+    await doneOn('h1', 3);
+    await openMap(tester);
+
+    expect(find.text('Qua môn Toán'), findsOneWidget);
+    expect(find.text('IELTS 7.0'), findsOneWidget);
+    // (3 + 0) / (2 × 66) = 2%.
+    expect(find.text(AppStrings.mapRegionLine('Rạn san hô', 2)), findsOneWidget);
+    expect(find.text(AppStrings.mapRegionLine('Biển băng', 0)), findsOneWidget);
+    expect(find.text('3/66'), findsOneWidget);
+    expect(find.bySemanticsLabel(AppStrings.mapHiddenSemantics('Làm đề')), findsOneWidget);
+    expect(find.text(AppStrings.mapExplored(2)), findsOneWidget, reason: '3 / (3 × 66) ≈ 1.5%');
+  });
+
+  testWidgets('a "?" point says which habit discovers it', (tester) async {
+    await saveHabit('h1', 'g1', 'Ôn bài');
+    await openMap(tester);
+
+    await tester.tap(find.byKey(const ValueKey('map-point-h1')));
+    await tester.pump();
+    expect(find.text(AppStrings.mapDiscoverHint('Ôn bài')), findsOneWidget);
+  });
+
+  testWidgets('tapping a region lists its points with days and milestone', (tester) async {
+    await saveHabit('h1', 'g1', 'Ôn bài');
+    await doneOn('h1', 8);
+    await openMap(tester);
+
+    // The label ignores touches on purpose, so the tap lands on the region under it.
+    await tester.tap(find.text('Qua môn Toán'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        '${AppStrings.mapFishCave} · ${AppStrings.mapDaysLong(8, 66)} · ${AppStrings.mapStageWarmUp}',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Gret stands on the map in the region studied last', (tester) async {
+    await saveHabit('h1', 'g1', 'Ôn bài');
+    await saveHabit('h3', 'g2', 'Nghe podcast');
+    await doneOn('h3', 1);
+    await openMap(tester);
+
+    final gret = tester.getRect(find.byKey(const ValueKey('map-gret')));
+    final ielts = tester.getRect(find.text('IELTS 7.0'));
+    final math = tester.getRect(find.text('Qua môn Toán'));
+    expect((gret.top - ielts.top).abs(), lessThan((gret.top - math.top).abs()));
+  });
+
+  testWidgets('a focus session happens in the sea of the habit\'s region', (tester) async {
+    await saveHabit('h3', 'g2', 'Nghe podcast');
+    await pumpApp(tester, size: _phone, clock: () => now);
+    await tapAndSettle(tester, find.text(AppStrings.start));
+    await tapAndSettle(tester, find.text('Bỏ qua'));
+
+    expect(tester.widget<SeaScene>(find.byType(SeaScene)).look.place, SeaPlace.ice);
+  });
+
+  testWidgets('small phone: the map and the four views fit without overflow', (tester) async {
+    await saveHabit('h1', 'g1', 'Một thói quen có tên khá dài để thử');
+    await doneOn('h1', 2);
+    await openMap(tester, size: smallPhone);
+
+    expect(tester.takeException(), isNull);
+  });
+}

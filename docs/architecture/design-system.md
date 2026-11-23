@@ -58,6 +58,20 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   show their end state, story pages wait for a tap, the quiz answer and the finish go through at
   once, and no distraction effect runs.
 
+## Sea map (feature 005, ADR-0010)
+
+- Thói quen tab: a map button in the app bar (lit while shown) switches to `SeaMapView`; the three
+  list views stay as they were and the tab still opens on "Theo ngày". The time filter is hidden on
+  the map.
+- A dark ocean (`AppSeaMap.ocean`) with faint wave lines; one rounded island per goal, alternating
+  left and right, coloured by terrain (coral, ice, deep, home). Fog (`AppSeaMap.fog` with soft white
+  puffs) covers each island, with a soft clear circle around each discovered point whose radius grows
+  from 30 to 120 with min(days, 66) / 66.
+- Points: white circles with the point icon and an "n/66" pill once found, a grey "?" before.
+  Region labels sit on a surface pill; a small Gret (the chosen mascot and outfit) stands at the top
+  right of the region studied last. Tapping a region opens a sheet with its points, days and
+  milestone.
+
 ## Góc của Gret (feature 004, ADR-0009)
 
 - Route `/gret-corner`, opened from the wardrobe button on the Hôm nay sea. App bar: title and the

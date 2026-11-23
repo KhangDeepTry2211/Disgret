@@ -134,7 +134,9 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                                 child: CountUpText(
                                   value: gain,
                                   format: AppStrings.clarityGain,
-                                  style: theme.textTheme.titleSmall,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.onSecondaryContainer,
+                                  ),
                                 ),
                               ),
                             if (pearls > 0)
@@ -142,7 +144,9 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                                 icon: AppIcons.pearl,
                                 child: Text(
                                   AppStrings.pearlGain(pearls),
-                                  style: theme.textTheme.titleSmall,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.onSecondaryContainer,
+                                  ),
                                 ),
                               ),
                           ],

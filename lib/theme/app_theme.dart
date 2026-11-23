@@ -346,6 +346,37 @@ class AppStory {
   static const double segmentGap = 4;
 }
 
+/// 5.5 Bản đồ biển (feature 005): ocean, islands per terrain, fog, and layout sizes.
+class AppSeaMap {
+  AppSeaMap._();
+
+  static const Color ocean = Color(0xFF0A2A6B);
+  static const Color oceanLine = Color(0x334CC9F0);
+  static const Color fog = Color(0xCCB9C6D4);
+  static const Color fogPuff = Color(0x66FFFFFF);
+  static const Color coral = Color(0xFF3FD0C9);
+  static const Color ice = Color(0xFFA9DDF2);
+  static const Color deep = Color(0xFF3B5BA0);
+  static const Color home = Color(0xFF4CC9F0);
+  static const Color islandEdge = Color(0x66FFFFFF);
+  static const Color pointFound = Color(0xFFFFFFFF);
+  static const Color pointFoundIcon = Color(0xFF0A2A6B);
+  static const Color pointHidden = Color(0xFF8A9BB5);
+  static const Color pointHiddenIcon = Color(0xFFE8F1FF);
+
+  static const double regionWidthShare = 0.82;
+  static const double regionGap = 28;
+  static const double regionPadding = 20;
+  static const double labelHeight = 56;
+  static const double pointSize = 40;
+  static const double pointRowHeight = 86;
+  static const int pointColumns = 3;
+  static const double fogClearMin = 30;
+  static const double fogClearMax = 120;
+  static const double fogSoftness = 10;
+  static const double gretSize = 64;
+}
+
 /// 5.4 Góc của Gret (feature 004): rarity colours and preview sizes.
 class AppCorner {
   AppCorner._();
@@ -463,6 +494,16 @@ class AppIcons {
   static const IconData wardrobe = Icons.checkroom_rounded;
   static const IconData pearl = Icons.bubble_chart_outlined;
   static const IconData clarity = Icons.water_drop_outlined;
+
+  /// 5.5 Bản đồ biển: the map segment and the discovery points.
+  static const IconData map = Icons.map_outlined;
+  static const IconData pointHidden = Icons.question_mark_rounded;
+  static const IconData fishCave = Icons.set_meal_outlined;
+  static const IconData shipwreck = Icons.sailing_outlined;
+  static const IconData kelpGarden = Icons.grass_rounded;
+  static const IconData treasure = Icons.diamond_outlined;
+  static const IconData coralTemple = Icons.account_balance_outlined;
+  static const IconData oldAnchor = Icons.anchor_rounded;
 
   /// 5.3 Where Gret pops a distraction.
   static const IconData sparkle = Icons.auto_awesome_rounded;
