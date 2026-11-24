@@ -192,6 +192,12 @@ class AppStrings {
 
   // ---------- 5.5 Bản đồ biển (feature 005) ----------
   static const String mapView = 'Bản đồ';
+  static const String mapTitle = 'Bản đồ biển';
+  static String mapExploration(String sea, int percent) => '$sea · Độ khám phá $percent%';
+  static const String mapUnknown = 'Vùng chưa biết';
+  static const String mapZoomIn = 'Phóng to';
+  static const String mapZoomOut = 'Thu nhỏ';
+  static const String mapToGret = 'Về chỗ Gret';
   static String mapExplored(int percent) => 'Đã khám phá $percent%';
   static const String mapHint = 'Sương mù tan dần mỗi ngày bạn làm thói quen.';
   static String mapRegionLine(String sea, int percent) => '$sea · $percent%';

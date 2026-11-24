@@ -6,8 +6,7 @@
 // - Tuần: thẻ có 7 ô T2–CN chạm để đổi trạng thái (4.2).
 // - Tổng thể: thẻ có lưới chấm 20 tuần (4.2).
 // - Nút tròn "+" nổi góc dưới phải mở màn Tạo thói quen (4.1).
-// 5.5 (feature 005): the map button in the app bar shows the goals as a sea to explore
-// (SeaMapView); the tab still opens on "Theo ngày", where habits are ticked.
+// 5.5 (feature 005): the map button in the app bar opens the full-screen sea map (/sea-map).
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -26,9 +25,8 @@ import '../widgets/empty_goal_view.dart';
 import '../widgets/goal_habit_sheets.dart';
 import '../widgets/habit_today_card.dart';
 import '../widgets/habit_week_card.dart';
-import '../widgets/sea/sea_map_view.dart';
 
-enum _HabitsView { map, today, week, overall }
+enum _HabitsView { today, week, overall }
 
 enum _MenuAction { myHabits, addGoal, manageGoals }
 
@@ -94,7 +92,6 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
           ),
           Expanded(
             child: switch (_view) {
-              _HabitsView.map => const SeaMapView(),
               _HabitsView.today => _TodayView(
                 habits: filtered,
                 histories: histories,
@@ -140,20 +137,12 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
         ),
         title: const Text('Thói quen'),
         actions: [
-          // 5.5 The sea map, lit while it is shown (spec 005 FR-004).
+          // 5.5 The sea map, full screen (spec 005 FR-004).
           if (goals.isNotEmpty && habits.isNotEmpty)
             IconButton(
-              isSelected: _view == _HabitsView.map,
               icon: const Icon(AppIcons.map),
               tooltip: AppStrings.mapView,
-              style: _view == _HabitsView.map
-                  ? IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                    )
-                  : null,
-              onPressed: () => setState(
-                () => _view = _view == _HabitsView.map ? _HabitsView.today : _HabitsView.map,
-              ),
+              onPressed: () => context.push(AppRoutes.seaMap),
             ),
           PopupMenuButton<_MenuAction>(
             icon: const Icon(AppIcons.more),
@@ -208,34 +197,27 @@ class _Header extends StatelessWidget {
                 ButtonSegment(value: _HabitsView.week, label: Text('Tuần')),
                 ButtonSegment(value: _HabitsView.overall, label: Text('Tổng thể')),
               ],
-              // On the map no list view is selected; tapping one goes back to it.
-              emptySelectionAllowed: true,
-              selected: {if (view != _HabitsView.map) view},
-              onSelectionChanged: (selected) {
-                if (selected.isNotEmpty) onView(selected.first);
-              },
+              selected: {view},
+              onSelectionChanged: (selected) => onView(selected.first),
             ),
           ),
-          // The map always shows every goal, so the time filter is hidden there.
-          if (view != _HabitsView.map) ...[
-            const SizedBox(height: AppSpacing.sm),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final entry in _timeFilters.entries) ...[
-                    ChoiceChip(
-                      label: Text(entry.value),
-                      showCheckmark: false,
-                      selected: filter == entry.key,
-                      onSelected: (_) => onFilter(entry.key),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                  ],
+          const SizedBox(height: AppSpacing.sm),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final entry in _timeFilters.entries) ...[
+                  ChoiceChip(
+                    label: Text(entry.value),
+                    showCheckmark: false,
+                    selected: filter == entry.key,
+                    onSelected: (_) => onFilter(entry.key),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                 ],
-              ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );

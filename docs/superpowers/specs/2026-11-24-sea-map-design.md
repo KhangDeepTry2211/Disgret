@@ -57,6 +57,17 @@ become visible progress on a map that never goes backwards.
   của Gret still shows on Hôm nay).
 - Nothing new is stored: everything is computed from goals, habits and habit logs.
 
+## Amendment 2026-11-24: full-screen world map
+
+The lead asked for the map to fill the screen and open bit by bit, like a game world map. The map
+button now opens `/sea-map`: one dark ocean where each goal is an island with a natural, wobbly
+outline on slots spiralling out from the centre, followed by two "Vùng chưa biết" seas waiting for
+new goals. Darkness covers the whole world; soft circles open around discovered points (radius
+70–230 with the days done) and around Gret. The map pans and pinch-zooms (0.2×–2.5×), with +/−,
+"Về chỗ Gret", a back button, the title and the overall percentage on top. Opening glides from the
+whole world to Gret's island (1.6 s; straight there with animations removed). Pins are teardrops
+with the point icon and "n/66"; island labels read "<terrain> · Độ khám phá n%".
+
 ## Left to the builder
 
 Island shapes and positions, fog drawing, icons, wording of the sheet.

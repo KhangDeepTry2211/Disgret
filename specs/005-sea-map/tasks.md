@@ -20,3 +20,12 @@ stored.
 - [X] T006 Widget tests `test/sea_map_view_test.dart`; README map row "5.5 Bản đồ biển" and demo
       step; design-system and data-model notes.
 - [X] T007 Run on the emulator, screenshots.
+
+## Amendment 2026-11-24: full-screen world map
+
+- [X] T008 `lib/widgets/sea/sea_world.dart` (world layout on slots, wobbly island outlines, unknown
+      seas, darkness with soft clear circles) and `lib/screens/sea_map_screen.dart` (route
+      `/sea-map`, InteractiveViewer, +/−, "Về chỗ Gret", opening glide); the old in-tab view and
+      painter are removed.
+- [X] T009 Update `test/sea_map_view_test.dart` (full screen, back, zoom, Gret on screen); emulator
+      screenshots; docs.

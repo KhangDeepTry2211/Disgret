@@ -49,8 +49,10 @@ A focus session for a habit is drawn in the terrain of that habit's region.
   completed days (`HabitHistory.doneDays`).
 - **FR-003**: Point progress = min(days, 66) / 66; milestones 7 / 21 / 40 / 66; region and total
   percentages as in the design; progress never decreases with time alone.
-- **FR-004**: The Thói quen tab MUST offer the "Bản đồ" view (a map button in its app bar); the tab
-  still opens on "Theo ngày".
+- **FR-004**: A map button in the Thói quen app bar MUST open the full-screen sea map (`/sea-map`):
+  one ocean with an island per goal and unknown seas, darkness opened around discovered points and
+  Gret, pan and pinch-zoom, +/−, "Về chỗ Gret", and a glide from the whole world to Gret's island
+  on opening (amended 2026-11-24). The tab still opens on "Theo ngày".
 - **FR-005**: The focus session sea MUST use the terrain of the session habit's region.
 - **FR-006**: Nothing new is stored; text from `app_strings.dart`; colours from `app_theme.dart`;
   screen readers get region and point names with their progress.

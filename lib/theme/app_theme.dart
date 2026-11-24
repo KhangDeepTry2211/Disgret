@@ -350,31 +350,54 @@ class AppStory {
 class AppSeaMap {
   AppSeaMap._();
 
-  static const Color ocean = Color(0xFF0A2A6B);
-  static const Color oceanLine = Color(0x334CC9F0);
-  static const Color fog = Color(0xCCB9C6D4);
-  static const Color fogPuff = Color(0x66FFFFFF);
-  static const Color coral = Color(0xFF3FD0C9);
-  static const Color ice = Color(0xFFA9DDF2);
+  static const Color ocean = Color(0xFF04142E);
+  static const Color oceanLine = Color(0x264CC9F0);
+  static const Color coral = Color(0xFF1D9E75);
+  static const Color ice = Color(0xFF85B7EB);
   static const Color deep = Color(0xFF3B5BA0);
-  static const Color home = Color(0xFF4CC9F0);
+  static const Color home = Color(0xFF378ADD);
+  static const Color unknownLand = Color(0xFF2C3E5A);
+  static const Color islandHeart = Color(0xFFFFFFFF);
   static const Color islandEdge = Color(0x66FFFFFF);
-  static const Color pointFound = Color(0xFFFFFFFF);
-  static const Color pointFoundIcon = Color(0xFF0A2A6B);
-  static const Color pointHidden = Color(0xFF8A9BB5);
-  static const Color pointHiddenIcon = Color(0xFFE8F1FF);
+  static const double shallowAlpha = 0.35;
+  static const double heartAlpha = 0.14;
 
-  static const double regionWidthShare = 0.82;
-  static const double regionGap = 28;
-  static const double regionPadding = 20;
-  static const double labelHeight = 56;
-  static const double pointSize = 40;
-  static const double pointRowHeight = 86;
+  /// Darkness over what is not explored yet, and the soft circles that open it.
+  static const Color worldFog = Color(0xC7020A18);
+
+  /// The ocean under [worldFog]: the screen behind the world, so its edge does not show.
+  static const Color fogOcean = Color(0xFF030C1D);
+  static const double worldFogSoftness = 22;
+  static const double worldClearMin = 70;
+  static const double worldClearMax = 230;
+  static const double gretClear = 80;
+
+  static const Color pointFound = Color(0xFFE1F5EE);
+  static const Color pointFoundIcon = Color(0xFF085041);
+  static const Color pointHidden = Color(0xFF5F5E5A);
+  static const Color pointHiddenIcon = Color(0xFFF1EFE8);
+  static const Color labelBg = Color(0xBF04142E);
+  static const Color labelTitle = Color(0xFFE6F1FB);
+  static const Color labelSub = Color(0xFFB5D4F4);
+  static const Color unknownLabel = Color(0xFF8A9BB5);
+  static const Color controlBg = Color(0x29FFFFFF);
+  static const Color controlIcon = Color(0xFFE6F1FB);
+
+  /// World layout: islands on slots around the centre, two unknown seas after the last goal.
+  static const double worldSpacing = 440;
+  static const double worldMargin = 240;
+  static const double islandRadius = 150;
+  static const double islandRowGrowth = 46;
+  static const int unknownSeas = 2;
   static const int pointColumns = 3;
-  static const double fogClearMin = 30;
-  static const double fogClearMax = 120;
-  static const double fogSoftness = 10;
-  static const double gretSize = 64;
+  static const double pinSize = 34;
+  static const double gretSize = 56;
+
+  /// Zoom: the opening glide ends at [focusScale] on Gret's island.
+  static const double minScale = 0.2;
+  static const double maxScale = 2.5;
+  static const double focusScale = 1.0;
+  static const double zoomStep = 1.4;
 }
 
 /// 5.4 Góc của Gret (feature 004): rarity colours and preview sizes.
@@ -433,6 +456,10 @@ class AppMotion {
   static const Duration distractionDrift = Duration(milliseconds: 2200);
   static const Duration distractionBurst = Duration(milliseconds: 900);
   static const Duration wiggle = Duration(milliseconds: 420);
+
+  /// Sea map: opening the map glides from the whole world to Gret's island; buttons glide faster.
+  static const Duration mapOpen = Duration(milliseconds: 1600);
+  static const Duration mapGlide = Duration(milliseconds: 600);
   static const Curve curve = Curves.easeOutCubic;
 }
 
@@ -497,6 +524,8 @@ class AppIcons {
 
   /// 5.5 Bản đồ biển: the map segment and the discovery points.
   static const IconData map = Icons.map_outlined;
+  static const IconData zoomOut = Icons.remove_rounded;
+  static const IconData locate = Icons.my_location_rounded;
   static const IconData pointHidden = Icons.question_mark_rounded;
   static const IconData fishCave = Icons.set_meal_outlined;
   static const IconData shipwreck = Icons.sailing_outlined;

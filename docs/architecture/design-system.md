@@ -60,17 +60,20 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 
 ## Sea map (feature 005, ADR-0010)
 
-- Thói quen tab: a map button in the app bar (lit while shown) switches to `SeaMapView`; the three
-  list views stay as they were and the tab still opens on "Theo ngày". The time filter is hidden on
-  the map.
-- A dark ocean (`AppSeaMap.ocean`) with faint wave lines; one rounded island per goal, alternating
-  left and right, coloured by terrain (coral, ice, deep, home). Fog (`AppSeaMap.fog` with soft white
-  puffs) covers each island, with a soft clear circle around each discovered point whose radius grows
-  from 30 to 120 with min(days, 66) / 66.
-- Points: white circles with the point icon and an "n/66" pill once found, a grey "?" before.
-  Region labels sit on a surface pill; a small Gret (the chosen mascot and outfit) stands at the top
-  right of the region studied last. Tapping a region opens a sheet with its points, days and
-  milestone.
+- Full screen (`/sea-map`, `sea_map_screen.dart`), opened by the map button in the Thói quen app
+  bar; the tab itself keeps its three list views and opens on "Theo ngày".
+- One dark ocean (`AppSeaMap.ocean`) with faint wave lines. Each goal is an island with a wobbly
+  outline (`IslandLayout.outline`), a shallow-water ring and a lighter heart, coloured by terrain
+  (coral, ice, deep, home); islands sit on slots spiralling out from the centre, followed by two
+  grey "Vùng chưa biết" seas.
+- Darkness (`AppSeaMap.worldFog`) covers the world; soft circles open around discovered points
+  (radius 70–230 with min(days, 66) / 66) and around Gret. The screen behind the world uses
+  `AppSeaMap.fogOcean` so the world's edge does not show.
+- Pins: light teardrops with the point icon and an "n/66" pill; a grey "?" circle before discovery.
+  Island labels on a dark pill: goal title and "<terrain> · Độ khám phá n%".
+- Controls on top of the map: back, title and overall percentage; +/− (×1.4); "Về chỗ Gret". Pan and
+  pinch-zoom between 0.2× and 2.5×. Opening glides from the whole world to Gret's island
+  (`AppMotion.mapOpen`, 1.6 s); buttons glide in 0.6 s; with reduced motion the view jumps.
 
 ## Góc của Gret (feature 004, ADR-0009)
 
