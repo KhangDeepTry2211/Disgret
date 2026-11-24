@@ -14,6 +14,8 @@ import 'package:focus_app/data/repositories/goal_repository.dart';
 import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/data/repositories/session_repository.dart';
+import 'package:focus_app/data/repositories/study_place_repository.dart';
+import 'package:focus_app/data/study_place.dart';
 import 'package:focus_app/router/app_router.dart';
 import 'package:focus_app/screens/main_shell.dart';
 import 'package:focus_app/theme/app_theme.dart';
@@ -109,6 +111,8 @@ void main() {
     await GoalRepository().save(_goal);
     await HabitRepository().save(_habit);
     await HabitRepository().save(_otherHabit);
+    // These tests are about Gret's sea; the café has its own tests (sea_cafe_view_test.dart).
+    await StudyPlaceRepository().save(StudyPlace.sea);
   });
 
   tearDown(() async {

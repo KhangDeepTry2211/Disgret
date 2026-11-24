@@ -150,14 +150,18 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
 3. **Hôm nay → Bắt đầu** → bước động lực toàn màn hình (không có thanh tab): reel **1/3** phát
    một lần; vuốt không đổi reel; chạm để tạm dừng. Hết reel (khoảng 15–25 giây) thì hiện thẻ kết
    thúc: **Bắt đầu N phút**, **Chỉ 5 phút thôi**, **Tiếp**. (Không bắt buộc: **Tiếp** để xem reel
-   2/3.) → **Chỉ 5 phút thôi** → màn phiên học trong biển của Gret: Gret tập trung, đồng hồ đếm
-   ngược từ 05:00 (thật ra 100 giây), thỉnh thoảng một xao nhãng trôi tới và bị Gret hất văng. (Hoặc
-   **Bỏ qua** bất cứ lúc nào để vào học ngay với số phút của Hôm nay.)
+   2/3.) → **Chỉ 5 phút thôi** → phiên học ở **Quán San Hô** (nơi học mặc định): Gret ngồi bàn
+   giữa, chủ quán Rùa chào "Chào mừng đến Quán San Hô!", ba bạn biển Ẩn · Toán, Mochi · Văn, Sao ·
+   Tiếng Anh cùng học; cửa sổ nhìn ra biển của Gret. Đồng hồ treo tường đếm ngược từ 05:00 (thật ra
+   100 giây), thỉnh thoảng một xao nhãng trôi tới và bị Gret hất văng. Trong phút đầu, chạm
+   **Chào cả quán!** → Gret nói, một bạn đáp lại. (Hoặc **Bỏ qua** bất cứ lúc nào để vào học ngay
+   với số phút của Hôm nay.)
    - (Không bắt buộc) Bấm mũi tên quay lại → về Hôm nay, phiên vẫn chạy; dải "phiên đang chạy"
      trên thanh tab có ở cả 3 tab, chạm để về phiên. Bấm **Bắt đầu** lúc này cũng chỉ mở lại
      phiên đang chạy, không tạo phiên mới.
 4. **Lần chặn 1.** Bấm Home, mở YouTube → màn can thiệp đếm ngược **10 giây** →
-   **Quay lại học** → về màn phiên học, số lần xao nhãng là 1.
+   **Quay lại học** → về màn phiên học, số lần xao nhãng là 1, một bạn biển nói "Mừng bạn quay
+   lại!" (hoặc câu tương tự).
 5. **Lần chặn 2.** Mở YouTube → chờ **15 giây** → **Xem 1 reel động lực** → bước động lực chiếu
    đúng một reel **"Get back to work!"** (1/1, không có **Bỏ qua** hay **Tiếp**; đồng hồ phiên tạm
    dừng khi xem) → **Quay lại học**.
@@ -178,7 +182,10 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
    lướt từ toàn cảnh vào đảo có Gret. Mỗi mục tiêu là một đảo, mỗi thói quen là một ghim ("?" khi
    chưa làm ngày nào, rồi "n/66"); bóng tối tan dần quanh ghim theo số ngày đã làm. Kéo, chụm để
    phóng to, nút +/− và **Về chỗ Gret**; chạm vào đảo để xem từng điểm và mốc 7/21/40/66 ngày.
-   Phiên học diễn ra ở biển của đảo đó.
+   Phiên học diễn ra ở biển của đảo đó (ở Quán San Hô thì cửa sổ nhìn ra biển đó).
+12. **Đổi nơi học.** Ở **Hôm nay**, thẻ **Học tiếp** ghi "ở Quán San Hô" → **Đổi thói quen hoặc
+   thời lượng** → **Học ở**: chọn **Biển của Gret** → **Dùng kế hoạch này**: phiên sau diễn ra trong
+   biển như cũ. Các bạn biển là nhân vật của Gret, không phải người thật (ADR-0011).
 11. **Tiến độ.** Tab **Tiến độ** → đoạn **Phiên học**: biểu đồ phút tập trung 7 ngày, tỉ lệ lựa
    chọn trên màn can thiệp, tỉ lệ reel dẫn tới bắt đầu học, thời gian quay lại trung bình (dữ liệu
    mẫu cộng với lượt demo vừa xong).
@@ -209,6 +216,7 @@ Mỗi file ghi mã thành phần ở dòng đầu. `kotlin/` là
 | 5.3 | Gret và biển sống: độ trong của biển, Gret trên Hôm nay, onboarding dạng story, phiên học trong biển | `lib/data/sea_clarity.dart`, `lib/data/mascot_mood.dart`, `lib/providers/sea_providers.dart`, `lib/widgets/sea/`, `lib/widgets/mascot/`, `lib/widgets/motion/`, `assets/mascot/gret/`, `lib/screens/onboarding_screen.dart`, `lib/screens/focus_screen.dart` |
 | 5.4 | Góc của Gret: ngọc trai, tủ đồ, vùng biển, linh vật | `lib/data/pearls.dart`, `lib/data/gret_corner_catalog.dart`, `lib/data/mascot_species.dart`, `lib/data/repositories/gret_corner_repository.dart`, `lib/providers/gret_corner_providers.dart`, `lib/screens/gret_corner_screen.dart`, `assets/mascot/outfits/`, `assets/mascot/crab/`, `assets/mascot/octopus/` |
 | 5.5 | Bản đồ biển: mỗi mục tiêu một đảo, mỗi thói quen một điểm khám phá, toàn màn hình | `lib/data/sea_map.dart`, `lib/providers/sea_map_providers.dart`, `lib/widgets/sea/sea_world.dart`, `lib/screens/sea_map_screen.dart`, `lib/screens/habits_screen.dart` |
+| 5.6 | Quán San Hô: học cùng các bạn biển của Gret, chọn nơi học | `lib/data/sea_cafe.dart`, `lib/data/study_place.dart`, `lib/data/repositories/study_place_repository.dart`, `lib/providers/sea_cafe_providers.dart`, `lib/widgets/cafe/`, `lib/widgets/session_plan_sheet.dart`, `lib/screens/focus_screen.dart`, `assets/mascot/turtle/`, `assets/mascot/starfish/` |
 | 6.2 | Mô hình dữ liệu, lưu trữ Hive | `lib/data/models/`, `lib/data/repositories/`, `lib/data/hive_boxes.dart`, `lib/data/date_utils.dart`, `lib/data/mock_data.dart` |
 | 7.1 | Quyền | `lib/screens/reset_break_permissions_screen.dart`, `lib/widgets/reset_break_sheet.dart`, `kotlin/AppPermissions.kt` |
 | 7.2 | Dịch vụ theo dõi app, cầu nối Kotlin | `kotlin/FocusGuardService.kt`, `kotlin/NativeChannel.kt`, `kotlin/NativeActions.kt`, `lib/services/native_bridge.dart` |

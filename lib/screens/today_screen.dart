@@ -17,10 +17,12 @@ import '../data/mascot_mood.dart';
 import '../data/models/goal.dart';
 import '../data/models/reel.dart';
 import '../data/session_plan.dart';
+import '../data/study_place.dart';
 import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../providers/gret_corner_providers.dart';
+import '../providers/sea_cafe_providers.dart';
 import '../providers/sea_providers.dart';
 import '../router/app_router.dart';
 import '../services/focus_session_timer.dart';
@@ -384,6 +386,7 @@ class _NextSessionCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDemo = ref.watch(profileProvider)?.demoMode ?? false;
+    final place = ref.watch(studyPlaceProvider);
     final secondaryColor = theme.colorScheme.onSurfaceVariant;
 
     return Card(
@@ -413,6 +416,21 @@ class _NextSessionCard extends ConsumerWidget {
                 ),
               ],
             ),
+            // 5.6 Where the session will take place (spec 006 FR-002).
+            if (place == StudyPlace.cafe)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Row(
+                  children: [
+                    Icon(AppIcons.cafe, size: 18, color: secondaryColor),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      AppStrings.nextPlaceCafe,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: secondaryColor),
+                    ),
+                  ],
+                ),
+              ),
             if (isDemo)
               Text(
                 AppStrings.demoHint(FocusSessionTimer.demoSecondsPerMinute),

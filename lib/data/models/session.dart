@@ -1,4 +1,5 @@
 // 6.2 Mô hình dữ liệu – một phiên học.
+import '../study_place.dart';
 
 class Session {
   const Session({
@@ -12,6 +13,7 @@ class Session {
     this.awaySeconds = 0,
     this.selfRating,
     this.note = '',
+    this.place = StudyPlace.sea,
   });
 
   final String id;
@@ -33,6 +35,9 @@ class Session {
   /// 3.4 Ghi chú ngắn sau phiên học, không bắt buộc; rỗng nghĩa là không có.
   final String note;
 
+  /// 5.6 Where the session took place (spec 006 FR-008); older sessions were in the sea.
+  final StudyPlace place;
+
   Map<String, dynamic> toMap() => {
     'id': id,
     'habitId': habitId,
@@ -44,6 +49,7 @@ class Session {
     'awaySeconds': awaySeconds,
     'selfRating': selfRating,
     'note': note,
+    'place': place.name,
   };
 
   factory Session.fromMap(Map<String, dynamic> map) => Session(
@@ -58,5 +64,6 @@ class Session {
     awaySeconds: map['awaySeconds'] as int? ?? 0,
     selfRating: map['selfRating'] as int?,
     note: map['note'] as String? ?? '',
+    place: StudyPlace.tryParse(map['place']) ?? StudyPlace.sea,
   );
 }

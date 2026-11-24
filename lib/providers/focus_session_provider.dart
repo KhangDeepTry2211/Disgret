@@ -14,6 +14,7 @@ import '../data/repositories/hive_repository.dart';
 import '../services/focus_session_timer.dart';
 import '../services/native_bridge.dart';
 import 'app_providers.dart';
+import 'sea_cafe_providers.dart';
 
 /// chưa bắt đầu → đang chạy → kết thúc.
 enum FocusPhase { setup, running, finished }
@@ -396,6 +397,7 @@ class FocusSessionNotifier extends Notifier<FocusSessionState> {
       awaySeconds: state.totalAway.inSeconds,
       selfRating: rating,
       note: note,
+      place: ref.read(studyPlaceProvider),
     );
     await ref.read(sessionRepositoryProvider).save(session);
     await ref.read(habitLogsProvider.notifier).recordSession(session);

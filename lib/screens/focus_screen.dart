@@ -4,20 +4,24 @@
 // 5.3 (feature 003, FR-012, FR-012a): the session happens in Gret's sea. Gret focuses while the
 // session runs and sleeps during a break; the water follows the live clarity, and Gret bats
 // distractions away.
+// 5.6 (feature 006): with Quán San Hô chosen (the default), the session takes place in the café.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/gret_corner_catalog.dart';
+import '../data/study_place.dart';
 import '../l10n/app_strings.dart';
 import '../providers/focus_session_provider.dart';
 import '../providers/gret_corner_providers.dart';
+import '../providers/sea_cafe_providers.dart';
 import '../providers/sea_map_providers.dart';
 import '../providers/sea_providers.dart';
 import '../router/app_router.dart';
 import '../services/time_format.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_dialogs.dart';
+import '../widgets/cafe/cafe_session_view.dart';
 import '../widgets/gradient_pill_button.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/sea/distraction_swat.dart';
@@ -145,7 +149,6 @@ class _FocusSeaState extends ConsumerState<_FocusSea> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final session = widget.session;
     final breakRemaining = session.breakRemaining;
     final sea = ref.watch(seaStateProvider);
@@ -153,12 +156,24 @@ class _FocusSeaState extends ConsumerState<_FocusSea> {
     // 5.5 The session happens in the sea of the habit's goal region (spec 005 FR-005).
     final place = ref.watch(sessionSeaPlaceProvider) ?? look.place;
 
+    final inCafe = ref.watch(studyPlaceProvider) == StudyPlace.cafe;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final ringSize = (constraints.maxHeight * AppMascot.focusRingShare).clamp(
-          AppMascot.focusRingMin,
-          AppMascot.focusRingMax,
-        );
+        final ringSize = inCafe
+            ? (constraints.maxHeight * AppCafe.ringShare).clamp(AppCafe.ringMin, AppCafe.ringMax)
+            : (constraints.maxHeight * AppMascot.focusRingShare).clamp(
+                AppMascot.focusRingMin,
+                AppMascot.focusRingMax,
+              );
+        final clock = _SessionClock(session: session, ringSize: ringSize);
+
+        if (inCafe) {
+          return ClipRRect(
+            borderRadius: AppRadius.heroBorder,
+            child: CafeSessionView(session: session, clock: clock),
+          );
+        }
 
         return ClipRRect(
           borderRadius: AppRadius.heroBorder,
@@ -173,49 +188,62 @@ class _FocusSeaState extends ConsumerState<_FocusSea> {
               distractions: session.distractionCount,
               onSwat: () => setState(() => _swats++),
             ),
-            overlay: Column(
+            overlay: clock,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The habit name and the countdown ring, shown in the sea's sky or on the café wall.
+class _SessionClock extends StatelessWidget {
+  const _SessionClock({required this.session, required this.ringSize});
+
+  final FocusSessionState session;
+  final double ringSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final breakRemaining = session.breakRemaining;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          session.habit?.name ?? '',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        ProgressRing(
+          progress: session.progress,
+          size: ringSize,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  session.habit?.name ?? '',
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium,
+                // Thời lượng dài vẫn phải nằm gọn trong vòng tròn.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(formatClock(session.remaining), style: theme.textTheme.displayMedium),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                ProgressRing(
-                  progress: session.progress,
-                  size: ringSize,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Thời lượng dài vẫn phải nằm gọn trong vòng tròn.
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            formatClock(session.remaining),
-                            style: theme.textTheme.displayMedium,
-                          ),
-                        ),
-                        Text(
-                          breakRemaining == null
-                              ? AppStrings.focusRemaining
-                              : AppStrings.focusBreakRemaining(formatClock(breakRemaining)),
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
+                Text(
+                  breakRemaining == null
+                      ? AppStrings.focusRemaining
+                      : AppStrings.focusBreakRemaining(formatClock(breakRemaining)),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

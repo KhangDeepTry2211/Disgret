@@ -372,6 +372,86 @@ class AppButton {
   static const double chipWiggle = 0.10;
 }
 
+/// 5.6 Quán San Hô (feature 006): café colours by day and by night, and where everyone sits
+/// (alignments inside the scene; the countdown ring hangs on the wall like a clock).
+class AppCafe {
+  AppCafe._();
+
+  static const Color wallDay = Color(0xFFF3E3CF);
+  static const Color wallNight = Color(0xFF3A2E3F);
+  static const Color panelDay = Color(0xFFE2C9A8);
+  static const Color panelNight = Color(0xFF2E2434);
+  static const Color floorDay = Color(0xFFCFA57E);
+  static const Color floorNight = Color(0xFF2A2338);
+  static const Color plankDay = Color(0xFFBF9069);
+  static const Color plankNight = Color(0xFF231D30);
+  static const Color counterDay = Color(0xFFB8714A);
+  static const Color counterNight = Color(0xFF7A4A35);
+  static const Color counterTop = Color(0xFFE9D2B5);
+  static const Color table = Color(0xFFF4EBDD);
+  static const Color tableNight = Color(0xFFCFC3B5);
+  static const Color frame = Color(0xFFFFFFFF);
+  static const Color frameNight = Color(0xFFCFC3B5);
+  static const Color lamp = Color(0xFFFFD27A);
+  static const Color cord = Color(0xFF6B5B53);
+  static const List<Color> bunting = [
+    Color(0xFFE8604A),
+    Color(0xFFFFB74D),
+    Color(0xFF4CC9F0),
+    Color(0xFF7FCB98),
+    Color(0xFFB48CF0),
+  ];
+
+  /// Floor starts at this share of the height; the panel band sits just above it.
+  static const double floorTop = 0.42;
+  static const double panelHeight = 0.07;
+
+  /// Arched windows on the sea (left edge, top, width, height as shares of the scene).
+  static const Rect leftWindow = Rect.fromLTWH(0.04, 0.05, 0.20, 0.26);
+  static const Rect rightWindow = Rect.fromLTWH(0.76, 0.05, 0.20, 0.26);
+
+  /// The countdown ring on the wall: a share of the scene height, within these bounds, so it
+  /// stays between the windows.
+  static const double ringShare = 0.34;
+  static const double ringMin = 120;
+  static const double ringMax = 180;
+
+  /// Greeting chips use these AppHabitColors, in greeting order.
+  static const List<int> greetingColours = [0, 6, 7, 9];
+  static const double windowFrame = 4;
+
+  static const Alignment owner = Alignment(-0.80, -0.06);
+  static const List<Alignment> seats = [
+    Alignment(0.80, -0.06),
+    Alignment(-0.74, 0.50),
+    Alignment(0.74, 0.50),
+  ];
+  static const Alignment gret = Alignment(0, 0.44);
+
+  /// A speaker's bubble sits this far (in alignment units) above them.
+  static const double bubbleLift = 0.42;
+  static const double bubbleMaxShare = 0.62;
+
+  /// Character widths as a share of the scene height, within bounds, so a tall phone shows a
+  /// fuller café and a small one still fits.
+  static const double friendShare = 0.11;
+  static const double friendMin = 52;
+  static const double friendMax = 76;
+  static const double gretShare = 0.17;
+  static const double gretMin = 84;
+  static const double gretMax = 120;
+
+  /// Tables are a little wider than whoever sits at them.
+  static const double friendTableScale = 1.15;
+  static const double gretTableScale = 1.25;
+  static const double tableHeight = 0.2;
+
+  /// The counter hides only the owner's flippers.
+  static const double counterWidthScale = 1.3;
+  static const double counterHeight = 28;
+  static const double counterOverlap = 0.85;
+}
+
 /// 5.5 Bản đồ biển (feature 005): ocean, islands per terrain, fog, and layout sizes.
 class AppSeaMap {
   AppSeaMap._();
@@ -470,6 +550,9 @@ class AppMotion {
   static const int blinkMaxSeconds = 6;
   static const Duration reaction = Duration(milliseconds: 400);
   static const Duration speechBubble = Duration(seconds: 3);
+
+  /// Quán San Hô: a friend replies this long after Gret greets (feature 006).
+  static const Duration cafeReplyDelay = Duration(milliseconds: 1500);
   static const Duration seaReady = Duration(milliseconds: 1200);
 
   /// A story page of the onboarding turns by itself after this long.
@@ -500,6 +583,10 @@ class AppIcons {
   static const IconData home = Icons.home_outlined;
   static const IconData reels = Icons.play_circle_outline_rounded;
   static const IconData focus = Icons.timer_outlined;
+
+  /// 5.6 Study places: Gret's sea and Quán San Hô.
+  static const IconData sea = Icons.waves_rounded;
+  static const IconData cafe = Icons.local_cafe_outlined;
   static const IconData habits = Icons.task_alt_rounded;
   static const IconData settings = Icons.settings_outlined;
   static const IconData goal = Icons.flag_outlined;

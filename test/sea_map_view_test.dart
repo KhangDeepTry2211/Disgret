@@ -11,7 +11,10 @@ import 'package:focus_app/data/repositories/goal_repository.dart';
 import 'package:focus_app/data/repositories/habit_log_repository.dart';
 import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
+import 'package:focus_app/data/repositories/study_place_repository.dart';
+import 'package:focus_app/data/study_place.dart';
 import 'package:focus_app/l10n/app_strings.dart';
+import 'package:focus_app/widgets/cafe/sea_cafe_scene.dart';
 import 'package:focus_app/widgets/sea/sea_scene.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -178,12 +181,22 @@ void main() {
   });
 
   testWidgets('a focus session happens in the sea of the habit\'s region', (tester) async {
+    await StudyPlaceRepository().save(StudyPlace.sea);
     await saveHabit('h3', 'g2', 'Nghe podcast');
     await pumpApp(tester, size: _phone, clock: () => now);
     await tapAndSettle(tester, find.text(AppStrings.start));
     await tapAndSettle(tester, find.text('Bỏ qua'));
 
     expect(tester.widget<SeaScene>(find.byType(SeaScene)).look.place, SeaPlace.ice);
+  });
+
+  testWidgets('in Quán San Hô the windows look out on the habit\'s region', (tester) async {
+    await saveHabit('h3', 'g2', 'Nghe podcast');
+    await pumpApp(tester, size: _phone, clock: () => now);
+    await tapAndSettle(tester, find.text(AppStrings.start));
+    await tapAndSettle(tester, find.text('Bỏ qua'));
+
+    expect(tester.widget<SeaCafeScene>(find.byType(SeaCafeScene)).windowPlace, SeaPlace.ice);
   });
 
   testWidgets('small phone: the full-screen map fits without overflow', (tester) async {

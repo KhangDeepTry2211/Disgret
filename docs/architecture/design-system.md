@@ -82,6 +82,31 @@ Tokens: `AppButton` and `AppMotion.press` / `AppMotion.bubbleBurst` in `app_them
   feedback, not decoration.
 - Not chosen: hold-to-confirm (style 4).
 
+## Quán San Hô (feature 006, ADR-0011)
+
+Tokens: `AppCafe` (colours by day and night, positions, sizes) and `AppMotion.cafeReplyDelay` in
+`app_theme.dart`.
+
+- Where: the focus session's scene when the study place is the café (the default). Chosen in the
+  session plan sheet ("Học ở": sticker chips Biển của Gret / Quán San Hô); "Học tiếp" on Hôm nay
+  shows "ở Quán San Hô".
+- The room: wall with bunting and two lamps, a panel band, a plank floor (`SeaCafePainter`); two
+  arched windows that look out on Gret's sea (the session habit's region) at the live clarity,
+  still; the habit name and countdown ring hang on the wall like a clock (34% of the scene height,
+  120–180), between the windows.
+- Who: the owner Rùa (turtle) behind the counter on the left; three friends at tables (Ẩn · Toán,
+  Mochi · Văn, Sao · Tiếng Anh; Gret takes a seat when the student wears one of them); Gret at the
+  front table in the student's look. Sizes follow the scene height (friends 11%, 52–76; Gret 17%,
+  84–120). Each friend has a "name · subject" pill.
+- Moods: the friends study with the neutral face, smile when someone talks and during breaks;
+  Gret keeps the session mood (focused, sleeping on a break).
+- Lines: one speech bubble at a time above its speaker for 3 s, at these moments only: start
+  (owner), back after a distraction, break start and end, halfway. Never scolding.
+- Greetings: a row of small sticker chips at the bottom in the first minute and during breaks;
+  Gret says the greeting, a friend replies 1.5 s later.
+- Never shown as real people, no counts (ADR-0011). Reduced motion: nothing moves, bubbles appear
+  without fading.
+
 ## Sea map (feature 005, ADR-0010)
 
 - Full screen (`/sea-map`, `sea_map_screen.dart`), opened by the map button in the Thói quen app

@@ -79,6 +79,8 @@ flutter:
     - assets/mascot/outfits/
     - assets/mascot/crab/
     - assets/mascot/octopus/
+    - assets/mascot/turtle/
+    - assets/mascot/starfish/
     # Font Be Vietnam Pro (400, 500, 600, 700) kèm giấy phép OFL: google_fonts tự tìm file theo tên,
     # nên app hiện đúng font khi không có mạng.
     - assets/fonts/

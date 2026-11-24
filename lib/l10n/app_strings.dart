@@ -42,6 +42,50 @@ class AppStrings {
   static const String planDuration = 'Thời lượng';
   static const String planApply = 'Dùng kế hoạch này';
 
+  // ---------- 5.6 Quán San Hô ----------
+  static const String planPlace = 'Học ở';
+  static const String placeSea = 'Biển của Gret';
+  static const String placeCafe = 'Quán San Hô';
+  static const String nextPlaceCafe = 'ở Quán San Hô';
+  static String cafeSemantics(List<String> names) =>
+      'Quán San Hô: Gret đang học cùng ${names.join(', ')}';
+  static const String cafeOwnerName = 'Rùa';
+  static const String cafeOwnerRole = 'Chủ quán';
+  static const String cafeStarfishName = 'Sao';
+  static const String subjectMaths = 'Toán';
+  static const String subjectLiterature = 'Văn';
+  static const String subjectEnglish = 'Tiếng Anh';
+  static const String subjectBiology = 'Sinh học';
+  static const List<String> cafeStarted = [
+    'Chào mừng đến Quán San Hô! Bàn của bạn đây.',
+    'Vào đi, cả quán đang học nè.',
+  ];
+  static const List<String> cafeReturned = [
+    'Mừng bạn quay lại! Mình vẫn ở đây.',
+    'Quay lại rồi à? Học tiếp cùng nhau nhé.',
+    'Không sao, mình cũng hay lạc đề mà.',
+  ];
+  static const List<String> cafeBreakStarted = [
+    'Nghỉ chút thôi, uống ngụm trà nào.',
+    'Vươn vai cái đã!',
+  ];
+  static const List<String> cafeBreakEnded = ['Học tiếp thôi!', 'Hiệp mới, cố lên nào.'];
+  static const List<String> cafeHalfway = ['Được nửa đường rồi đó!', 'Bạn đang làm tốt lắm.'];
+
+  /// Ready-made greetings (FR-007) and, at the same index, the replies they can get.
+  static const List<String> cafeGreetings = [
+    'Chào cả quán!',
+    'Cố lên nhé!',
+    'Mình nghỉ chút',
+    'Cảm ơn nha!',
+  ];
+  static const List<List<String>> cafeReplies = [
+    ['Chào bạn! Ngồi đây nè.', 'Chào bạn, học vui nha!'],
+    ['Cùng cố lên!', 'Cố lên, mình cũng đang cố nè.'],
+    ['Nghỉ xíu rồi học tiếp nha.', 'Ừ, nghỉ cho khỏe.'],
+    ['Không có gì đâu!', 'Có bạn học cùng vui hơn hẳn.'],
+  ];
+
   // ---------- Motivation step ----------
   static String startMinutes(int n) => 'Bắt đầu $n phút';
   static const String smallStep = 'Chỉ 5 phút thôi';

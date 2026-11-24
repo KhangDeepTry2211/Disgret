@@ -5,7 +5,11 @@
 enum MascotSpecies {
   gret,
   crab,
-  octopus;
+  octopus,
+
+  /// 5.6 Quán San Hô only (spec 006): the owner Rùa and the friend Sao. Not in Góc của Gret.
+  turtle,
+  starfish;
 
   /// Folder of the species' body drawing.
   String get folder => 'assets/mascot/$name';
