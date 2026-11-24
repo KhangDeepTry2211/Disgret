@@ -317,6 +317,8 @@ class _PlanView extends ConsumerWidget {
             child: isReady
                 ? GradientPillButton(
                     label: AppStrings.start,
+                    // The one action that matters most here gently breathes (button style 2).
+                    breathing: true,
                     onPressed: () => _openStudy(context, ref),
                   )
                 : OutlinedButton(

@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'motion/bubble_burst.dart';
 import '../data/habit_progress.dart';
 import '../data/habit_science.dart';
 import '../data/models/habit.dart';
@@ -62,6 +63,8 @@ class _HabitTodayCardState extends ConsumerState<HabitTodayCard>
 
   Future<void> _markDone() async {
     if (!kIsWeb) HapticFeedback.lightImpact();
+    // 5.3 Bubbles rise from the card: a small celebration for a habit done (button style 3).
+    BubbleBurst.showFrom(context);
     await _check.forward(from: 0);
     if (!mounted) return;
     await _logs.setDoneToday(_habit, done: true);

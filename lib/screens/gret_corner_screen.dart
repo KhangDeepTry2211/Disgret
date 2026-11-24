@@ -10,6 +10,7 @@ import '../l10n/app_strings.dart';
 import '../providers/gret_corner_providers.dart';
 import '../providers/sea_providers.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_pill_button.dart';
 import '../widgets/mascot/mascot_view.dart';
 import '../widgets/sea/sea_painter.dart';
 import '../widgets/sea/sea_scene.dart';
@@ -246,9 +247,11 @@ class _UnlockAction extends ConsumerWidget {
         return reason(AppStrings.cornerNeedStreak(unlock.amount));
       case CornerLock.pearls:
         if (balance < unlock.price) return reason(AppStrings.cornerMissing(unlock.price - balance));
-        return FilledButton.icon(
-          icon: const Icon(AppIcons.pearl),
-          label: Text(AppStrings.cornerObtain(unlock.price)),
+        return GradientPillButton(
+          icon: AppIcons.pearl,
+          label: AppStrings.cornerObtain(unlock.price),
+          height: AppButton.compact,
+          bubbles: true,
           onPressed: () async {
             final messenger = ScaffoldMessenger.of(context);
             final navigator = Navigator.of(context);
@@ -271,13 +274,14 @@ class _UnlockAction extends ConsumerWidget {
           );
         }
         if (inUse) return reason(AppStrings.cornerChosen);
-        return FilledButton(
+        return GradientPillButton(
+          label: useLabel,
+          height: AppButton.compact,
           onPressed: () async {
             final navigator = Navigator.of(context);
             await onUse();
             navigator.pop();
           },
-          child: Text(useLabel),
         );
     }
   }

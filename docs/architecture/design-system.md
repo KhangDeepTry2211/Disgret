@@ -58,6 +58,30 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   show their end state, story pages wait for a tap, the quiz answer and the finish go through at
   once, and no distraction effect runs.
 
+## Lively buttons (feature 003, button styles 1–3 and 5)
+
+Tokens: `AppButton` and `AppMotion.press` / `AppMotion.bubbleBurst` in `app_theme.dart`.
+
+- Raised pill (style 1, `GradientPillButton`): the solid primary face stands on a darker edge
+  (primary mixed 45% towards the shadow colour, `AppButton.edge` = 5 px). While pressed, the face
+  sinks onto the edge in 70 ms and the phone gives a light tick. Disabled: flat grey, no edge.
+  Hero height 72 (large text) for "Bắt đầu"; `AppButton.compact` (52) for Lưu, Tiếp tục, the
+  onboarding "Tiếp" and the Góc của Gret buttons.
+- Breathing (style 2, `breathing: true`): the button grows to 104% and back on the `AppMotion.bob`
+  rhythm. Only the hero "Bắt đầu" on Hôm nay breathes: one invitation per screen.
+- Bubbles (style 3, `bubbles: true` or `BubbleBurst.showFrom(context)`): 7 bubbles in the tertiary
+  colour rise about 70 px from the widget and fade in 0.9 s. They are drawn in the root overlay,
+  so they keep rising when a sheet closes. Used only for "done" moments: Lưu on the summary,
+  obtaining an item with pearls, and ticking a habit card.
+- Sticker chips (style 5, `StickerChip`): a `ChoiceChip` with a pastel `AppHabitColors` background,
+  an icon and a 2 px border in its own colour when selected; it wiggles once (420 ms, at most
+  0.1 rad) when it becomes selected. Used for the Tất cả / Sáng / Chiều / Tối filter on Thói quen
+  (one row that fits a 412 dp phone, scrolls on smaller ones) and, in the large size, for the
+  reel-length and "App nào hay kéo bạn đi nhất?" answers in onboarding.
+- Reduced motion: no breathing, no bubbles, no wiggle; the press still sinks, because it is
+  feedback, not decoration.
+- Not chosen: hold-to-confirm (style 4).
+
 ## Sea map (feature 005, ADR-0010)
 
 - Full screen (`/sea-map`, `sea_map_screen.dart`), opened by the map button in the Thói quen app
@@ -88,7 +112,7 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   the same canvas, drawn in the order back, body, neck, eyes, head.
 - Bảng 12 màu pastel cho thẻ thói quen: AppHabitColors.palette trong app_theme.dart, mỗi màu có nền và màu chữ đậm cùng tông, dùng chung cho sáng và tối.
 - Màn Tạo/Sửa thói quen (habit_form_screen.dart, theo ảnh 07–11 trong design/habit_kit/): một trang cuộn, tab Thói quen / Việc một lần, tên, icon (5 chọn nhanh + "Xem tất cả" mở habit_icon_picker.dart: tìm kiếm không dấu, tab Icon / Emoji), 12 màu, Lặp lại, Làm vào, Kết thúc vào, Nhắc nhở, số phút, "Sau khi…", "Bản 2 phút", nút Lưu viên thuốc màu primary.
-- Tab Thói quen (habits_screen.dart, theo ảnh 01–06 trong design/habit_kit/): đầu màn có logo, tiêu đề, menu ⋮ (Thêm mục tiêu, Quản lý mục tiêu); 3 chế độ Theo ngày / Tuần / Tổng thể (đổi tên từ "Hôm nay" để không trùng tên tab); chip lọc Tất cả / Sáng / Chiều / Tối theo timeOfDay (thói quen "lúc nào cũng được" chỉ hiện ở Tất cả); nút tròn "+" nổi mở màn Tạo thói quen.
+- Tab Thói quen (habits_screen.dart, theo ảnh 01–06 trong design/habit_kit/): đầu màn có logo, tiêu đề, menu ⋮ (Thêm mục tiêu, Quản lý mục tiêu); 3 chế độ Theo ngày / Tuần / Tổng thể (đổi tên từ "Hôm nay" để không trùng tên tab); chip lọc Tất cả / Sáng / Chiều / Tối (sticker chips, see Lively buttons) theo timeOfDay (thói quen "lúc nào cũng được" chỉ hiện ở Tất cả); nút tròn "+" nổi mở màn Tạo thói quen.
   - Theo ngày (habit_today_card.dart): thói quen đến hạn là thẻ nền pastel, emoji/icon bên trái, tên đậm. Chạm = xong (dải ✓ trượt + rung nhẹ, thẻ chuyển xuống "Đã xong"); chạm thẻ đã xong để bỏ (trừ khi đủ phút nhờ Focus). Vuốt phải = xong, vuốt trái = "Bỏ qua" (log skip, xuống "Đã bỏ qua"). Giữ lâu: Làm bản 2 phút, Nghỉ phép, Bắt đầu Focus (chọn thói quen này cho kế hoạch rồi mở bước động lực), Xem chi tiết, Sửa, Xoá. Có phút Focus chưa đủ thì hiện "x/y phút" và vạch tiến độ mỏng.
   - Tuần (HabitWeekCard): tên, tần suất, 7 ô T2–CN; chạm ô đổi chưa làm → xong → bỏ qua → chưa làm; ngày tương lai và ngày đủ phút nhờ Focus thì khoá.
   - Tổng thể (HabitOverallCard): lưới chấm 20 tuần, màu chấm AppHabitColors.levelColor theo mức hoàn thành.

@@ -346,6 +346,32 @@ class AppStory {
   static const double segmentGap = 4;
 }
 
+/// 5.3 Lively buttons (button styles 1–3, 5): raised pill, breathing, bubbles, sticker chips.
+class AppButton {
+  AppButton._();
+
+  /// Height of the darker edge the raised pill stands on; it sinks by this much when pressed.
+  static const double edge = 5;
+  static const double edgeDarkness = 0.45;
+
+  /// Hero buttons (Bắt đầu) use the large text from this height up; others are [compact].
+  static const double heroHeight = 64;
+  static const double compact = 52;
+  static const double breathScale = 1.04;
+  static const double disabledFace = 0.12;
+  static const double disabledText = 0.38;
+
+  static const int bubbleCount = 7;
+  static const double bubbleMin = 6;
+  static const double bubbleSpread = 7;
+  static const double bubbleRise = 70;
+  static const double bubbleAlpha = 0.75;
+
+  /// Sticker chips: selected border and how far (radians) they wiggle.
+  static const double chipBorder = 2;
+  static const double chipWiggle = 0.10;
+}
+
 /// 5.5 Bản đồ biển (feature 005): ocean, islands per terrain, fog, and layout sizes.
 class AppSeaMap {
   AppSeaMap._();
@@ -457,6 +483,10 @@ class AppMotion {
   static const Duration distractionBurst = Duration(milliseconds: 900);
   static const Duration wiggle = Duration(milliseconds: 420);
 
+  /// Buttons: the raised pill sinks in [press]; bubbles rise for [bubbleBurst].
+  static const Duration press = Duration(milliseconds: 70);
+  static const Duration bubbleBurst = Duration(milliseconds: 900);
+
   /// Sea map: opening the map glides from the whole world to Gret's island; buttons glide faster.
   static const Duration mapOpen = Duration(milliseconds: 1600);
   static const Duration mapGlide = Duration(milliseconds: 600);
@@ -526,6 +556,12 @@ class AppIcons {
   static const IconData map = Icons.map_outlined;
   static const IconData zoomOut = Icons.remove_rounded;
   static const IconData locate = Icons.my_location_rounded;
+
+  /// Sticker chips: time of day filters.
+  static const IconData allDay = Icons.apps_rounded;
+  static const IconData morning = Icons.wb_sunny_outlined;
+  static const IconData afternoon = Icons.wb_twilight_rounded;
+  static const IconData evening = Icons.nightlight_outlined;
   static const IconData pointHidden = Icons.question_mark_rounded;
   static const IconData fishCave = Icons.set_meal_outlined;
   static const IconData shipwreck = Icons.sailing_outlined;

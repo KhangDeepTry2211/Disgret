@@ -16,6 +16,7 @@ import '../providers/sea_providers.dart';
 import '../router/app_router.dart';
 import '../services/time_format.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_pill_button.dart';
 import '../widgets/motion/count_up_text.dart';
 import '../widgets/sea/sea_scene.dart';
 import '../widgets/streak_card.dart';
@@ -260,9 +261,11 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     if (!_isSaved) ...[
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: FilledButton(
+                        child: GradientPillButton(
+                          label: AppStrings.save,
+                          height: AppButton.compact,
+                          bubbles: true,
                           onPressed: _isSaving ? null : _save,
-                          child: const Text(AppStrings.save),
                         ),
                       ),
                     ],

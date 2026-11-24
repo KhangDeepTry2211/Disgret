@@ -25,10 +25,25 @@ import '../widgets/empty_goal_view.dart';
 import '../widgets/goal_habit_sheets.dart';
 import '../widgets/habit_today_card.dart';
 import '../widgets/habit_week_card.dart';
+import '../widgets/sticker_chip.dart';
 
 enum _HabitsView { today, week, overall }
 
 enum _MenuAction { myHabits, addGoal, manageGoals }
+
+/// 5.3 Sticker chips: an icon and a pastel colour (AppHabitColors index) per time of day.
+const Map<HabitTimeOfDay?, IconData> _timeFilterIcons = {
+  null: AppIcons.allDay,
+  HabitTimeOfDay.morning: AppIcons.morning,
+  HabitTimeOfDay.afternoon: AppIcons.afternoon,
+  HabitTimeOfDay.evening: AppIcons.evening,
+};
+const Map<HabitTimeOfDay?, int> _timeFilterColours = {
+  null: 0,
+  HabitTimeOfDay.morning: 6,
+  HabitTimeOfDay.afternoon: 7,
+  HabitTimeOfDay.evening: 9,
+};
 
 /// Bộ lọc theo buổi; null là "Tất cả".
 const Map<HabitTimeOfDay?, String> _timeFilters = {
@@ -187,6 +202,7 @@ class _Header extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: double.infinity,
@@ -202,14 +218,16 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
+          // The column aligns to the start, so the chips line up with the habit cards.
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 for (final entry in _timeFilters.entries) ...[
-                  ChoiceChip(
-                    label: Text(entry.value),
-                    showCheckmark: false,
+                  StickerChip(
+                    label: entry.value,
+                    icon: _timeFilterIcons[entry.key],
+                    colour: _timeFilterColours[entry.key]!,
                     selected: filter == entry.key,
                     onSelected: (_) => onFilter(entry.key),
                   ),

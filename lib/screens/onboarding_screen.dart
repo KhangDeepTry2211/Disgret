@@ -26,6 +26,7 @@ import '../widgets/mascot/mascot_bubbles.dart';
 import '../widgets/mascot/mascot_view.dart';
 import '../widgets/motion/staggered_entrance.dart';
 import '../widgets/quiz_question_view.dart';
+import '../widgets/sticker_chip.dart';
 import '../widgets/sea/sea_scene.dart';
 
 /// What one onboarding page shows.
@@ -307,18 +308,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       children: [
         const _GretAsks(text: AppStrings.reelLengthQuestion),
         const SizedBox(height: AppSpacing.lg),
-        Row(
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
           children: [
-            for (final seconds in _reelLengths) ...[
-              if (seconds != _reelLengths.first) const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _ReelLengthPill(
-                  label: AppStrings.reelSeconds(seconds),
-                  isSelected: seconds == _reelLength,
-                  onTap: () => setState(() => _reelLength = seconds),
-                ),
+            for (var i = 0; i < _reelLengths.length; i++)
+              StickerChip(
+                label: AppStrings.reelSeconds(_reelLengths[i]),
+                icon: AppIcons.reels,
+                colour: const [3, 0, 9][i],
+                large: true,
+                selected: _reelLengths[i] == _reelLength,
+                onSelected: (_) => setState(() => _reelLength = _reelLengths[i]),
               ),
-            ],
           ],
         ),
       ],
@@ -342,10 +345,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
           children: [
-            for (final MapEntry(key: name, value: packages)
-                in BlockedAppsRepository.onboardingApps.entries)
-              FilterChip(
-                label: Text(name),
+            for (final (i, MapEntry(key: name, value: packages))
+                in BlockedAppsRepository.onboardingApps.entries.indexed)
+              StickerChip(
+                label: name,
+                colour: const [8, 7, 9, 0, 5][i % 5],
+                large: true,
                 selected: _blockedApps.containsAll(packages),
                 onSelected: (selected) => _toggleApp(packages, selected),
               ),
@@ -400,7 +405,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         if (nextLabel != null) ...[
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: FilledButton(onPressed: _saving ? null : _goNext, child: Text(nextLabel)),
+            child: GradientPillButton(
+              label: nextLabel,
+              height: AppButton.compact,
+              onPressed: _saving ? null : _goNext,
+            ),
           ),
         ],
       ],
@@ -560,47 +569,6 @@ class _GretAsks extends StatelessWidget {
           child: ThoughtBubble(text: text, style: Theme.of(context).textTheme.titleMedium),
         ),
       ],
-    );
-  }
-}
-
-/// One of the three reel lengths, as a large pill.
-class _ReelLengthPill extends StatelessWidget {
-  const _ReelLengthPill({required this.label, required this.isSelected, required this.onTap});
-
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    return Semantics(
-      container: true,
-      button: true,
-      selected: isSelected,
-      child: Material(
-        color: isSelected ? scheme.primary : scheme.surfaceContainer,
-        shape: StadiumBorder(
-          side: BorderSide(color: isSelected ? scheme.primary : scheme.outlineVariant),
-        ),
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const StadiumBorder(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: isSelected ? scheme.onPrimary : scheme.onSurface,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

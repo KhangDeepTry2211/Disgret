@@ -18,6 +18,7 @@ import '../router/app_router.dart';
 import '../services/time_format.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_dialogs.dart';
+import '../widgets/gradient_pill_button.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/sea/distraction_swat.dart';
 import '../widgets/sea/sea_scene.dart';
@@ -111,9 +112,10 @@ class _RunningView extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           if (onBreak) ...[
-            FilledButton(
+            GradientPillButton(
+              label: AppStrings.continueLabel,
+              height: AppButton.compact,
               onPressed: notifier.resumeFromBreak,
-              child: const Text(AppStrings.continueLabel),
             ),
             const SizedBox(height: AppSpacing.sm),
           ],

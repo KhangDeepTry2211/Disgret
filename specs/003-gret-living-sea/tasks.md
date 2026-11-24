@@ -143,6 +143,12 @@ Design: `docs/superpowers/specs/2026-11-23-story-onboarding-design.md`; spec FR-
 - [X] T028 Quickstart scenario 8 (upgrade from the previous APK keeps all data); mark spec status
       "Implemented". Done 2026-11-24: the new APK was installed over the lead's existing test data
       several times; goals, habits, sessions and the profile were kept.
+- [X] T029 [P] Lively buttons, chosen by the lead from five styles (1, 2, 3 and 5; not 4
+      hold-to-confirm): raised `GradientPillButton` that sinks when pressed, breathing hero
+      "Bắt đầu", `BubbleBurst` for done moments (Lưu, obtain with pearls, habit tick) and
+      `StickerChip` for the Thói quen filter and onboarding answers; `AppButton` tokens; reduced
+      motion keeps only the press. Tests in `test/lively_buttons_test.dart`; checked on
+      Pixel_8_API_35 on 2026-11-24; documented in design-system.md "Lively buttons".
 
 ## Dependencies & order
 
