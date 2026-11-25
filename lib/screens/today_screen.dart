@@ -46,6 +46,7 @@ class TodayScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final plan = ref.watch(sessionPlanProvider);
     final now = ref.watch(clockProvider)();
+    final name = ref.watch(profileProvider)?.displayName ?? '';
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -75,8 +76,14 @@ class TodayScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppStrings.greeting(now), style: theme.textTheme.bodySmall),
+                  // 5.1 "DisGret" first, then the greeting with the student's name (spec 007).
                   const Text(AppStrings.appName, overflow: TextOverflow.ellipsis),
+                  Text(
+                    AppStrings.greetingFor(now, name),
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),

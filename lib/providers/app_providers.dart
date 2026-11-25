@@ -78,6 +78,10 @@ class ProfileNotifier extends Notifier<UserProfile?> {
   /// Bật hoặc tắt chế độ demo trong Cài đặt.
   Future<void> setDemoMode(bool enabled) => _save(_currentOrDefault.copyWith(demoMode: enabled));
 
+  /// 5.1 Tên gọi in Cài đặt (spec 007); cleaned before it is kept.
+  Future<void> setDisplayName(String raw) =>
+      _save(_currentOrDefault.copyWith(displayName: UserProfile.cleanName(raw)));
+
   UserProfile get _currentOrDefault =>
       state ??
       const UserProfile(motivationTypes: [], preferredReelLength: UserProfile.defaultReelLength);

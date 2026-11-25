@@ -32,11 +32,16 @@ Future<void> _enterField(WidgetTester tester, String label, String text) async {
   await tester.pump();
 }
 
-/// From the first story page to the first quiz question.
+/// From the first story page to the first quiz question (name left empty, reel length kept).
 Future<void> _toQuiz(WidgetTester tester) async {
   await tapAndSettle(tester, find.text(AppStrings.storySkip));
   await tapAndSettle(tester, find.text(AppStrings.continueLabel));
+  await tapAndSettle(tester, find.text(AppStrings.continueLabel));
 }
+
+/// Gret's question about the name, in its thought bubble (spec 007).
+Finder get _nameQuestion =>
+    find.descendant(of: find.byType(ThoughtBubble), matching: find.text(AppStrings.nameQuestion));
 
 /// Two "career" and two "prove yourself" answers.
 Future<void> _answerQuiz(WidgetTester tester) async {
@@ -121,7 +126,7 @@ void main() {
         if (page == 2) expect(_clarity(tester), greaterThanOrEqualTo(70), reason: 'Fish return');
         await tapAndSettle(tester, find.text(AppStrings.continueLabel));
       }
-      expect(find.text(AppStrings.reelLengthQuestion), findsOneWidget);
+      expect(_nameQuestion, findsOneWidget);
 
       // System Back goes one page back.
       await tester.binding.handlePopRoute();
@@ -145,7 +150,7 @@ void main() {
       await pumpApp(tester);
 
       await tapAndSettle(tester, find.text(AppStrings.storySkip));
-      expect(find.text(AppStrings.reelLengthQuestion), findsOneWidget);
+      expect(_nameQuestion, findsOneWidget);
       expect(find.text(AppStrings.storySkip), findsNothing);
     });
 
@@ -184,11 +189,31 @@ void main() {
   });
 
   group('Questions', () {
+    testWidgets('Gret asks for a name after the story; it is saved when onboarding ends', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+      await tapAndSettle(tester, find.text(AppStrings.storySkip));
+      expect(_nameQuestion, findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '  Khôi ');
+      await tapAndSettle(tester, find.text(AppStrings.continueLabel));
+      await tapAndSettle(tester, find.text(AppStrings.continueLabel));
+      await _answerQuiz(tester);
+      await tapAndSettle(tester, find.text(AppStrings.continueLabel));
+      await _fillFirstGoal(tester);
+      await tapAndSettle(tester, find.text(AppStrings.enterApp));
+
+      expect(ProfileRepository().profile?.displayName, 'Khôi');
+      expect(find.textContaining(', Khôi'), findsOneWidget, reason: 'Hôm nay greets by name');
+    });
+
     testWidgets('The reel length is asked by Gret, kept when going back and saved at the end', (
       tester,
     ) async {
       await pumpApp(tester);
       await tapAndSettle(tester, find.text(AppStrings.storySkip));
+      await tapAndSettle(tester, find.text(AppStrings.continueLabel)); // No name.
       expect(
         find.descendant(
           of: find.byType(ThoughtBubble),
@@ -212,6 +237,7 @@ void main() {
 
       expect(find.text(AppStrings.start), findsOneWidget);
       expect(ProfileRepository().profile?.preferredReelLength, 60);
+      expect(ProfileRepository().profile?.displayName, '');
       expect(GoalRepository().getAll().single.title, 'Qua môn Toán');
       expect(HabitRepository().getAll().single.name, 'Làm đề');
     });

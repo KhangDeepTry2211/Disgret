@@ -30,7 +30,7 @@ import '../widgets/sticker_chip.dart';
 import '../widgets/sea/sea_scene.dart';
 
 /// What one onboarding page shows.
-enum _PageKind { story, reelLength, quiz, apps, goal }
+enum _PageKind { story, name, reelLength, quiz, apps, goal }
 
 class _Page {
   const _Page(this.kind, [this.index = 0]);
@@ -57,6 +57,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   final _goalReason = TextEditingController();
   final _habitName = TextEditingController();
   final _habitMinutes = TextEditingController(text: '${HabitFormFields.defaultMinutes}');
+
+  /// 5.1 Tên gọi (spec 007); replaying the introduction starts from the current name.
+  final _name = TextEditingController();
   final List<MotivationType?> _answers = List.filled(motivationQuestions.length, null);
 
   /// Turns a story page by itself; it fills the current progress segment.
@@ -91,10 +94,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   void initState() {
     super.initState();
     _reelLength = ref.read(profileProvider)?.preferredReelLength ?? UserProfile.defaultReelLength;
+    _name.text = ref.read(profileProvider)?.displayName ?? '';
     _needsFirstGoal = ref.read(goalsProvider).isEmpty;
     _blockedApps = {...ref.read(blockedAppsProvider)};
     _pages = [
       for (var i = 0; i < _StoryPage.count; i++) _Page(_PageKind.story, i),
+      // Gret has just said hello: it asks the student's name first (spec 007).
+      const _Page(_PageKind.name),
       const _Page(_PageKind.reelLength),
       for (var i = 0; i < motivationQuestions.length; i++) _Page(_PageKind.quiz, i),
       // Reminders when a distracting app opens only exist on Android (spec 003 FR-011a).
@@ -117,6 +123,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     _goalReason.dispose();
     _habitName.dispose();
     _habitMinutes.dispose();
+    _name.dispose();
     super.dispose();
   }
 
@@ -199,6 +206,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             preferredReelLength: _reelLength,
             // Xem lại onboarding không được tắt chế độ demo đang bật.
             demoMode: ref.read(profileProvider)?.demoMode ?? false,
+            displayName: UserProfile.cleanName(_name.text),
           ),
         );
     if (!mounted) return;
@@ -289,6 +297,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       key: ValueKey(_step),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: switch (_page.kind) {
+        _PageKind.name => _buildName(),
         _PageKind.reelLength => _buildReelLength(),
         _PageKind.quiz => QuizQuestionView(
           questionIndex: _page.index,
@@ -299,6 +308,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         _PageKind.goal => _buildFirstGoal(context),
         _PageKind.story => const SizedBox.shrink(),
       },
+    );
+  }
+
+  /// 5.1 Gret asks what to call the student; leaving it empty is fine (spec 007).
+  Widget _buildName() {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _GretAsks(text: AppStrings.nameQuestion),
+        const SizedBox(height: AppSpacing.lg),
+        TextField(
+          controller: _name,
+          textCapitalization: TextCapitalization.words,
+          maxLength: UserProfile.maxNameLength,
+          decoration: const InputDecoration(
+            labelText: AppStrings.nameLabel,
+            hintText: AppStrings.nameHint,
+          ),
+        ),
+        Text(
+          AppStrings.namePrivacy,
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+      ],
     );
   }
 

@@ -131,10 +131,12 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
 ### Trên lớp
 
 1. **Onboarding.** Mở DisGret → 4 trang story Gret kể về app (tự lật sau 4 giây, chạm phải/trái
-   để sang/lùi, **Bỏ qua** để vào thẳng câu hỏi) → chọn độ dài reel → **Tiếp tục** → trả lời 4
+   để sang/lùi, **Bỏ qua** để vào thẳng câu hỏi) → Gret hỏi tên gọi, nhập "Khôi" (để trống cũng
+   được) → **Tiếp tục** → chọn độ dài reel → **Tiếp tục** → trả lời 4
    câu quiz động lực trong khung suy nghĩ của Gret → chọn app hay kéo mình đi → **Tiếp tục**.
    Ở bước mục tiêu: nhập mục tiêu (ví dụ "Qua môn Tư Duy Tính Toán"), lý do, thói quen "Ôn bài",
-   số phút tối thiểu chọn **Tự nhập → 1** → **Vào DisGret**.
+   số phút tối thiểu chọn **Tự nhập → 1** → **Vào DisGret**: đầu màn Hôm nay ghi "DisGret" và
+   "Chào buổi sáng, Khôi" (đổi tên trong **Cài đặt → Tên gọi**).
    > Vì sao 1 phút: trong phiên "5 phút" của kịch bản, thời gian ở YouTube và chờ ở màn chặn bị trừ
    > vào thời gian tập trung, nên phiên chỉ còn khoảng 1–2 phút tập trung thật. Mức tối thiểu
    > 1 phút đảm bảo cuối phiên thói quen hoàn thành và streak tăng.

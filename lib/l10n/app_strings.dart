@@ -12,6 +12,7 @@ class AppStrings {
   static const String close = 'Đóng';
   static const String save = 'Lưu';
   static const String back = 'Quay lại';
+  static const String cancel = 'Hủy';
   static const String backToToday = 'Về Hôm nay';
 
   // ---------- Tabs (5.1) ----------
@@ -35,6 +36,13 @@ class AppStrings {
   static String identity(String identity) => 'Tôi là người $identity';
   static String minutes(int n) => '$n phút';
   static String demoHint(int seconds) => 'Chế độ demo: 1 phút chỉ dài $seconds giây';
+
+  // ---------- 5.1 Tên gọi (spec 007) ----------
+  static const String nameQuestion = 'Bạn muốn Gret gọi bạn là gì?';
+  static const String nameLabel = 'Tên gọi';
+  static const String nameHint = 'Biệt danh cũng được, để trống cũng không sao';
+  static const String nameNotSet = 'Chưa đặt';
+  static const String namePrivacy = 'Chỉ lưu trên máy này, để Gret chào bạn.';
 
   // ---------- Plan sheet ----------
   static const String planSheetTitle = 'Phiên học tiếp theo';
@@ -150,6 +158,10 @@ class AppStrings {
   static const String greetingEvening = 'Chào buổi tối';
 
   /// Greeting by time of day: before 11:00 morning, before 18:00 afternoon, then evening.
+  /// 5.1 The header greeting, followed by the student's name when there is one (spec 007).
+  static String greetingFor(DateTime now, String name) =>
+      name.isEmpty ? greeting(now) : '${greeting(now)}, $name';
+
   static String greeting(DateTime now) => now.hour < 11
       ? greetingMorning
       : now.hour < 18

@@ -81,7 +81,8 @@ Future<void> _enterField(WidgetTester tester, String label, String text) async {
 /// Từ trang story đầu tiên tới câu quiz đầu tiên: bỏ qua phần kể chuyện, giữ độ dài reel.
 Future<void> _skipToQuiz(WidgetTester tester) async {
   await _tap(tester, find.text('Bỏ qua'));
-  await _tap(tester, find.text('Tiếp tục'));
+  await _tap(tester, find.text('Tiếp tục')); // Tên gọi (spec 007), left empty.
+  await _tap(tester, find.text('Tiếp tục')); // Độ dài reel.
 }
 
 /// Trả lời đủ 4 câu quiz: 2 câu "sự nghiệp", 2 câu "chứng minh bản thân".

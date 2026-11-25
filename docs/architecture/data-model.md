@@ -6,7 +6,7 @@
 > translate a section to English when you substantially edit it (Constitution: docs in English).
 
 ## Mô hình dữ liệu (6.2)
-- UserProfile: motivationTypes (tiền bạc, gia đình, sự nghiệp, chứng minh bản thân, tự do), preferredReelLength, demoMode
+- UserProfile: motivationTypes (tiền bạc, gia đình, sự nghiệp, chứng minh bản thân, tự do), preferredReelLength, demoMode, displayName (feature 007, ADR-0012: optional name for the Hôm nay greeting; trimmed, inner spaces collapsed, at most 20 code points; missing → empty; never in events or exports)
 - Goal: title, reason, identity (câu sau "Tôi là người…", mặc định rỗng)
 - Habit: goalId, name, minMinutesPerDay, cue (phần sau "Sau khi…"), place (phần sau "Tại…", form mới không còn ô này nhưng dữ liệu cũ vẫn giữ), minimalVersion (bản 2 phút), icon (khoá trong AppIcons.habitIcons hoặc một emoji, mặc định "book"), type (regular / oneTime), colorIndex (0–11, bảng AppHabitColors.palette), repeat (daily / weekly / monthly), daysPerWeek (hằng tuần theo số ngày, dùng khi weekdays rỗng), weekdays (1 = T2 … 7 = CN), monthDays (1–31), timeOfDay (morning / afternoon / evening / anytime), endRule (never / onDate / afterDays) + endDate + endAfterDays, reminderEnabled + reminderTime "HH:mm" (chỉ lưu, chưa gửi thông báo), sortOrder, startDate (ngày tạo), dueDate (việc một lần), archived ("Xoá nhưng giữ lịch sử"). Mọi trường mới đều có mặc định để đọc được dữ liệu cũ; enum lạ thì lấy mặc định
 - HabitLog: habitId, date (chỉ ngày), source (manual, focus, minimal, freeze, skip), minutes, note

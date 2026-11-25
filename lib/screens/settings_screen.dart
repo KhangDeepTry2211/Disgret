@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models/user_profile.dart';
+import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../router/app_router.dart';
@@ -42,6 +43,15 @@ class SettingsScreen extends ConsumerWidget {
     context.go(AppRoutes.onboarding);
   }
 
+  /// 5.1 Edits the name in a small dialog; "Hủy" keeps it as it was.
+  Future<void> _editName(BuildContext context, WidgetRef ref, String current) async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _NameDialog(initial: current),
+    );
+    if (name != null) await ref.read(profileProvider.notifier).setDisplayName(name);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -53,6 +63,18 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
+          // 5.1 Tên gọi (spec 007): only for the greeting on Hôm nay.
+          Card(
+            child: ListTile(
+              leading: const Icon(AppIcons.name),
+              title: const Text(AppStrings.nameLabel),
+              subtitle: Text(
+                (profile?.displayName ?? '').isEmpty ? AppStrings.nameNotSet : profile!.displayName,
+              ),
+              onTap: () => _editName(context, ref, profile?.displayName ?? ''),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
           Text('Động lực của bạn', style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
@@ -156,6 +178,55 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 5.1 Tên gọi (spec 007): returns the typed name on "Lưu", null on "Hủy". Owns its text controller
+/// so it lives as long as the dialog, closing animation included.
+class _NameDialog extends StatefulWidget {
+  const _NameDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_NameDialog> createState() => _NameDialogState();
+}
+
+class _NameDialogState extends State<_NameDialog> {
+  late final TextEditingController _controller = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text(AppStrings.nameLabel),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        maxLength: UserProfile.maxNameLength,
+        decoration: const InputDecoration(
+          hintText: AppStrings.nameHint,
+          helperText: AppStrings.namePrivacy,
+          helperMaxLines: 2,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text(AppStrings.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: const Text(AppStrings.save),
+        ),
+      ],
     );
   }
 }

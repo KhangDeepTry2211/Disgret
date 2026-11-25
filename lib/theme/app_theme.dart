@@ -594,6 +594,7 @@ class AppIcons {
   static const IconData home = Icons.home_outlined;
   static const IconData reels = Icons.play_circle_outline_rounded;
   static const IconData focus = Icons.timer_outlined;
+  static const IconData name = Icons.badge_outlined;
 
   /// 5.6 Study places: Gret's sea and Quán San Hô.
   static const IconData sea = Icons.waves_rounded;
