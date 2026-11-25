@@ -78,9 +78,16 @@ Tokens: `AppButton` and `AppMotion.press` / `AppMotion.bubbleBurst` in `app_them
   0.1 rad) when it becomes selected. Used for the Tất cả / Sáng / Chiều / Tối filter on Thói quen
   (one row that fits a 412 dp phone, scrolls on smaller ones) and, in the large size, for the
   reel-length and "App nào hay kéo bạn đi nhất?" answers in onboarding.
-- Reduced motion: no breathing, no bubbles, no wiggle; the press still sinks, because it is
-  feedback, not decoration.
-- Not chosen: hold-to-confirm (style 4).
+- Rippling "+" (style F, `RippleAddButton`, chosen from the second round of references): the
+  round "+" on Thói quen (`AppButton.fab` 60) is raised like the pill and sinks when pressed; two
+  rings in the tertiary colour ripple out to 1.5× (so they stay on screen) and fade
+  (`AppMotion.ripple` 1.8 s, half a period apart). While there is no habit yet they keep rippling
+  as an invitation; otherwise they
+  ripple `AppButton.ripplePulses` (3) times when the button appears and stop.
+- Reduced motion: no breathing, no bubbles, no wiggle, no rings; the press still sinks, because it
+  is feedback, not decoration.
+- Not chosen: hold-to-confirm (style 4); from the second round, Gret peeking, the water-filled
+  button, the chunky game button, the two-line button and the pebble button.
 
 ## Quán San Hô (feature 006, ADR-0011)
 

@@ -149,6 +149,10 @@ Design: `docs/superpowers/specs/2026-11-23-story-onboarding-design.md`; spec FR-
       `StickerChip` for the Thói quen filter and onboarding answers; `AppButton` tokens; reduced
       motion keeps only the press. Tests in `test/lively_buttons_test.dart`; checked on
       Pixel_8_API_35 on 2026-11-24; documented in design-system.md "Lively buttons".
+- [X] T030 [P] Rippling "+" on Thói quen (style F from the second round of references):
+      `RippleAddButton`, raised and sinking, two rings rippling out; endless while there is no
+      habit, three pulses otherwise; none with reduced motion. Tests in
+      `test/ripple_add_button_test.dart`. Not checked on the emulator (it was closed).
 
 ## Dependencies & order
 

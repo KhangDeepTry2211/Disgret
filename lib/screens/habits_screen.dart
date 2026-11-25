@@ -25,6 +25,7 @@ import '../widgets/empty_goal_view.dart';
 import '../widgets/goal_habit_sheets.dart';
 import '../widgets/habit_today_card.dart';
 import '../widgets/habit_week_card.dart';
+import '../widgets/ripple_add_button.dart';
 import '../widgets/sticker_chip.dart';
 
 enum _HabitsView { today, week, overall }
@@ -174,10 +175,11 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
       body: body,
       floatingActionButton: goals.isEmpty
           ? null
-          : FloatingActionButton(
+          // 5.3 Style F: rings ripple out of the "+"; they keep going until the first habit.
+          : RippleAddButton(
               tooltip: 'Tạo thói quen',
+              keepRippling: habits.isEmpty,
               onPressed: () => context.push(AppRoutes.habitForm(goals.first.id)),
-              child: const Icon(AppIcons.add),
             ),
     );
   }

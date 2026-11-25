@@ -367,6 +367,14 @@ class AppButton {
   static const double bubbleRise = 70;
   static const double bubbleAlpha = 0.75;
 
+  /// Round "+" button (style F): its size, and the rings that ripple out from it: how many
+  /// pulses when there are habits already, how far they grow, how strong they start.
+  static const double fab = 60;
+  static const int ripplePulses = 3;
+  static const double rippleScale = 1.5;
+  static const double rippleAlpha = 0.6;
+  static const double rippleStroke = 2;
+
   /// Sticker chips: selected border and how far (radians) they wiggle.
   static const double chipBorder = 2;
   static const double chipWiggle = 0.10;
@@ -569,6 +577,9 @@ class AppMotion {
   /// Buttons: the raised pill sinks in [press]; bubbles rise for [bubbleBurst].
   static const Duration press = Duration(milliseconds: 70);
   static const Duration bubbleBurst = Duration(milliseconds: 900);
+
+  /// One ring rippling out of the round "+" button (style F).
+  static const Duration ripple = Duration(milliseconds: 1800);
 
   /// Sea map: opening the map glides from the whole world to Gret's island; buttons glide faster.
   static const Duration mapOpen = Duration(milliseconds: 1600);
