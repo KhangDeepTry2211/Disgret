@@ -25,6 +25,8 @@ class SeaScene extends StatefulWidget {
     this.foreground,
     this.gretReaction = 0,
     this.look = const GretLook(),
+    this.gretAlignment = SeaScene.defaultGretAlignment,
+    this.skyShare = SeaPainter.defaultSkyShare,
     super.key,
   });
 
@@ -46,8 +48,14 @@ class SeaScene extends StatefulWidget {
   /// The mascot, its outfit and the sea place (Góc của Gret, spec 004).
   final GretLook look;
 
-  /// Where Gret swims, as an alignment inside the scene.
-  static const Alignment gretAlignment = Alignment(0, 0.45);
+  /// Where Gret swims by default, as an alignment inside the scene.
+  static const Alignment defaultGretAlignment = Alignment(0, 0.45);
+
+  /// Where Gret swims in this scene (Hôm nay puts Gret higher, spec 010).
+  final Alignment gretAlignment;
+
+  /// Share of the scene above the water.
+  final double skyShare;
 
   @override
   State<SeaScene> createState() => _SeaSceneState();
@@ -102,13 +110,14 @@ class _SeaSceneState extends State<SeaScene> with SingleTickerProviderStateMixin
           clarity: clarity,
           isNight: isNight,
           place: widget.look.place,
+          skyShare: widget.skyShare,
         ),
         child: child,
       ),
       child: Stack(
         children: [
           Align(
-            alignment: SeaScene.gretAlignment,
+            alignment: widget.gretAlignment,
             child: ReactionWiggle(
               trigger: widget.gretReaction,
               child: MascotView(

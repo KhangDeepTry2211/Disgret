@@ -107,25 +107,29 @@ class TodayScreen extends ConsumerWidget {
   }
 }
 
-/// The sea with Gret in it. Tapping Gret shows a short line for its mood for a few seconds and
-/// never starts a session (spec 003 FR-010).
-class _SeaHero extends ConsumerStatefulWidget {
-  const _SeaHero({required this.topInset});
+/// The sea with Gret in it, filling Hôm nay and standing still behind the content (spec 010).
+/// Tapping Gret shows a short line for its mood for a few seconds and never starts a session
+/// (spec 003 FR-010). The content scrolls above the sea, so it gets [talk] for its Gret area.
+class _SeaBackdrop extends ConsumerStatefulWidget {
+  const _SeaBackdrop({required this.topInset, required this.builder});
 
   /// Height of the status bar and header drawn over the sky.
   final double topInset;
 
+  /// The content over the sea; [talk] makes Gret say a line.
+  final Widget Function(VoidCallback talk) builder;
+
   @override
-  ConsumerState<_SeaHero> createState() => _SeaHeroState();
+  ConsumerState<_SeaBackdrop> createState() => _SeaBackdropState();
 }
 
-class _SeaHeroState extends ConsumerState<_SeaHero> {
+class _SeaBackdropState extends ConsumerState<_SeaBackdrop> {
   final math.Random _random = math.Random();
   Timer? _hide;
   String? _line;
 
-  void _talk(MascotMood mood) {
-    final lines = MascotLook.lines(mood);
+  void _talk() {
+    final lines = MascotLook.lines(ref.read(seaStateProvider).mood);
     _hide?.cancel();
     setState(() => _line = lines[_random.nextInt(lines.length)]);
     _hide = Timer(AppMotion.speechBubble, () {
@@ -144,19 +148,44 @@ class _SeaHeroState extends ConsumerState<_SeaHero> {
     final sea = ref.watch(seaStateProvider);
     final line = _line;
 
-    return SeaScene(
-      clarity: sea.clarity,
-      mood: sea.mood,
-      variant: SeaSceneVariant.full,
-      look: ref.watch(gretLookProvider),
-      onMascotTap: () => _talk(sea.mood),
-      // Below the header, so the line is never hidden behind it.
-      overlay: line == null
-          ? null
-          : Padding(
-              padding: EdgeInsets.only(top: widget.topInset),
-              child: SpeechBubble(text: line),
-            ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: SeaScene(
+            clarity: sea.clarity,
+            mood: sea.mood,
+            variant: SeaSceneVariant.full,
+            look: ref.watch(gretLookProvider),
+            gretAlignment: AppMascot.todayGretAlignment,
+            skyShare: AppMascot.todaySkyShare,
+            onMascotTap: _talk,
+            // Below the header, so the line is never hidden behind it.
+            overlay: line == null
+                ? null
+                : Padding(
+                    padding: EdgeInsets.only(top: widget.topInset),
+                    child: SpeechBubble(text: line),
+                  ),
+          ),
+        ),
+        Positioned.fill(child: widget.builder(_talk)),
+      ],
+    );
+  }
+}
+
+/// The transparent top of the content: Gret shows through it, and tapping it taps Gret.
+class _GretArea extends StatelessWidget {
+  const _GretArea({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox(height: MediaQuery.sizeOf(context).height * AppMascot.todayCardsTop),
     );
   }
 }
@@ -196,7 +225,7 @@ class _CornerButton extends ConsumerWidget {
   }
 }
 
-/// Empty states keep their single call to action, below a calm sea.
+/// Empty states keep their single call to action, on a card over a calm full-screen sea.
 class _WithSea extends StatelessWidget {
   const _WithSea({required this.child});
 
@@ -207,41 +236,43 @@ class _WithSea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height * AppMascot.emptySeaShare;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return Column(
+    return Stack(
       children: [
-        SizedBox(
-          height: height,
-          child: const SeaScene(
+        const Positioned.fill(
+          child: SeaScene(
             clarity: _calmClarity,
             mood: MascotMood.neutral,
             variant: SeaSceneVariant.full,
+            gretAlignment: AppMascot.todayGretAlignment,
+            skyShare: AppMascot.todaySkyShare,
           ),
         ),
-        Expanded(child: _Sheet(child: child)),
-      ],
-    );
-  }
-}
-
-/// The background the cards sit on: it overlaps the bottom edge of the sea with rounded corners.
-class _Sheet extends StatelessWidget {
-  const _Sheet({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: const Offset(0, -AppRadius.hero),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: AppRadius.sheetTop,
+        Column(
+          children: [
+            SizedBox(height: MediaQuery.sizeOf(context).height * AppMascot.todayCardsTop),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.md + bottomInset,
+                ),
+                child: DecoratedBox(
+                  key: const ValueKey('today-empty-card'),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: AppRadius.cardBorder,
+                  ),
+                  child: ClipRRect(borderRadius: AppRadius.cardBorder, child: child),
+                ),
+              ),
+            ),
+          ],
         ),
-        child: child,
-      ),
+      ],
     );
   }
 }
@@ -270,29 +301,20 @@ class _PlanView extends ConsumerWidget {
     final clarity = ref.watch(seaStateProvider.select((sea) => sea.clarity));
     // The body runs behind the header: its top padding is the status bar plus the header.
     final topInset = MediaQuery.paddingOf(context).top;
-    final seaHeight = math.max(
-      AppMascot.todaySeaMin,
-      MediaQuery.sizeOf(context).height * AppMascot.todaySeaShare,
-    );
+    // The floating tab bar sits over the bottom of the screen (spec 010).
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return Column(
-      children: [
-        Expanded(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              SizedBox(
-                height: seaHeight,
-                child: _SeaHero(topInset: topInset),
-              ),
-              _Sheet(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    0,
-                  ),
+    return _SeaBackdrop(
+      topInset: topInset,
+      builder: (talk) => Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _GretArea(onTap: talk),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   child: StaggeredEntrance(
                     children: [
                       Row(
@@ -313,30 +335,39 @@ class _PlanView extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: SizedBox(
-            width: double.infinity,
-            // Exactly one control leads into a session (FR-004, SC-002). When today is already
-            // done or a rest day, the extra session is a secondary action.
-            child: isReady
-                ? GradientPillButton(
-                    label: AppStrings.start,
-                    // The one action that matters most here gently breathes (button style 2).
-                    breathing: true,
-                    onPressed: () => _openStudy(context, ref),
-                  )
-                : OutlinedButton(
-                    onPressed: () => _openStudy(context, ref),
-                    child: Text(AppStrings.extraSession, style: theme.textTheme.titleSmall),
-                  ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md + bottomInset,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              // Exactly one control leads into a session (FR-004, SC-002). When today is already
+              // done or a rest day, the extra session is a secondary action.
+              child: isReady
+                  ? GradientPillButton(
+                      label: AppStrings.start,
+                      // The one action that matters most here gently breathes (button style 2).
+                      breathing: true,
+                      onPressed: () => _openStudy(context, ref),
+                    )
+                  : OutlinedButton(
+                      // On the sea it needs its own background to stay readable.
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.surfaceContainer,
+                      ),
+                      onPressed: () => _openStudy(context, ref),
+                      child: Text(AppStrings.extraSession, style: theme.textTheme.titleSmall),
+                    ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

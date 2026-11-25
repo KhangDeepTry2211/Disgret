@@ -24,7 +24,13 @@ class StatsView extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stackTrace) => const _ErrorMessage(),
       data: (stats) => ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          // The floating tab bar covers the bottom of the screen (spec 010).
+          AppSpacing.md + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
           _FocusCard(stats: stats),
           const SizedBox(height: AppSpacing.md),

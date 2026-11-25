@@ -16,32 +16,58 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // 5.1 (spec 010): the tab bar floats over the content, inset from the edges with rounded
+    // corners; the body runs behind it and screens pad their last controls by
+    // MediaQuery.paddingOf(context).bottom.
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const RunningSessionBanner(),
-          DecoratedBox(
-            // Đường kẻ mảnh phân tách thanh tab với nội dung.
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-            ),
-            child: NavigationBar(
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: (index) => navigationShell.goBranch(
-                index,
-                // Bấm lại tab đang mở thì quay về đầu tab đó.
-                initialLocation: index == navigationShell.currentIndex,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(borderRadius: AppRadius.cardBorder, child: const RunningSessionBanner()),
+              const SizedBox(height: AppSpacing.xs),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: AppRadius.pillBorder,
+                  border: Border.all(color: theme.colorScheme.outline),
+                ),
+                child: ClipRRect(
+                  borderRadius: AppRadius.pillBorder,
+                  child: NavigationBar(
+                    height: AppShell.tabBarHeight,
+                    backgroundColor: AppColors.transparent,
+                    elevation: 0,
+                    selectedIndex: navigationShell.currentIndex,
+                    onDestinationSelected: (index) => navigationShell.goBranch(
+                      index,
+                      // Bấm lại tab đang mở thì quay về đầu tab đó.
+                      initialLocation: index == navigationShell.currentIndex,
+                    ),
+                    destinations: const [
+                      NavigationDestination(icon: Icon(AppIcons.home), label: AppStrings.tabToday),
+                      NavigationDestination(
+                        icon: Icon(AppIcons.habits),
+                        label: AppStrings.tabHabits,
+                      ),
+                      NavigationDestination(
+                        icon: Icon(AppIcons.stats),
+                        label: AppStrings.tabProgress,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              destinations: const [
-                NavigationDestination(icon: Icon(AppIcons.home), label: AppStrings.tabToday),
-                NavigationDestination(icon: Icon(AppIcons.habits), label: AppStrings.tabHabits),
-                NavigationDestination(icon: Icon(AppIcons.stats), label: AppStrings.tabProgress),
-              ],
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

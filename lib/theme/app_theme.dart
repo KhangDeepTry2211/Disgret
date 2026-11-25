@@ -323,11 +323,12 @@ class AppMascot {
   /// Height of the sea scene variants.
   static const double heroSceneHeight = 210;
 
-  /// Hôm nay: the sea fills the top of the screen behind the header (share of the screen
-  /// height, at least [todaySeaMin]); the cards sit on a sheet that overlaps its bottom edge.
-  static const double todaySeaShare = 0.46;
-  static const double todaySeaMin = 300;
-  static const double emptySeaShare = 0.38;
+  /// Hôm nay (spec 010): the sea fills the whole screen and stays still, with a lower sky
+  /// ([todaySkyShare]) so little empty sky shows under the header; Gret swims just under the
+  /// surface at about 33% of the height, and the floating cards start at [todayCardsTop] of it.
+  static const double todaySkyShare = 0.22;
+  static const Alignment todayGretAlignment = Alignment(0, -0.34);
+  static const double todayCardsTop = 0.44;
   static const double compactSceneHeight = 170;
 
   /// Gentle up-and-down movement while idle.
@@ -390,6 +391,13 @@ class AppButton {
   /// Sticker chips: selected border and how far (radians) they wiggle.
   static const double chipBorder = 2;
   static const double chipWiggle = 0.10;
+}
+
+/// 5.1 Tab shell (spec 010): the floating tab bar.
+class AppShell {
+  AppShell._();
+
+  static const double tabBarHeight = 64;
 }
 
 /// 5.6 Quán San Hô (feature 006): café colours by day and by night, and where everyone sits

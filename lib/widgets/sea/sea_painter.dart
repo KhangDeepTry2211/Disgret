@@ -14,6 +14,7 @@ class SeaPainter extends CustomPainter {
     required this.clarity,
     required this.isNight,
     this.place = SeaPlace.home,
+    this.skyShare = defaultSkyShare,
   }) : super(repaint: loop);
 
   /// Which sea (Góc của Gret, spec 004): colours and decorations change, the meaning does not.
@@ -26,7 +27,10 @@ class SeaPainter extends CustomPainter {
   final double clarity;
   final bool isNight;
 
-  static const double _skyShare = 0.30;
+  static const double defaultSkyShare = 0.30;
+
+  /// Share of the height above the water (Hôm nay's full-screen sea uses less, spec 010).
+  final double skyShare;
 
   /// 0 when the sea is clear (≥ 70), 1 when it is fully murky (0).
   double get _murk => ((70 - clarity) / 70).clamp(0.0, 1.0);
@@ -46,7 +50,7 @@ class SeaPainter extends CustomPainter {
     }
 
     // Three wave bands, each drifting at its own speed.
-    final tops = [_skyShare, 0.50, 0.72];
+    final tops = [skyShare, 0.50, 0.72];
     for (var i = 0; i < 3; i++) {
       final colour = Color.lerp(clear[i], murky[i], _murk)!;
       final phase = 2 * math.pi * t * (i.isEven ? 1 : -1) + i;
@@ -64,8 +68,8 @@ class SeaPainter extends CustomPainter {
         _coral(canvas, Offset(w * 0.93, h), h * 0.18, AppSea.coralPink);
         _seaweed(canvas, Offset(w * 0.22, h), h * 0.20, t, 2.1);
       case SeaPlace.ice:
-        _iceberg(canvas, Offset(w * 0.18, h * _skyShare), h * 0.16, t, 0);
-        _iceberg(canvas, Offset(w * 0.86, h * _skyShare), h * 0.11, t, 1.7);
+        _iceberg(canvas, Offset(w * 0.18, h * skyShare), h * 0.16, t, 0);
+        _iceberg(canvas, Offset(w * 0.86, h * skyShare), h * 0.11, t, 1.7);
       case SeaPlace.deep:
         _plankton(canvas, size, t);
         _jellyfish(canvas, Offset(w * 0.82, h * (0.55 + 0.05 * math.sin(t * 2 * math.pi))), h);
@@ -77,7 +81,7 @@ class SeaPainter extends CustomPainter {
     for (var i = 0; i < bubbles; i++) {
       final progress = (t + i / bubbles) % 1;
       final x = w * (0.2 + 0.6 * ((i * 37) % 100) / 100) + math.sin(progress * 6 + i) * 4;
-      final y = h - progress * h * (1 - _skyShare);
+      final y = h - progress * h * (1 - skyShare);
       canvas.drawCircle(Offset(x, y), 2.0 + (i % 3), bubblePaint);
     }
 
@@ -159,7 +163,7 @@ class SeaPainter extends CustomPainter {
     for (var i = 0; i < 12; i++) {
       final progress = (t * 0.5 + i / 12) % 1;
       final x = size.width * (((i * 53) % 100) / 100) + math.sin(progress * 5 + i) * 6;
-      final y = size.height - progress * size.height * (1 - _skyShare);
+      final y = size.height - progress * size.height * (1 - skyShare);
       canvas.drawCircle(Offset(x, y), 1.5 + (i % 2), paint);
     }
   }
@@ -273,5 +277,6 @@ class SeaPainter extends CustomPainter {
       oldDelegate.clarity != clarity ||
       oldDelegate.isNight != isNight ||
       oldDelegate.loop != loop ||
-      oldDelegate.place != place;
+      oldDelegate.place != place ||
+      oldDelegate.skyShare != skyShare;
 }

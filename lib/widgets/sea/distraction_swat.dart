@@ -143,7 +143,7 @@ class _DistractionSwatLayerState extends State<DistractionSwatLayer> with Ticker
     final travel = AppMotion.curve.transform((t / _travel).clamp(0.0, 1.0));
     final pop = ((t - _travel) / (1 - _travel)).clamp(0.0, 1.0);
     // It stops just before Gret, on the side it came from.
-    final target = Alignment(_from.x.sign * 0.5, SeaScene.gretAlignment.y - 0.1);
+    final target = Alignment(_from.x.sign * 0.5, SeaScene.defaultGretAlignment.y - 0.1);
 
     return Align(
       key: const ValueKey('distraction-bubble'),
@@ -171,7 +171,7 @@ class _DistractionSwatLayerState extends State<DistractionSwatLayer> with Ticker
       for (var i = 0; i < _burstTargets.length; i++)
         Align(
           key: ValueKey('distraction-burst-$i'),
-          alignment: Alignment.lerp(SeaScene.gretAlignment, _burstTargets[i], t)!,
+          alignment: Alignment.lerp(SeaScene.defaultGretAlignment, _burstTargets[i], t)!,
           child: Opacity(
             opacity: 1 - t,
             child: Transform.rotate(
@@ -181,7 +181,7 @@ class _DistractionSwatLayerState extends State<DistractionSwatLayer> with Ticker
           ),
         ),
       Align(
-        alignment: SeaScene.gretAlignment,
+        alignment: SeaScene.defaultGretAlignment,
         child: _Sparkles(progress: t),
       ),
     ];

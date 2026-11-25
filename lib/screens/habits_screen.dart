@@ -118,11 +118,12 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
                 filtered.isEmpty
                     ? _FilterEmpty(filter: _filter, onClear: () => setState(() => _filter = null))
                     : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(
+                        // Room for the "+" and the floating tab bar (spec 010).
+                        padding: EdgeInsets.fromLTRB(
                           AppSpacing.md,
                           AppSpacing.sm,
                           AppSpacing.md,
-                          AppSpacing.xxl * 2,
+                          AppSpacing.xxl * 2 + MediaQuery.paddingOf(context).bottom,
                         ),
                         itemCount: filtered.length,
                         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
@@ -176,10 +177,14 @@ class _HabitsScreenState extends ConsumerState<HabitsScreen> {
       floatingActionButton: goals.isEmpty
           ? null
           // 5.3 Style F: rings ripple out of the "+"; they keep going until the first habit.
-          : RippleAddButton(
-              tooltip: 'Tạo thói quen',
-              keepRippling: habits.isEmpty,
-              onPressed: () => context.push(AppRoutes.habitForm(goals.first.id)),
+          // Lifted above the floating tab bar (spec 010).
+          : Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+              child: RippleAddButton(
+                tooltip: 'Tạo thói quen',
+                keepRippling: habits.isEmpty,
+                onPressed: () => context.push(AppRoutes.habitForm(goals.first.id)),
+              ),
             ),
     );
   }
@@ -300,11 +305,12 @@ class _TodayView extends ConsumerWidget {
     );
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      // Room for the "+" and the floating tab bar (spec 010).
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.sm,
         AppSpacing.md,
-        AppSpacing.xxl * 2,
+        AppSpacing.xxl * 2 + MediaQuery.paddingOf(context).bottom,
       ),
       children: [
         for (final habit in pending) cardOf(habit, 'pending'),
