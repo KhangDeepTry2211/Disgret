@@ -110,7 +110,7 @@ void main() {
 
       await _tap(tester, find.byType(Switch).last);
       expect(find.text('07:00'), findsOneWidget);
-      expect(find.text('Bản này mới lưu giờ nhắc, chưa gửi thông báo.'), findsOneWidget);
+      expect(find.text('Gret sẽ nhắc bạn vào giờ này, những ngày có lịch.'), findsOneWidget);
 
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Sau khi ăn tối'),

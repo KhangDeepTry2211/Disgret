@@ -96,7 +96,7 @@ class Habit {
   /// Số ngày, tính cả ngày bắt đầu, khi [endRule] là afterDays.
   final int endAfterDays;
 
-  /// Nhắc nhở: hiện chỉ lưu lại, chưa gửi thông báo.
+  /// Nhắc nhở: Gret's local notification at [reminderTime] on scheduled days (spec 009).
   final bool reminderEnabled;
 
   /// Giờ nhắc dạng "HH:mm".

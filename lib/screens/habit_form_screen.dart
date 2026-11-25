@@ -384,7 +384,7 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
                                       ),
                                       const SizedBox(height: AppSpacing.xs),
                                       Text(
-                                        'Bản này mới lưu giờ nhắc, chưa gửi thông báo.',
+                                        'Gret sẽ nhắc bạn vào giờ này, những ngày có lịch.',
                                         style: theme.textTheme.bodySmall,
                                       ),
                                     ],

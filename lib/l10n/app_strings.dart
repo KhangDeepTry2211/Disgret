@@ -44,6 +44,14 @@ class AppStrings {
   static const String nameNotSet = 'Chưa đặt';
   static const String namePrivacy = 'Chỉ lưu trên máy này, để Gret chào bạn.';
 
+  // ---------- 2.2 Nhắc giờ học (spec 009) ----------
+  static const String reminderTitle = 'Gret đang đợi bạn 🐟';
+  static String reminderBody(String habit, int minutes) =>
+      'Tới giờ $habit rồi, chỉ $minutes phút thôi. Mình bắt đầu nhé?';
+  static const String reminderChannel = 'Nhắc giờ học';
+  static const String reminderChannelDescription =
+      'Gret nhắc bạn vào giờ học đã đặt cho thói quen.';
+
   // ---------- Plan sheet ----------
   static const String planSheetTitle = 'Phiên học tiếp theo';
   static const String planHabit = 'Thói quen';

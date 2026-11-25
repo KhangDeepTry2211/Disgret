@@ -186,10 +186,14 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
    chưa làm ngày nào, rồi "n/66"); bóng tối tan dần quanh ghim theo số ngày đã làm. Kéo, chụm để
    phóng to, nút +/− và **Về chỗ Gret**; chạm vào đảo để xem từng điểm và mốc 7/21/40/66 ngày.
    Phiên học diễn ra ở biển của đảo đó (ở Quán San Hô thì cửa sổ nhìn ra biển đó).
-12. **Đổi nơi học.** Ở **Hôm nay**, thẻ **Học tiếp** ghi "ở Quán San Hô" → **Đổi thói quen hoặc
+11. **Đổi nơi học.** Ở **Hôm nay**, thẻ **Học tiếp** ghi "ở Quán San Hô" → **Đổi thói quen hoặc
    thời lượng** → **Học ở**: chọn **Biển của Gret** → **Dùng kế hoạch này**: phiên sau diễn ra trong
    biển như cũ. Các bạn biển là nhân vật của Gret, không phải người thật (ADR-0011).
-11. **Tiến độ.** Tab **Tiến độ** → đoạn **Phiên học**: biểu đồ phút tập trung 7 ngày, tỉ lệ lựa
+12. **Nhắc giờ học.** Tab **Thói quen** → mở thói quen → **Sửa** → bật **Nhắc nhở**, chọn giờ
+   khoảng 2 phút sau → **Lưu**. Lần đầu có lời nhắc, Android hỏi quyền thông báo → **Cho phép**.
+   Đúng giờ (có thể trễ vài phút) Gret báo "Gret đang đợi bạn 🐟 – Tới giờ … rồi"; chạm vào để mở
+   DisGret. Đã làm xong thói quen hôm nay thì hôm nay không nhắc nữa (ADR-0006).
+13. **Tiến độ.** Tab **Tiến độ** → đoạn **Phiên học**: biểu đồ phút tập trung 7 ngày, tỉ lệ lựa
    chọn trên màn can thiệp, tỉ lệ reel dẫn tới bắt đầu học, thời gian quay lại trung bình (dữ liệu
    mẫu cộng với lượt demo vừa xong).
 

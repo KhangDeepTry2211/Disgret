@@ -108,6 +108,14 @@ Tokens: `AppButton` and `AppMotion.press` / `AppMotion.bubbleBurst` in `app_them
 - Not chosen: hold-to-confirm (style 4); from the second round, Gret peeking, the water-filled
   button, the chunky game button, the two-line button and the pebble button.
 
+## Nhắc giờ học (feature 009, ADR-0006)
+
+- A local notification at the habit's reminder time on its scheduled days, in Gret's voice: title
+  "Gret đang đợi bạn 🐟", body "Tới giờ <thói quen> rồi, chỉ <n> phút thôi. Mình bắt đầu nhé?".
+  Channel "Nhắc giờ học" (high importance). Status bar icon: a white fish (`ic_stat_gret`).
+- Never the student's name (ADR-0012). Tapping opens DisGret on Hôm nay.
+- The notification permission is asked once, the first time a reminder exists.
+
 ## Quán San Hô (feature 006, ADR-0011)
 
 Tokens: `AppCafe` (colours by day and night, positions, sizes) and `AppMotion.cafeReplyDelay` in
