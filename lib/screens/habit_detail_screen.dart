@@ -480,6 +480,8 @@ class _StrengthChart extends StatelessWidget {
             lineTouchData: LineTouchData(
               touchTooltipData: LineTouchTooltipData(
                 getTooltipColor: (_) => scheme.onSurface,
+                // Points at either edge keep their bubble inside the card.
+                fitInsideHorizontally: true,
                 getTooltipItems: (spots) => [
                   for (final spot in spots)
                     LineTooltipItem(
