@@ -111,27 +111,31 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# 5.2 Icon app: dart run flutter_launcher_icons
-# Icon adaptive (Android 8+) gồm nền navy và logo có khoảng đệm, để mặt nạ tròn/bo góc
-# của launcher không cắt mất chữ D. Android 7 dùng nguyên logo.
+# 5.2 Icon app (spec 008): dart run flutter_launcher_icons
+# PNGs in assets/launcher/ are rendered from assets/branding/logo.svg (not bundled in the app).
+# Adaptive icon (Android 8+): sunny-sea blue background and the logo at 72%, so the launcher mask
+# never cuts the bubble or Gret away. Android 7 uses the whole logo.
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/branding/logo_tam.png"
-  adaptive_icon_background: "#0A2A6B"
+  image_path: "assets/launcher/logo.png"
+  # iOS icons must not have transparency (iOS is unsupported, but keep its assets valid).
+  remove_alpha_ios: true
+  adaptive_icon_background: "#1E88E5"
   adaptive_icon_foreground: "assets/launcher/logo_foreground.png"
   # Ảnh đã có sẵn khoảng đệm (logo chiếm 72% khung) nên không thu nhỏ thêm.
   adaptive_icon_foreground_inset: 0
   min_sdk_android: 24
 
-# 5.2 Màn khởi động: dart run flutter_native_splash:create
-# Nền navy, logo ở giữa. Android 12+ tự cắt icon theo hình tròn nên dùng bản có khoảng đệm.
+# 5.2 Splash (spec 008): dart run flutter_native_splash:create
+# Sunny-sea blue with the logo in the middle. The splash and the adaptive icon use the tile-free art
+# (assets/launcher/logo_free.svg) because they sit on the same blue and crop to a circle.
 flutter_native_splash:
-  color: "#0A2A6B"
-  image: assets/branding/logo_tam.png
+  color: "#1E88E5"
+  image: assets/launcher/splash_logo.png
   android_12:
-    color: "#0A2A6B"
-    image: assets/launcher/logo_foreground.png
+    color: "#1E88E5"
+    image: assets/launcher/splash_android12.png
   android: true
   ios: true
   web: false

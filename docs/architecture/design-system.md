@@ -6,17 +6,36 @@
 > translate a section to English when you substantially edit it (Constitution: docs in English).
 
 ## Giao diện (5.2 Design system)
-Tên app: **DisGret**. Logo: chữ D trắng và cyan trên nền vuông bo góc xanh navy.
+Tên app: **DisGret**. Logo (feature 008): a white bubble holding a blue "D", with Gret peeking up
+from the bottom-right corner of a sunny-sea blue (#1E88E5) rounded tile; two sun-yellow bubbles.
 Phong cách: bố cục hiện đại, tối giản kiểu mạng xã hội (lấy cảm hứng từ Instagram) nhưng màu sắc theo thương hiệu DisGret:
 KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
-- Bảng màu "Ocean" – xanh nước biển + đen (logo vẫn giữ màu navy #0A2A6B / cyan #22D3EE riêng của nó):
-  - Chế độ TỐI (A – "Biển đêm"): nền #06090F, bề mặt thẻ #0E1726, đường kẻ #1C2940, chữ #E8F1FF, chữ phụ #8A9BB5, màu chính (nút) #1F7AE0 chữ trắng, màu nhấn (vòng tiến độ, streak, điểm sức mạnh, link, tab đang chọn) #4CC9F0.
-  - Chế độ SÁNG (B – "Mực & đại dương"): nền #F4F7FB, bề mặt thẻ #FFFFFF, đường kẻ #DCE3EE, chữ #0B0F17, chữ phụ #5A6B85, màu chính #0B4F9C chữ trắng, màu nhấn #1E9BD7 (link và trạng thái đang chọn dùng #0B4F9C vì #1E9BD7 hơi nhạt trên nền trắng).
-  - Lịch nhiệt 4 mức – tối: #12233D → #163E6E → #1F7AE0 → #4CC9F0; sáng: #E3ECF7 → #A9C8EA → #3D86D1 → #0B4F9C. Lấy bằng `AppColors.heatOf(context)`.
-  - Trong ColorScheme: primary = nút chính; secondary = chữ link, tab/chip/ô tick đang chọn; tertiary = màu nhấn cho vòng/thanh tiến độ, vòng streak.
+- "Biển nắng" palette (feature 008, replaces "Ocean"; contrast checked in `test/brand_test.dart`):
+  - Light: background #F3F8FD, cards #FFFFFF, dividers #D8E4F0, text #0B0F17, secondary text
+    #56677F, primary (buttons, white text) #1565C0, links and selected items #0D47A1, rings and
+    progress #0097A7.
+  - Dark: background #07111F, cards #0F1C2E, dividers #1F3350, text #E8F1FF, secondary text
+    #8FA3BF, primary #1B6ED4, links and selected items #6CB6FF, rings and progress #4DD0E1.
+  - Sun highlight `AppColors.sun` #FFC93C (pearls, celebrations), text on it `AppColors.onSun`
+    #5C3D00. Brand blue `AppColors.brand` #1E88E5 (logo tile, launcher icon, splash).
+  - Heat map, light: #E3F2FD → #90CAF9 → #42A5F5 → #1565C0; dark: #10233D → #174A80 → #1B6ED4 →
+    #4DD0E1. Read with `AppColors.heatOf(context)`.
+  - ColorScheme: primary = main buttons; secondary = links, selected tabs, chips and ticks;
+    tertiary = rings, progress bars, streak ring.
+  - The sea, Gret, the café and the map keep their own illustration colours.
 - KHÔNG dùng gradient trang trí: nút "Bắt đầu" (GradientPillButton), thanh tiến độ (GradientProgressBar), vòng streak, vòng tiến độ Focus đều tô màu đặc (giữ tên widget cũ). Chỉ còn lớp phủ đen mờ trên video Reels để chữ dễ đọc.
-- Logo: assets/branding/logo_tam.png (bản tạm 512×512, cắt từ ảnh chụp; sẽ thay bằng file gốc cùng tên khi nhóm có). Hiện trên màn onboarding và AppBar trang chủ.
-- Icon app và màn khởi động: tạo bằng flutter_launcher_icons và flutter_native_splash (cấu hình cuối pubspec.yaml), nền #0A2A6B. assets/launcher/logo_foreground.png là logo có khoảng đệm (chiếm 72% khung) cho icon adaptive và màn khởi động Android 12+, vì launcher cắt icon theo hình tròn; file này không đóng gói vào app. Đổi logo thì chạy lại `dart run flutter_launcher_icons` và `dart run flutter_native_splash:create`.
+- Logo source: `assets/branding/logo.svg`, drawn by `AppLogo` with flutter_svg (Hôm nay header,
+  onboarding). Launcher art: `assets/launcher/logo_free.svg`, the same logo without its tile and
+  with Gret drawn whole, kept within 56 of 60 units of the centre, because the adaptive icon and the
+  splash sit on the same blue and are cropped to a circle (with the tile, Gret was cut into a
+  half-leaf). PNGs in `assets/launcher/` (not bundled): `logo.png` 1024 (tile, legacy icon) from
+  logo.svg; `logo_foreground.png` 1024 (art at 65%, adaptive icon), `splash_android12.png` 1152
+  (art at 823 px, Android 12+ splash) and `splash_logo.png` 512 (older splash) from logo_free.svg.
+  After changing either SVG, render the PNGs again (for example headless Edge or Chrome with a
+  separate `--user-data-dir`), then run `dart run flutter_launcher_icons` and
+  `dart run flutter_native_splash:create`.
+- Launcher icon and splash: background #1E88E5. Android only: the iOS folder is unsupported and
+  keeps its old assets (the icon tool also rewrites an iOS build setting wrongly).
 - Font: Be Vietnam Pro (google_fonts), hỗ trợ tiếng Việt tốt. Tiêu đề đậm 600–700, nội dung 400. File .ttf (400, 500, 600, 700) và giấy phép OFL nằm trong assets/fonts/; main.dart tắt `GoogleFonts.config.allowRuntimeFetching` nên không cần mạng. Dùng độ đậm mới thì phải thêm file .ttf tương ứng.
 - Radius (feature 003): 16 for cards (`AppRadius.card`), 24 for the sea scene and other hero illustrations (`AppRadius.hero`), 999 for pills. Shadows very light or none; separate with thin lines.
 - Icon nét mảnh (outline), dùng icon Material Symbols rounded.

@@ -87,9 +87,10 @@ flutter build apk --release      # tạo build/app/outputs/flutter-apk/app-relea
 - APK release đang ký bằng khoá debug: đủ để cài lên máy ảo hay máy thật để demo, chưa đưa lên
   cửa hàng được.
 - Font Be Vietnam Pro nằm sẵn trong `assets/fonts/` nên không cần mạng.
-- Đổi logo: thay `assets/branding/logo_tam.png` (512×512) và `assets/launcher/logo_foreground.png`
-  (bản có khoảng đệm cho icon và màn khởi động Android 12+), rồi chạy
-  `dart run flutter_launcher_icons` và `dart run flutter_native_splash:create`.
+- Đổi logo: sửa `assets/branding/logo.svg` (app vẽ trực tiếp file này), xuất lại 3 file PNG trong
+  `assets/launcher/` (từ logo.svg và logo_free.svg, bản không nền cho icon và màn khởi động),
+  rồi chạy `dart run flutter_launcher_icons` và `dart run flutter_native_splash:create`. Xem
+  docs/architecture/design-system.md.
 
 ## Cấp quyền trên máy ảo
 

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<!-- Launcher art (spec 008): logo C2 without its tile, for the adaptive icon and the splash, which
+     sit on the same #1E88E5 and crop to a circle. Everything stays within 56 units of the centre,
+     so the safe circle never cuts Gret. Not bundled in the app. -->
+<circle cx="52" cy="50" r="34" fill="#FFFFFF" fill-opacity="0.92"/>
+<circle cx="52" cy="50" r="34" fill="none" stroke="#B3ECF5" stroke-width="4"/>
+<path d="M38 31 H52 A19 19 0 0 1 52 69 H38 Z" fill="#1565C0"/>
+<path d="M67 26 A23 23 0 0 1 76 40" stroke="#4DD0E1" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="86" cy="86" r="18" fill="#22D3EE"/>
+<path d="M73 77 Q79 70 86 71" stroke="#B3ECF5" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="80" cy="85" r="4.5" fill="#FFFFFF"/>
+<circle cx="93" cy="84" r="4.5" fill="#FFFFFF"/>
+<circle cx="80.5" cy="84.5" r="2.4" fill="#0A2A6B"/>
+<circle cx="93.5" cy="83.5" r="2.4" fill="#0A2A6B"/>
+<path d="M83 92 Q87 96 91 92" stroke="#0A2A6B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<circle cx="75" cy="91" r="2.6" fill="#FBD5E3"/>
+<circle cx="26" cy="90" r="5" fill="none" stroke="#FFC93C" stroke-width="3"/>
+<circle cx="18" cy="78" r="3" fill="#FFC93C"/>
+</svg>

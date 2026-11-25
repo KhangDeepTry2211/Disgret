@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<defs>
+<clipPath id="tile"><rect width="120" height="120" rx="28"/></clipPath>
+</defs>
+<rect width="120" height="120" rx="28" fill="#1E88E5"/>
+<circle cx="52" cy="50" r="36" fill="#FFFFFF" fill-opacity="0.92"/>
+<circle cx="52" cy="50" r="36" fill="none" stroke="#B3ECF5" stroke-width="4"/>
+<path d="M37 30 H52 A20 20 0 0 1 52 70 H37 Z" fill="#1565C0"/>
+<path d="M68 25 A24 24 0 0 1 77 39" stroke="#4DD0E1" stroke-width="5" fill="none" stroke-linecap="round"/>
+<g clip-path="url(#tile)">
+<circle cx="98" cy="104" r="30" fill="#22D3EE"/>
+<path d="M76 84 Q86 74 96 76" stroke="#B3ECF5" stroke-width="4" fill="none" stroke-linecap="round"/>
+<circle cx="86" cy="96" r="6.5" fill="#FFFFFF"/>
+<circle cx="104" cy="94" r="6.5" fill="#FFFFFF"/>
+<circle cx="86" cy="95" r="3.4" fill="#0A2A6B"/>
+<circle cx="104" cy="93" r="3.4" fill="#0A2A6B"/>
+<path d="M90 106 Q96 111 102 105" stroke="#0A2A6B" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="80" cy="104" r="3.5" fill="#FBD5E3"/>
+</g>
+<circle cx="24" cy="100" r="5" fill="none" stroke="#FFC93C" stroke-width="3"/>
+<circle cx="16" cy="86" r="3" fill="#FFC93C"/>
+</svg>

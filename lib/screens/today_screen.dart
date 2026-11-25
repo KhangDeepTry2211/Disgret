@@ -186,7 +186,7 @@ class _CornerButton extends ConsumerWidget {
                 Icon(AppIcons.wardrobe, color: theme.colorScheme.primary),
                 const SizedBox(width: AppSpacing.xs),
                 Text('$pearls', style: theme.textTheme.labelLarge),
-                Icon(AppIcons.pearl, size: AppSpacing.md, color: AppSea.fishFin),
+                Icon(AppIcons.pearl, size: AppSpacing.md, color: AppColors.sun),
               ],
             ),
           ),

@@ -15,38 +15,50 @@ class AppColors {
   /// Header over the full-bleed sea on Hôm nay (feature 003).
   static const Color transparent = Color(0x00000000);
 
-  // Chế độ tối (A – Biển đêm).
-  static const Color darkBackground = Color(0xFF06090F);
-  static const Color darkSurface = Color(0xFF0E1726);
-  static const Color darkDivider = Color(0xFF1C2940);
+  // 5.2 Bảng màu "Biển nắng" (feature 008): sea blue, aqua and sun yellow. Contrast is checked in
+  // test/brand_test.dart.
+
+  /// Logo tile, launcher icon and splash background.
+  static const Color brand = Color(0xFF1E88E5);
+
+  /// Sun highlight for pearls and celebrations, with the text colour that reads on it.
+  static const Color sun = Color(0xFFFFC93C);
+  static const Color onSun = Color(0xFF5C3D00);
+
+  // Chế độ tối.
+  static const Color darkBackground = Color(0xFF07111F);
+  static const Color darkSurface = Color(0xFF0F1C2E);
+  static const Color darkDivider = Color(0xFF1F3350);
   static const Color darkText = Color(0xFFE8F1FF);
-  static const Color darkTextSecondary = Color(0xFF8A9BB5);
-  static const Color darkPrimary = Color(0xFF1F7AE0);
-  static const Color darkAccent = Color(0xFF4CC9F0);
+  static const Color darkTextSecondary = Color(0xFF8FA3BF);
+  static const Color darkPrimary = Color(0xFF1B6ED4);
+  static const Color darkLink = Color(0xFF6CB6FF);
+  static const Color darkAccent = Color(0xFF4DD0E1);
   static const Color darkError = Color(0xFFF2B8B5);
 
-  // Chế độ sáng (B – Mực & đại dương).
-  static const Color lightBackground = Color(0xFFF4F7FB);
+  // Chế độ sáng.
+  static const Color lightBackground = Color(0xFFF3F8FD);
   static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightDivider = Color(0xFFDCE3EE);
+  static const Color lightDivider = Color(0xFFD8E4F0);
   static const Color lightText = Color(0xFF0B0F17);
-  static const Color lightTextSecondary = Color(0xFF5A6B85);
-  static const Color lightPrimary = Color(0xFF0B4F9C);
-  static const Color lightAccent = Color(0xFF1E9BD7);
+  static const Color lightTextSecondary = Color(0xFF56677F);
+  static const Color lightPrimary = Color(0xFF1565C0);
+  static const Color lightLink = Color(0xFF0D47A1);
+  static const Color lightAccent = Color(0xFF0097A7);
   static const Color lightError = Color(0xFFB3261E);
 
   // Lịch nhiệt 4 mức (heat0 = ít nhất, heat3 = nhiều nhất).
   static const List<Color> darkHeat = [
-    Color(0xFF12233D),
-    Color(0xFF163E6E),
-    Color(0xFF1F7AE0),
-    Color(0xFF4CC9F0),
+    Color(0xFF10233D),
+    Color(0xFF174A80),
+    Color(0xFF1B6ED4),
+    Color(0xFF4DD0E1),
   ];
   static const List<Color> lightHeat = [
-    Color(0xFFE3ECF7),
-    Color(0xFFA9C8EA),
-    Color(0xFF3D86D1),
-    Color(0xFF0B4F9C),
+    Color(0xFFE3F2FD),
+    Color(0xFF90CAF9),
+    Color(0xFF42A5F5),
+    Color(0xFF1565C0),
   ];
 
   /// Lấy 4 màu lịch nhiệt theo chế độ sáng/tối hiện tại.
@@ -763,9 +775,8 @@ class AppTheme {
     brightness: Brightness.light,
     primary: AppColors.lightPrimary,
     onPrimary: AppColors.white,
-    // Xanh nhấn #1E9BD7 hơi nhạt để làm chữ trên nền trắng, nên chữ và trạng thái đang chọn
-    // dùng xanh biển đậm.
-    secondary: AppColors.lightPrimary,
+    // Links and selected items use a deeper blue so they read on the light background.
+    secondary: AppColors.lightLink,
     onSecondary: AppColors.white,
     tertiary: AppColors.lightAccent,
     onTertiary: AppColors.white,
@@ -788,7 +799,7 @@ class AppTheme {
     brightness: Brightness.dark,
     primary: AppColors.darkPrimary,
     onPrimary: AppColors.white,
-    secondary: AppColors.darkAccent,
+    secondary: AppColors.darkLink,
     onSecondary: AppColors.darkBackground,
     tertiary: AppColors.darkAccent,
     onTertiary: AppColors.darkBackground,
