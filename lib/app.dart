@@ -14,6 +14,7 @@ import 'router/app_router.dart';
 import 'services/native_bridge.dart';
 import 'theme/app_theme.dart';
 import 'widgets/focus_feedback.dart';
+import 'widgets/launch_overlay.dart';
 
 class DisGretApp extends ConsumerStatefulWidget {
   const DisGretApp({super.key});
@@ -156,6 +157,8 @@ class _DisGretAppState extends ConsumerState<DisGretApp> {
       locale: const Locale('vi'),
       supportedLocales: const [Locale('vi')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      // 5.3 Gret swims across once when DisGret opens, above every screen (spec 011).
+      builder: (context, child) => LaunchOverlay(child: child ?? const SizedBox.shrink()),
     );
   }
 }

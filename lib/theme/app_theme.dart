@@ -1,7 +1,6 @@
 // 5.2 Design system
 // MỘT file duy nhất chứa màu, font, bo góc, khoảng cách và icon của DisGret.
 // Màn hình chỉ lấy giá trị từ đây hoặc từ Theme.of(context), không viết mã màu cứng.
-import 'package:google_fonts/google_fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// 5.2 Bảng màu "Ocean": xanh nước biển + đen.
@@ -393,6 +392,14 @@ class AppButton {
   static const double chipWiggle = 0.10;
 }
 
+/// 5.2 Font families declared in pubspec.yaml (spec 011).
+class AppFonts {
+  AppFonts._();
+
+  static const String heading = 'Baloo2';
+  static const String body = 'Nunito';
+}
+
 /// 5.1 Tab shell (spec 010): the floating tab bar.
 class AppShell {
   AppShell._();
@@ -560,6 +567,23 @@ class AppStatCard {
   static const double popScale = 0.25;
 }
 
+/// 5.3 Launch screen (spec 011): Gret swims across the brand blue while DisGret opens.
+class AppLaunch {
+  AppLaunch._();
+
+  /// Same blue as the system splash, so the hand-over is seamless.
+  static const Color background = AppColors.brand;
+  static const Color title = AppColors.white;
+  static const Color bubble = AppSea.bubble;
+
+  /// Gret's width. Its centre swims from [startX] to [endX] (shares of the screen width) along a
+  /// gentle wave of [wave] pixels; with animations removed it rests in the middle.
+  static const double gret = AppMascot.full;
+  static const double startX = 1.3;
+  static const double endX = 0.38;
+  static const double wave = 10;
+}
+
 /// 5.3 Motion tokens (feature 003, research R6). Every animated widget renders its end state at
 /// once when the system asks to remove animations (spec FR-015).
 class AppMotion {
@@ -604,6 +628,10 @@ class AppMotion {
   /// Sea map: opening the map glides from the whole world to Gret's island; buttons glide faster.
   static const Duration mapOpen = Duration(milliseconds: 1600);
   static const Duration mapGlide = Duration(milliseconds: 600);
+
+  /// Launch screen (spec 011): Gret swims for [launch], then the screen fades for [launchFade].
+  static const Duration launch = Duration(milliseconds: 1400);
+  static const Duration launchFade = Duration(milliseconds: 300);
   static const Curve curve = Curves.easeOutCubic;
 }
 
@@ -826,14 +854,17 @@ class AppTheme {
     surfaceTint: Colors.transparent,
   );
 
-  /// Tiêu đề đậm 600–700, nội dung 400.
-  /// Phải gọi GoogleFonts cho từng kiểu chữ để app tải đúng độ đậm của font;
-  /// vì vậy màn hình chỉ nên đổi màu chữ, không tự đổi fontWeight.
+  /// 5.2 (spec 011): Baloo 2 for display, headline and title styles (rounded, lively), Nunito for
+  /// body and label styles (easy to read). Both are variable fonts bundled in assets/fonts/; each
+  /// style picks its weight on the `wght` axis, so screens should only change the colour, never
+  /// the fontWeight.
   static TextTheme _textTheme(ColorScheme scheme) {
-    TextStyle font(double size, FontWeight weight, {Color? color, double? height}) {
-      return GoogleFonts.beVietnamPro(
+    TextStyle font(String family, double size, FontWeight weight, {Color? color, double? height}) {
+      return TextStyle(
+        fontFamily: family,
         fontSize: size,
         fontWeight: weight,
+        fontVariations: [FontVariation.weight(weight.value.toDouble())],
         color: color ?? scheme.onSurface,
         height: height,
         // Bỏ giãn chữ mặc định của Material để chữ gọn, dấu tiếng Việt không bị thưa.
@@ -844,23 +875,26 @@ class AppTheme {
     const heading = FontWeight.w700;
     const title = FontWeight.w600;
     const body = FontWeight.w400;
+    const label = FontWeight.w700;
+    const h = AppFonts.heading;
+    const b = AppFonts.body;
 
     return TextTheme(
-      displayLarge: font(56, heading, height: 1.1),
-      displayMedium: font(44, heading, height: 1.1),
-      displaySmall: font(36, heading, height: 1.15),
-      headlineLarge: font(30, heading, height: 1.25),
-      headlineMedium: font(26, heading, height: 1.25),
-      headlineSmall: font(22, heading, height: 1.3),
-      titleLarge: font(20, title, height: 1.3),
-      titleMedium: font(16, title, height: 1.35),
-      titleSmall: font(14, title, height: 1.35),
-      bodyLarge: font(16, body, height: 1.45),
-      bodyMedium: font(14, body, height: 1.45),
-      bodySmall: font(12, body, color: scheme.onSurfaceVariant, height: 1.4),
-      labelLarge: font(14, title, height: 1.3),
-      labelMedium: font(12, title, height: 1.3),
-      labelSmall: font(11, title, height: 1.3),
+      displayLarge: font(h, 56, heading, height: 1.1),
+      displayMedium: font(h, 44, heading, height: 1.1),
+      displaySmall: font(h, 36, heading, height: 1.15),
+      headlineLarge: font(h, 30, heading, height: 1.25),
+      headlineMedium: font(h, 26, heading, height: 1.25),
+      headlineSmall: font(h, 22, heading, height: 1.3),
+      titleLarge: font(h, 20, title, height: 1.3),
+      titleMedium: font(h, 16, title, height: 1.35),
+      titleSmall: font(h, 14, title, height: 1.35),
+      bodyLarge: font(b, 16, body, height: 1.45),
+      bodyMedium: font(b, 14, body, height: 1.45),
+      bodySmall: font(b, 12, body, color: scheme.onSurfaceVariant, height: 1.4),
+      labelLarge: font(b, 14, label, height: 1.3),
+      labelMedium: font(b, 12, label, height: 1.3),
+      labelSmall: font(b, 11, label, height: 1.3),
     );
   }
 

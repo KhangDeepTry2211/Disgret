@@ -13,6 +13,7 @@ import 'package:focus_app/data/reminder_plan.dart';
 import 'package:focus_app/data/repositories/reel_repository.dart';
 import 'package:focus_app/providers/app_providers.dart';
 import 'package:focus_app/providers/focus_session_provider.dart';
+import 'package:focus_app/providers/launch_providers.dart';
 import 'package:focus_app/providers/reminder_providers.dart';
 import 'package:focus_app/services/native_bridge.dart';
 import 'package:focus_app/services/reminder_service.dart';
@@ -58,6 +59,7 @@ Future<void> pumpApp(
   FakeNativeBridge? native,
   List<Reel>? reels,
   FakeReminderService? reminders,
+  bool launchScreen = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -75,13 +77,14 @@ Future<void> pumpApp(
         nativeBridgeProvider.overrideWithValue(native ?? FakeNativeBridge()),
         // Local notifications are a platform plugin; tests record the plan instead.
         reminderServiceProvider.overrideWithValue(reminders ?? FakeReminderService()),
+        // The launch screen (spec 011) covers the app for 1.4 s; only its own tests turn it on.
+        launchScreenProvider.overrideWithValue(launchScreen),
         if (clock != null) clockProvider.overrideWithValue(clock),
       ],
       child: const DisGretApp(),
     ),
   );
-  // Chờ font Be Vietnam Pro nạp xong từ assets/fonts/ rồi mới thao tác: nếu font nạp xong
-  // giữa lúc đang vẽ thì chữ đổi kích thước giữa chừng và framework báo lỗi khi vẽ.
+  // Wait for any font still loading before acting, so text does not change size mid-frame.
   await tester.runAsync(GoogleFonts.pendingFonts);
   await tester.pumpAndSettle();
 }

@@ -8,6 +8,9 @@ class AppStrings {
 
   // ---------- Common ----------
   static const String appName = 'DisGret';
+
+  /// Launch screen under "DisGret" while the app opens (spec 011).
+  static const String launchLine = 'Đang lặn xuống biển…';
   static const String settings = 'Cài đặt';
   static const String close = 'Đóng';
   static const String save = 'Lưu';

@@ -83,8 +83,7 @@ flutter:
     - assets/mascot/octopus/
     - assets/mascot/turtle/
     - assets/mascot/starfish/
-    # Font Be Vietnam Pro (400, 500, 600, 700) kèm giấy phép OFL: google_fonts tự tìm file theo tên,
-    # nên app hiện đúng font khi không có mạng.
+    # Baloo 2 and Nunito OFL licences, shown in the licence page (the fonts are declared below).
     - assets/fonts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -98,6 +97,15 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  # 5.2 Fonts (spec 011): variable fonts from github.com/google/fonts (OFL); the theme picks each
+  # weight on the wght axis. Bundled, so nothing is fetched at run time.
+  fonts:
+    - family: Baloo2
+      fonts:
+        - asset: assets/fonts/Baloo2-Variable.ttf
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Variable.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:

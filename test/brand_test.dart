@@ -65,4 +65,24 @@ void main() {
       expect(contrast(AppColors.onSun, AppColors.sun), greaterThanOrEqualTo(4.5));
     });
   });
+
+  group('Baloo 2 and Nunito (spec 011 FR-001, FR-002)', () {
+    final text = AppTheme.light.textTheme;
+
+    double weightOf(TextStyle? style) =>
+        style!.fontVariations!.firstWhere((variation) => variation.axis == 'wght').value;
+
+    test('headings and titles are Baloo 2, text and labels are Nunito', () {
+      expect(text.headlineSmall?.fontFamily, AppFonts.heading);
+      expect(weightOf(text.headlineSmall), 700);
+      expect(text.titleMedium?.fontFamily, AppFonts.heading);
+      expect(weightOf(text.titleMedium), 600);
+      expect(text.bodyMedium?.fontFamily, AppFonts.body);
+      expect(weightOf(text.bodyMedium), 400);
+      expect(text.labelLarge?.fontFamily, AppFonts.body);
+      expect(weightOf(text.labelLarge), 700);
+      expect(AppFonts.heading, 'Baloo2');
+      expect(AppFonts.body, 'Nunito');
+    });
+  });
 }

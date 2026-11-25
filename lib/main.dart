@@ -12,13 +12,18 @@ import 'data/hive_boxes.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 5.2 Font Be Vietnam Pro nằm sẵn trong assets/fonts/: không tải qua mạng, nên lúc demo
-  // không có wifi chữ vẫn đúng font.
+  // 5.2 Fonts Baloo 2 and Nunito are bundled in assets/fonts/ (spec 011): nothing is fetched over
+  // the network, so the text looks right without wifi too.
   GoogleFonts.config.allowRuntimeFetching = false;
-  // Giấy phép OFL của font hiện trong trang giấy phép của app.
+  // Their OFL licences appear in the app's licence page.
   LicenseRegistry.addLicense(() async* {
-    final license = await rootBundle.loadString('assets/fonts/OFL.txt');
-    yield LicenseEntryWithLineBreaks(['Be Vietnam Pro'], license);
+    for (final (name, file) in const [
+      ('Baloo 2', 'Baloo2-OFL.txt'),
+      ('Nunito', 'Nunito-OFL.txt'),
+    ]) {
+      final license = await rootBundle.loadString('assets/fonts/$file');
+      yield LicenseEntryWithLineBreaks([name], license);
+    }
   });
 
   await Hive.initFlutter();
