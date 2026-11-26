@@ -59,21 +59,27 @@ void main() {
   Rect rectOf(WidgetTester tester, Finder finder) => tester.getRect(finder.first);
 
   group('The sea fills Hôm nay (US1, FR-001, FR-002)', () {
-    testWidgets('the sea is the whole screen and stays still while the cards scroll', (
-      tester,
-    ) async {
+    testWidgets('the sea fills the screen and scrolls up with the cards, Gret too', (tester) async {
       await withPlan();
       // A small phone, so the cards are taller than the space left and the list scrolls.
       await openApp(tester, size: smallPhone);
       final sea = rectOf(tester, find.byType(SeaScene));
       expect(sea, Offset.zero & smallPhone);
+      final gret = rectOf(tester, find.byType(MascotView));
 
       final cardBefore = rectOf(tester, find.byType(ClarityCard));
       await tester.drag(find.byType(ClarityCard), const Offset(0, -200));
       await tester.pumpAndSettle();
+      final scrolled = cardBefore.top - rectOf(tester, find.byType(ClarityCard)).top;
 
-      expect(rectOf(tester, find.byType(SeaScene)), sea, reason: 'The sea does not scroll');
-      expect(rectOf(tester, find.byType(ClarityCard)).top, lessThan(cardBefore.top - 50));
+      expect(scrolled, greaterThan(50));
+      expect(rectOf(tester, find.byType(SeaScene)), sea.shift(Offset(0, -scrolled)));
+      expect(rectOf(tester, find.byType(MascotView)), gret.shift(Offset(0, -scrolled)));
+      // Deeper water shows under the sea once it moves up.
+      expect(
+        rectOf(tester, find.byKey(const ValueKey('today-deep-water'))),
+        Offset.zero & smallPhone,
+      );
     });
 
     testWidgets('Gret swims in the upper part and the cards start below Gret', (tester) async {

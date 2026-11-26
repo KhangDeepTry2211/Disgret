@@ -35,8 +35,12 @@ class MascotView extends StatefulWidget {
   State<MascotView> createState() => _MascotViewState();
 }
 
-class _MascotViewState extends State<MascotView> with SingleTickerProviderStateMixin {
+class _MascotViewState extends State<MascotView> with TickerProviderStateMixin {
   late final AnimationController _bob = AnimationController(vsync: this, duration: AppMotion.bob);
+  late final AnimationController _wag = AnimationController(
+    vsync: this,
+    duration: AppMotion.tailWag,
+  );
   final math.Random _random = math.Random();
   Timer? _blinkTimer;
   bool _blinking = false;
@@ -49,10 +53,13 @@ class _MascotViewState extends State<MascotView> with SingleTickerProviderStateM
     if (_animationsOff) {
       _bob.stop();
       _bob.value = 0;
+      _wag.stop();
+      _wag.value = 0.5;
       _blinkTimer?.cancel();
       _blinking = false;
     } else {
       if (!_bob.isAnimating) _bob.repeat(reverse: true);
+      if (!_wag.isAnimating) _wag.repeat(reverse: true);
       _scheduleBlink();
     }
   }
@@ -88,6 +95,7 @@ class _MascotViewState extends State<MascotView> with SingleTickerProviderStateM
   void dispose() {
     _blinkTimer?.cancel();
     _bob.dispose();
+    _wag.dispose();
     super.dispose();
   }
 
@@ -106,7 +114,22 @@ class _MascotViewState extends State<MascotView> with SingleTickerProviderStateM
       height: height,
       child: Stack(
         fit: StackFit.expand,
-        children: [for (final path in layers) SvgPicture.asset(path, fit: BoxFit.contain)],
+        children: [
+          for (final path in layers)
+            if (path == MascotLook.gretTail)
+              // The tail wags around where it meets the body (spec 013).
+              AnimatedBuilder(
+                animation: _wag,
+                builder: (context, tail) => Transform.rotate(
+                  angle: (_wag.value * 2 - 1) * AppMascot.tailWag,
+                  alignment: AppMascot.tailJoint,
+                  child: tail,
+                ),
+                child: SvgPicture.asset(path, fit: BoxFit.contain),
+              )
+            else
+              SvgPicture.asset(path, fit: BoxFit.contain),
+        ],
       ),
     );
 
@@ -119,7 +142,11 @@ class _MascotViewState extends State<MascotView> with SingleTickerProviderStateM
         final breathing = widget.mood == MascotMood.focused || widget.mood == MascotMood.sleeping;
         return Transform.translate(
           offset: Offset(0, breathing ? 0 : -AppMascot.bobAmplitude * t),
-          child: Transform.scale(scale: breathing ? 1 + 0.025 * t : 1, child: child),
+          child: Transform.rotate(
+            // A slight tilt while bobbing (spec 013).
+            angle: breathing ? 0 : (t - 0.5) * 2 * AppMascot.bobTilt,
+            child: Transform.scale(scale: breathing ? 1 + 0.025 * t : 1, child: child),
+          ),
         );
       },
     );

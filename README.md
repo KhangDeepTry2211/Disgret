@@ -180,11 +180,15 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
    **Lưu** → hiện **"+1 ngày streak 🔥"** → **Về Hôm nay**: vòng streak lên **6 ngày**.
 9. **Góc của Gret.** Ở **Hôm nay**, bấm nút móc áo góc phải cảnh biển (kèm số ngọc trai: 1 ngọc
    cho mỗi 5 phút tập trung) → tab **Tủ đồ**: đổi **Nơ hồng** (20 ngọc) → **Mặc** → về Hôm nay
-   thấy Gret đeo nơ. Tab **Biển**: rạn san hô, biển băng, đáy biển sâu mở theo chuỗi ngày; tab
+   thấy Gret đeo nơ. Tab **Biển**: rạn san hô, biển băng, đáy biển sâu mở theo chuỗi ngày; rừng
+   tảo bẹ, núi lửa ngầm, thành phố chìm, vịnh hoàng hôn đổi bằng 150–300 ngọc, mua xong thành một
+   hòn đảo riêng trên bản đồ biển; tab
    **Linh vật**: cua **Ẩn** (300 ngọc), bạch tuộc **Mochi** "Sắp có" (bán bằng tiền thật sau).
 10. **Bản đồ biển.** Tab **Thói quen** → nút bản đồ trên thanh tiêu đề: bản đồ toàn màn hình
-   lướt từ toàn cảnh vào đảo có Gret. Mỗi mục tiêu là một đảo, mỗi thói quen là một ghim ("?" khi
-   chưa làm ngày nào, rồi "n/66"); bóng tối tan dần quanh ghim theo số ngày đã làm. Kéo, chụm để
+   lướt từ toàn cảnh vào đảo có Gret. Mỗi mục tiêu là một hòn đảo có bãi cát, rạn san hô (hoặc
+   băng, đá núi lửa, cỏ tuỳ vùng biển) và cá bơi quanh; mỗi thói quen là một địa danh (hang cá,
+   xác tàu, rương báu…) kèm "n/66", lớn dần ở mốc 7/21/40/66 ngày; chưa làm ngày nào là một cái
+   phao "?". Bóng tối tan dần quanh địa danh theo số ngày đã làm. Kéo, chụm để
    phóng to, nút +/− và **Về chỗ Gret**; chạm vào đảo để xem từng điểm và mốc 7/21/40/66 ngày.
    Phiên học diễn ra ở biển của đảo đó (ở Quán San Hô thì cửa sổ nhìn ra biển đó).
 11. **Đổi nơi học.** Ở **Hôm nay**, thẻ **Học tiếp** ghi "ở Quán San Hô" → **Đổi thói quen hoặc

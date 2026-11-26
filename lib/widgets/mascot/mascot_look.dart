@@ -11,6 +11,9 @@ export '../../data/mascot_species.dart' show MascotSpecies;
 class MascotLook {
   MascotLook._();
 
+  /// Gret's tail, drawn behind everything so it can wag (spec 013).
+  static const String gretTail = 'assets/mascot/gret/tail.svg';
+
   /// Moods whose eyes are open and can blink.
   static bool canBlink(MascotMood mood) => switch (mood) {
     MascotMood.happy || MascotMood.neutral || MascotMood.sad || MascotMood.focused => true,
@@ -29,6 +32,7 @@ class MascotLook {
     final face = MascotSpecies.gret.folder;
     final eyes = blinking && canBlink(mood) ? 'blink' : mood.name;
     return [
+      if (species == MascotSpecies.gret) gretTail,
       ?outfit[OutfitSlot.back],
       '${species.folder}/body.svg',
       ?outfit[OutfitSlot.body],

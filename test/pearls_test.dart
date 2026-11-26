@@ -67,19 +67,28 @@ void main() {
       }
     });
 
-    test('version 1 has 10 outfits, 4 seas and 3 mascots, with premium ones only listed', () {
-      expect(GretCornerCatalog.items, hasLength(10));
-      expect(GretCornerCatalog.seas, hasLength(4));
-      expect(GretCornerCatalog.mascots, hasLength(3));
-      final premium = GretCornerCatalog.items.where((i) => i.unlock.kind == UnlockKind.premium);
-      expect(premium, hasLength(2));
-      expect(GretCornerCatalog.mascotOf(MascotSpecies.octopus).unlock.kind, UnlockKind.premium);
-    });
+    test(
+      '10 outfits, 8 seas (4 bought with pearls, spec 014) and 3 mascots; premium only listed',
+      () {
+        expect(GretCornerCatalog.items, hasLength(10));
+        expect(GretCornerCatalog.seas, hasLength(8));
+        expect(GretCornerCatalog.mascots, hasLength(3));
+        final premium = GretCornerCatalog.items.where((i) => i.unlock.kind == UnlockKind.premium);
+        expect(premium, hasLength(2));
+        expect(GretCornerCatalog.mascotOf(MascotSpecies.octopus).unlock.kind, UnlockKind.premium);
+      },
+    );
 
     test('the home sea and Gret are free; seas open at streaks 3, 7 and 14', () {
       expect(GretCornerCatalog.seaOf(SeaPlace.home).unlock.kind, UnlockKind.free);
       expect(GretCornerCatalog.mascotOf(MascotSpecies.gret).unlock.kind, UnlockKind.free);
-      expect([for (final sea in GretCornerCatalog.seas.skip(1)) sea.unlock.amount], [3, 7, 14]);
+      expect(
+        [
+          for (final sea in GretCornerCatalog.seas)
+            if (sea.unlock.kind == UnlockKind.streak) sea.unlock.amount,
+        ],
+        [3, 7, 14],
+      );
     });
 
     test('unknown ids are not found', () {

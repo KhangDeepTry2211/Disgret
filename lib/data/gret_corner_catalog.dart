@@ -63,6 +63,9 @@ class SeaInfo {
   final SeaPlace place;
   final String name;
   final Unlock unlock;
+
+  /// Stored with the owned items when bought with pearls (spec 014).
+  String get id => 'sea_${place.name}';
 }
 
 class MascotInfo {
@@ -170,6 +173,11 @@ class GretCornerCatalog {
     SeaInfo(place: SeaPlace.coral, name: 'Rạn san hô', unlock: Unlock.streak(3)),
     SeaInfo(place: SeaPlace.ice, name: 'Biển băng', unlock: Unlock.streak(7)),
     SeaInfo(place: SeaPlace.deep, name: 'Đáy biển sâu', unlock: Unlock.streak(14)),
+    // Bought with pearls, each an island on the sea map once bought (spec 014).
+    SeaInfo(place: SeaPlace.kelp, name: 'Rừng tảo bẹ', unlock: Unlock.pearls(150)),
+    SeaInfo(place: SeaPlace.volcano, name: 'Núi lửa ngầm', unlock: Unlock.pearls(200)),
+    SeaInfo(place: SeaPlace.sunken, name: 'Thành phố chìm', unlock: Unlock.pearls(250)),
+    SeaInfo(place: SeaPlace.sunset, name: 'Vịnh hoàng hôn', unlock: Unlock.pearls(300)),
   ];
 
   static const List<MascotInfo> mascots = [
@@ -186,6 +194,19 @@ class GretCornerCatalog {
   }
 
   static SeaInfo seaOf(SeaPlace place) => seas.firstWhere((sea) => sea.place == place);
+
+  static SeaInfo? seaById(String id) {
+    for (final sea in seas) {
+      if (sea.id == id) return sea;
+    }
+    return null;
+  }
+
+  /// The pearl seas among [owned] ids, in catalog order (spec 014).
+  static List<SeaPlace> boughtSeas(Set<String> owned) => [
+    for (final sea in seas)
+      if (sea.unlock.kind == UnlockKind.pearls && owned.contains(sea.id)) sea.place,
+  ];
 
   static MascotInfo mascotOf(MascotSpecies species) =>
       mascots.firstWhere((mascot) => mascot.species == species);

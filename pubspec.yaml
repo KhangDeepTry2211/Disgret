@@ -83,6 +83,8 @@ flutter:
     - assets/mascot/octopus/
     - assets/mascot/turtle/
     - assets/mascot/starfish/
+    # Sea map landmarks and their growth layers (spec 012).
+    - assets/map/
     # Baloo 2 and Nunito OFL licences, shown in the licence page (the fonts are declared below).
     - assets/fonts/
 

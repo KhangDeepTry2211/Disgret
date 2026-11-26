@@ -15,5 +15,6 @@ enum MascotSpecies {
   String get folder => 'assets/mascot/$name';
 }
 
-/// Places the sea can show (spec 004 user story 2).
-enum SeaPlace { home, coral, ice, deep }
+/// Places the sea can show (spec 004 user story 2). The last four are bought with pearls and
+/// appear as their own islands on the sea map (spec 014). Stored by name; new values go last.
+enum SeaPlace { home, coral, ice, deep, kelp, volcano, sunken, sunset }

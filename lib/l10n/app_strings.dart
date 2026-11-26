@@ -262,6 +262,12 @@ class AppStrings {
   static const String mapTitle = 'Bản đồ biển';
   static String mapExploration(String sea, int percent) => '$sea · Độ khám phá $percent%';
   static const String mapUnknown = 'Vùng chưa biết';
+
+  /// A pearl sea Gret owns, as its own island (spec 014).
+  static const String mapGretSea = 'Biển của Gret';
+  static const String mapChooseSea = 'Chọn làm biển của Gret';
+  static const String mapSeaInUse = 'Đang dùng';
+  static String mapSeaSemantics(String sea) => '$sea, biển của Gret';
   static const String mapZoomIn = 'Phóng to';
   static const String mapZoomOut = 'Thu nhỏ';
   static const String mapToGret = 'Về chỗ Gret';

@@ -26,3 +26,13 @@ clears as habits are practised.
 - New pure logic (`lib/data/sea_map.dart`) with unit tests; a painter and a view in the Thói quen
   tab; the focus session uses the terrain of the habit's region.
 - The parked `lib/widgets/habit_journey.dart` is not reused; the milestones live in the new logic.
+
+## Amendment (2026-11-25, spec 014)
+
+The lead asked that opening a new sea feel like getting a new map. Seas bought with pearls in
+Góc của Gret (Rừng tảo bẹ, Núi lửa ngầm, Thành phố chìm, Vịnh hoàng hôn) now appear on the map as
+islands that are not goals: after the goal islands and before the unknown seas, always clear of
+the fog, labelled "<name> · Biển của Gret", with no landmarks and no exploration percentage.
+Tapping one makes it Gret's sea. Goal islands, their terrains, landmarks, fog and the 66-day
+rules are unchanged, and nothing new is stored (the owned ids already were).
+

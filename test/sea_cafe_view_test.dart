@@ -16,6 +16,7 @@ import 'package:focus_app/data/repositories/session_repository.dart';
 import 'package:focus_app/data/repositories/study_place_repository.dart';
 import 'package:focus_app/data/sea_cafe.dart';
 import 'package:focus_app/data/study_place.dart';
+import 'package:focus_app/providers/app_providers.dart';
 import 'package:focus_app/providers/sea_cafe_providers.dart';
 import 'package:focus_app/l10n/app_strings.dart';
 import 'package:focus_app/theme/app_theme.dart';
@@ -155,16 +156,21 @@ void main() {
     });
 
     testWidgets('fits a small phone at night with a long habit name', (tester) async {
-      await pumpStandalone(tester, const SizedBox());
+      // Night comes from the clock (spec 013).
+      DateTime night() => DateTime(2026, 11, 25, 21);
+      await pumpStandalone(tester, const SizedBox(), clock: night);
       await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.dark,
-          home: Scaffold(
-            body: SizedBox(
-              height: 330,
-              child: scene(
-                line: CafeLine(speaker: friends.first, text: SeaCafe.greetings.first),
-                overlay: const Text('Ôn tập chương ba môn Hóa học thật kỹ trước kỳ thi cuối kỳ'),
+        ProviderScope(
+          overrides: [clockProvider.overrideWithValue(night)],
+          child: MaterialApp(
+            theme: AppTheme.dark,
+            home: Scaffold(
+              body: SizedBox(
+                height: 330,
+                child: scene(
+                  line: CafeLine(speaker: friends.first, text: SeaCafe.greetings.first),
+                  overlay: const Text('Ôn tập chương ba môn Hóa học thật kỹ trước kỳ thi cuối kỳ'),
+                ),
               ),
             ),
           ),

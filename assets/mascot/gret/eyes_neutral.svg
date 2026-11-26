@@ -2,4 +2,5 @@
 <circle cx="92" cy="104" r="16" fill="#FFFFFF"/><circle cx="140" cy="104" r="16" fill="#FFFFFF"/>
 <circle cx="92" cy="106" r="8" fill="#0A2A6B"/><circle cx="140" cy="106" r="8" fill="#0A2A6B"/>
 <circle cx="95" cy="102" r="3" fill="#FFFFFF"/><circle cx="143" cy="102" r="3" fill="#FFFFFF"/>
+<circle cx="88.5" cy="109.5" r="1.4" fill="#FFFFFF" fill-opacity="0.85"/><circle cx="136.5" cy="109.5" r="1.4" fill="#FFFFFF" fill-opacity="0.85"/>
 </svg>

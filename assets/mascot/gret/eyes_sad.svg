@@ -3,4 +3,5 @@
 <circle cx="91" cy="111" r="8" fill="#0A2A6B"/><circle cx="139" cy="111" r="8" fill="#0A2A6B"/>
 <circle cx="94" cy="108" r="2.5" fill="#FFFFFF"/><circle cx="142" cy="108" r="2.5" fill="#FFFFFF"/>
 <path d="M78 92 L104 84 M128 84 L154 92" stroke="#0A2A6B" stroke-width="4" stroke-linecap="round" fill="none"/>
+<circle cx="87.5" cy="114.5" r="1.4" fill="#FFFFFF" fill-opacity="0.85"/><circle cx="135.5" cy="114.5" r="1.4" fill="#FFFFFF" fill-opacity="0.85"/>
 </svg>

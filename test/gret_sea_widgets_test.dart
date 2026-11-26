@@ -1,5 +1,9 @@
 // 5.3 Reusable Gret and sea widgets (spec 003 FR-007, FR-015, FR-018, FR-020).
+import 'dart:io';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:focus_app/data/gret_corner_catalog.dart';
 import 'package:focus_app/data/mascot_mood.dart';
 import 'package:focus_app/l10n/app_strings.dart';
 import 'package:focus_app/widgets/mascot/mascot_look.dart';
@@ -20,10 +24,29 @@ void main() {
   tearDown(() async => Hive.close());
 
   group('MascotLook', () {
+    test('only Gret has a tail layer; outfits still sit on the body (spec 013)', () {
+      expect(File(MascotLook.gretTail).existsSync(), isTrue);
+      for (final species in MascotSpecies.values.where((s) => s != MascotSpecies.gret)) {
+        expect(
+          MascotLook.layers(MascotMood.happy, species: species),
+          isNot(contains(MascotLook.gretTail)),
+        );
+      }
+      final dressed = MascotLook.layers(
+        MascotMood.happy,
+        outfit: const {OutfitSlot.back: 'assets/mascot/outfits/hero_cape.svg'},
+      );
+      expect(
+        dressed.indexOf(MascotLook.gretTail),
+        lessThan(dressed.indexOf('assets/mascot/gret/body.svg')),
+      );
+    });
+
     test('every mood has eyes and a mouth on the shared canvas', () {
       for (final mood in MascotMood.values) {
         final layers = MascotLook.layers(mood);
-        expect(layers.first, 'assets/mascot/gret/body.svg');
+        // The tail is its own layer behind the body, so it can wag (spec 013).
+        expect(layers.take(2), [MascotLook.gretTail, 'assets/mascot/gret/body.svg']);
         expect(layers, contains('assets/mascot/gret/mouth_${mood.name}.svg'));
         expect(MascotLook.lines(mood), isNotEmpty);
       }
@@ -80,8 +103,10 @@ void main() {
     await pumpStandalone(tester, const Scaffold(body: SizedBox()));
     tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures();
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(body: SeaScene(clarity: 85, mood: MascotMood.happy)),
+      const ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(body: SeaScene(clarity: 85, mood: MascotMood.happy)),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));

@@ -302,8 +302,54 @@ class AppSea {
   static const Color plankton = Color(0xFF9FF5E6);
   static const Color jelly = Color(0xB3F4C0D1);
 
-  /// How much of the night sky is mixed into a place's colours in dark mode.
+  /// How much of the night sky is mixed into a place's colours at night, and into its sky.
   static const double nightBlend = 0.45;
+  static const double nightSkyBlend = 0.88;
+
+  /// Living sea (spec 013): the sun and stars, sun and moon rays (strongest alpha, dimmed as the
+  /// water murks), ripples under the surface, the sea floor, rising specks and back seaweed.
+  static const Color sun = Color(0xFFFFE9A8);
+  static const Color star = Color(0xFFFFFFFF);
+  static const Color sunRay = Color(0xFFFFFFFF);
+  static const double sunRayAlpha = 0.2;
+  static const Color moonRay = Color(0xFFCFE8FF);
+  static const double moonRayAlpha = 0.09;
+  static const Color ripple = Color(0x66FFFFFF);
+  static const Color sand = Color(0xFFF0D39A);
+  static const Color pebble = Color(0xFFD9B97A);
+  static const Color iceFloor = Color(0xFFDCEEF8);
+  static const Color deepFloor = Color(0xFF2A3550);
+  static const Color speck = Color(0xB3FFFFFF);
+  static const Color seaweedBack = Color(0xFF2F8F5B);
+
+  /// Where the sea floor starts, as a share of the scene height.
+  static const double floorTop = 0.91;
+
+  // Pearl seas (spec 014): Rừng tảo bẹ, Núi lửa ngầm, Thành phố chìm, Vịnh hoàng hôn.
+  static const Color kelpSky = Color(0xFFE4F4D8);
+  static const List<Color> kelpClear = [Color(0xFF7FCBA4), Color(0xFF4FA383), Color(0xFF2F7A63)];
+  static const Color kelpGold = Color(0xFFC9A43A);
+  static const Color kelpOlive = Color(0xFF8FAF3A);
+  static const Color kelpLeaf = Color(0xFFA8C64A);
+  static const Color kelpFloor = Color(0xFFD8C08A);
+  static const Color volcanoSky = Color(0xFFFBE3D4);
+  static const List<Color> volcanoClear = [Color(0xFF4A8FB8), Color(0xFF2F5F86), Color(0xFF1E3B5A)];
+  static const Color volcanoRock = Color(0xFF2B2B33);
+  static const Color lava = Color(0xFFFF8A3D);
+  static const Color volcanoCoral = Color(0xFFE2502C);
+  static const Color sunkenSky = Color(0xFFDDF3F2);
+  static const List<Color> sunkenClear = [Color(0xFF5CCFC8), Color(0xFF3AA7A9), Color(0xFF277F86)];
+  static const Color stone = Color(0xFFEDE3CE);
+  static const Color stoneShade = Color(0xFFD9CBB0);
+  static const Color moss = Color(0xFF5FA05A);
+  static const Color glint = Color(0xFFFFE08A);
+  static const Color sunkenFloor = Color(0xFFE6D3A6);
+  static const Color sunsetSky = Color(0xFFFFD9C2);
+  static const List<Color> sunsetClear = [Color(0xFFE98AA0), Color(0xFFB76A9E), Color(0xFF7C4E8C)];
+  static const Color sunsetSun = Color(0xFFFFB067);
+  static const Color palmShadow = Color(0xFF4A2E3F);
+  static const Color pinkSand = Color(0xFFF2C2A8);
+  static const Color shell = Color(0xFFFFF1E6);
 }
 
 /// 5.3 Sizes of Gret (feature 003). All mascot layers share one 240×200 canvas so outfits and
@@ -330,8 +376,14 @@ class AppMascot {
   static const double todayCardsTop = 0.44;
   static const double compactSceneHeight = 170;
 
-  /// Gentle up-and-down movement while idle.
+  /// Gentle up-and-down movement while idle, with a slight tilt (radians, spec 013).
   static const double bobAmplitude = 4;
+  static const double bobTilt = 0.04;
+
+  /// Gret's tail wags around where it meets the body (alignment on the canvas), this far
+  /// either way (radians), once per [AppMotion.tailWag].
+  static const Alignment tailJoint = Alignment(0.383, 0.12);
+  static const double tailWag = 0.14;
 
   /// Speech-bubble tail and thought-bubble dots.
   static const Size bubbleTail = Size(16, 8);
@@ -493,15 +545,83 @@ class AppSeaMap {
 
   static const Color ocean = Color(0xFF04142E);
   static const Color oceanLine = Color(0x264CC9F0);
-  static const Color coral = Color(0xFF1D9E75);
-  static const Color ice = Color(0xFF85B7EB);
-  static const Color deep = Color(0xFF3B5BA0);
-  static const Color home = Color(0xFF378ADD);
+
+  /// Island bands (spec 012), from the outside in: shallow water ([shallowScale] of the outline),
+  /// beach (the outline, with a foam line [islandEdge]) and inner land ([innerScale]).
+  static const Color coralShallow = Color(0xFF4CC9F0);
+  static const Color coralBeach = Color(0xFFF3E3C3);
+  static const Color coralInner = Color(0xFF7FD8E0);
+  static const Color iceShallow = Color(0xFFB5D4F4);
+  static const Color iceBeach = Color(0xFFF4F8FC);
+  static const Color iceInner = Color(0xFFCFE8F5);
+  static const Color deepShallow = Color(0xFF3B5BA0);
+  static const Color deepBeach = Color(0xFF3A4152);
+  static const Color deepInner = Color(0xFF262B38);
+  static const Color homeShallow = Color(0xFF4CC9F0);
+  static const Color homeBeach = Color(0xFFF3E3C3);
+  static const Color homeInner = Color(0xFF7CB868);
+  static const Color kelpShallow = Color(0xFF7FCBA4);
+  static const Color kelpBeach = Color(0xFFD8C08A);
+  static const Color kelpInner = Color(0xFF8FBF6A);
+  static const Color volcanoShallow = Color(0xFF4A8FB8);
+  static const Color volcanoBeach = Color(0xFF3A3A44);
+  static const Color volcanoInner = Color(0xFF2B2B33);
+  static const Color sunkenShallow = Color(0xFF5CCFC8);
+  static const Color sunkenBeach = Color(0xFFE6D3A6);
+  static const Color sunkenInner = Color(0xFFB9DCCB);
+  static const Color sunsetShallow = Color(0xFFE98AA0);
+  static const Color sunsetBeach = Color(0xFFF2C2A8);
+  static const Color sunsetInner = Color(0xFFF7D8B8);
   static const Color unknownLand = Color(0xFF2C3E5A);
-  static const Color islandHeart = Color(0xFFFFFFFF);
   static const Color islandEdge = Color(0x66FFFFFF);
+
+  /// The fog opens this far around a bought sea's island (times its larger radius, spec 014).
+  static const double boughtClear = 1.35;
   static const double shallowAlpha = 0.35;
-  static const double heartAlpha = 0.14;
+  static const double shallowScale = 1.14;
+  static const double innerScale = 0.62;
+
+  /// Scenery and sea life colours (spec 012); corals, icebergs, plankton, jellyfish, fish and
+  /// bubbles reuse [AppSea].
+  static const Color palmTrunk = Color(0xFF8B5A2B);
+  static const Color palmLeaf = Color(0xFF1E6B45);
+  static const Color coconut = Color(0xFF6B4423);
+  static const Color iceShade = Color(0xFFA9CBE3);
+  static const Color rock = Color(0xFF6E7480);
+  static const Color rockLight = Color(0xFF9AA0AB);
+  static const Color ventGlow = Color(0xFFFF9F5A);
+  static const Color bush = Color(0xFF4E9A3E);
+  static const Color bushLight = Color(0xFF6FB85A);
+  static const Color hutWall = Color(0xFFE9D7B0);
+  static const Color hutRoof = Color(0xFFB5573A);
+  static const Color lighthouse = Color(0xFFF1EFE8);
+  static const Color lighthouseBand = Color(0xFFD85A30);
+  static const Color lamp = Color(0xFFFFC93C);
+  static const Color turtleShell = Color(0xFF3B6D11);
+  static const Color turtleSkin = Color(0xFF7BB33A);
+  static const Color whale = Color(0xFF2D4A7A);
+  static const Color fishEye = Color(0xFF0A2A6B);
+
+  /// Scenery placement (spec 012): [reefPieces] on [reefScale] of the outline; land scenery
+  /// between [landInner] and [landOuter] (beach pieces from [beachFrom], grass up to [grassTo]);
+  /// nothing within [sceneryClearance] of a landmark or Gret,
+  /// land pieces [sceneryGap] apart. Sea life: a few just off each island ([nearSeaScale]) and
+  /// one in about [openSeaChance] of the [openSeaCell] squares of open water.
+  static const int reefPieces = 12;
+  static const double reefScale = 1.07;
+  static const double reefSize = 18;
+  static const double landSize = 22;
+  static const double landInner = 0.2;
+  static const double grassTo = 0.52;
+  static const double beachFrom = 0.7;
+  static const double landOuter = 0.9;
+  static const double sceneryClearance = 56;
+  static const double sceneryGap = 30;
+  static const double seaLifeSize = 22;
+  static const double nearSeaScale = 1.4;
+  static const double openSeaCell = 260;
+  static const double openSeaChance = 0.4;
+  static const int openSeaSeed = 11;
 
   /// Darkness over what is not explored yet, and the soft circles that open it.
   static const Color worldFog = Color(0xC7020A18);
@@ -531,7 +651,9 @@ class AppSeaMap {
   static const double islandRowGrowth = 46;
   static const int unknownSeas = 2;
   static const int pointColumns = 3;
-  static const double pinSize = 34;
+
+  /// Width of a habit's landmark drawing (spec 012).
+  static const double landmarkSize = 76;
   static const double gretSize = 56;
 
   /// Zoom: the opening glide ends at [focusScale] on Gret's island.
@@ -544,6 +666,10 @@ class AppSeaMap {
 /// 5.4 Góc của Gret (feature 004): rarity colours and preview sizes.
 class AppCorner {
   AppCorner._();
+
+  /// The sea picture in the sheet that buys a pearl sea (spec 014).
+  static const double sheetSeaWidth = 224;
+  static const double sheetSeaHeight = 140;
 
   static const Color rare = Color(0xFF7F77DD);
   static const Color special = Color(0xFFE8A600);
@@ -597,6 +723,7 @@ class AppMotion {
   static const Duration seaColour = Duration(milliseconds: 800);
   static const Duration seaLoop = Duration(seconds: 8);
   static const Duration bob = Duration(milliseconds: 2400);
+  static const Duration tailWag = Duration(milliseconds: 700);
   static const Duration blink = Duration(milliseconds: 120);
   static const int blinkMinSeconds = 3;
   static const int blinkMaxSeconds = 6;
@@ -801,6 +928,10 @@ class AppIcons {
 /// 5.2 ThemeData sáng và tối (Material 3, font Be Vietnam Pro).
 class AppTheme {
   AppTheme._();
+
+  /// For text and controls drawn on the sea's sky or the café wall, which follow the clock
+  /// rather than dark mode (spec 013): light by day, dark by night.
+  static ThemeData forSky({required bool night}) => night ? dark : light;
 
   static final ThemeData light = _build(_lightScheme);
   static final ThemeData dark = _build(_darkScheme);

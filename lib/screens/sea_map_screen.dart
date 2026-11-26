@@ -1,22 +1,27 @@
 // 5.5 Bản đồ biển, full screen (spec 005, ADR-0010): one ocean where every goal is an island, each
-// habit a pin, and the darkness opens around what was explored. The map glides from the whole
+// habit a landmark that grows with its stage (spec 012), and the darkness opens around what was
+// explored. The map glides from the whole
 // world to Gret's island when it opens; it pans, pinch-zooms, and has +/− and "Về chỗ Gret".
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/gret_corner_catalog.dart';
 import '../data/mascot_mood.dart';
+import '../data/mascot_species.dart';
 import '../data/sea_map.dart';
 import '../l10n/app_strings.dart';
 import '../providers/gret_corner_providers.dart';
 import '../providers/sea_map_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
+import '../widgets/gradient_pill_button.dart';
 import '../widgets/mascot/mascot_view.dart';
+import '../widgets/sea/landmark_look.dart';
 import '../widgets/sea/sea_world.dart';
 
 String _kindName(PointKind kind) => switch (kind) {
@@ -149,6 +154,15 @@ class _SeaMapScreenState extends ConsumerState<SeaMapScreen> with SingleTickerPr
       ..showSnackBar(SnackBar(content: Text(AppStrings.mapDiscoverHint(point.habit.name))));
   }
 
+  /// A bought sea's island (spec 014): make it Gret's sea.
+  void _showSea(SeaPlace place) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => _SeaIslandSheet(place: place),
+    );
+  }
+
   void _showRegion(MapRegion region) {
     showModalBottomSheet<void>(
       context: context,
@@ -163,7 +177,10 @@ class _SeaMapScreenState extends ConsumerState<SeaMapScreen> with SingleTickerPr
     final theme = Theme.of(context);
     final data = ref.watch(seaMapProvider);
     final look = ref.watch(gretLookProvider);
-    final layout = SeaWorldLayout.of(data);
+    final layout = SeaWorldLayout.of(
+      data,
+      boughtSeas: GretCornerCatalog.boughtSeas(ref.watch(gretCornerProvider).owned),
+    );
     final padding = MediaQuery.paddingOf(context);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -221,6 +238,21 @@ class _SeaMapScreenState extends ConsumerState<SeaMapScreen> with SingleTickerPr
                               ),
                             ),
                           ),
+                        for (final island in layout.bought)
+                          Positioned.fromRect(
+                            rect: island.bounds,
+                            child: Semantics(
+                              button: true,
+                              label: AppStrings.mapSeaSemantics(
+                                GretCornerCatalog.seaOf(island.sea!).name,
+                              ),
+                              child: GestureDetector(
+                                key: ValueKey('map-sea-${island.sea!.name}'),
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _showSea(island.sea!),
+                              ),
+                            ),
+                          ),
                         for (final island in layout.islands)
                           Positioned(
                             left: island.labelAnchor.dx - island.radiusX,
@@ -233,10 +265,11 @@ class _SeaMapScreenState extends ConsumerState<SeaMapScreen> with SingleTickerPr
                         for (final island in layout.known)
                           for (var j = 0; j < island.points.length; j++)
                             Positioned(
-                              left: island.points[j].dx - AppSeaMap.pinSize,
-                              top: island.points[j].dy - AppSeaMap.pinSize * 1.2,
-                              width: AppSeaMap.pinSize * 2,
-                              child: _MapPin(
+                              // The landmark stands on its point; "n/66" hangs below it.
+                              left: island.points[j].dx - AppSeaMap.landmarkSize / 2,
+                              top: island.points[j].dy - _Landmark.height * _Landmark.groundLine,
+                              width: AppSeaMap.landmarkSize,
+                              child: _Landmark(
                                 key: ValueKey('map-point-${island.region!.points[j].habit.id}'),
                                 point: island.region!.points[j],
                                 onTap: () => _onPin(island.region!, island.region!.points[j]),
@@ -387,12 +420,27 @@ class _IslandLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final region = island.region;
+    final sea = island.sea;
 
     return DecoratedBox(
       decoration: const BoxDecoration(color: AppSeaMap.labelBg, borderRadius: AppRadius.cardBorder),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-        child: region == null
+        child: sea != null
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    GretCornerCatalog.seaOf(sea).name,
+                    style: theme.textTheme.titleSmall?.copyWith(color: AppSeaMap.labelTitle),
+                  ),
+                  Text(
+                    AppStrings.mapGretSea,
+                    style: theme.textTheme.labelSmall?.copyWith(color: AppSeaMap.labelSub),
+                  ),
+                ],
+              )
+            : region == null
             ? Text(
                 AppStrings.mapUnknown,
                 style: theme.textTheme.labelMedium?.copyWith(color: AppSeaMap.unknownLabel),
@@ -417,54 +465,36 @@ class _IslandLabel extends StatelessWidget {
   }
 }
 
-/// A habit's pin: a teardrop with its icon and "n/66" once found, a grey "?" before.
-class _MapPin extends StatelessWidget {
-  const _MapPin({required this.point, required this.onTap, super.key});
+/// A habit's landmark (spec 012): its drawing with the growth layers of its stage and "n/66" once
+/// found, a "?" buoy before.
+class _Landmark extends StatelessWidget {
+  const _Landmark({required this.point, required this.onTap, super.key});
 
   final MapPoint point;
   final VoidCallback onTap;
+
+  static final double height =
+      AppSeaMap.landmarkSize * LandmarkLook.canvas.height / LandmarkLook.canvas.width;
+
+  /// Where the drawings touch the ground, as a share of their height.
+  static const double groundLine = 0.88;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final found = point.discovered;
-    const size = AppSeaMap.pinSize;
-    const round = Radius.circular(size / 2);
 
-    final pin = found
-        ? Transform.rotate(
-            angle: -math.pi / 4,
-            child: Container(
-              width: size,
-              height: size,
-              decoration: const BoxDecoration(
-                color: AppSeaMap.pointFound,
-                borderRadius: BorderRadius.only(
-                  topLeft: round,
-                  topRight: round,
-                  bottomRight: round,
-                ),
-              ),
-              child: Transform.rotate(
-                angle: math.pi / 4,
-                child: Icon(
-                  _kindIcon(point.kind),
-                  size: AppStatCard.icon - 4,
-                  color: AppSeaMap.pointFoundIcon,
-                ),
-              ),
-            ),
-          )
-        : Container(
-            width: size,
-            height: size,
-            decoration: const BoxDecoration(color: AppSeaMap.pointHidden, shape: BoxShape.circle),
-            child: const Icon(
-              AppIcons.pointHidden,
-              size: AppStatCard.icon - 4,
-              color: AppSeaMap.pointHiddenIcon,
-            ),
-          );
+    final pin = SizedBox(
+      width: AppSeaMap.landmarkSize,
+      height: height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          for (final layer in LandmarkLook.layers(point.kind, point.stage))
+            SvgPicture.asset(layer, fit: BoxFit.contain),
+        ],
+      ),
+    );
 
     return Semantics(
       button: true,
@@ -484,7 +514,6 @@ class _MapPin extends StatelessWidget {
           children: [
             pin,
             if (found) ...[
-              const SizedBox(height: AppSpacing.xs),
               DecoratedBox(
                 decoration: const ShapeDecoration(
                   color: AppSeaMap.pointFound,
@@ -499,6 +528,62 @@ class _MapPin extends StatelessWidget {
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A bought sea's island: its name and the one action, making it Gret's sea (spec 014).
+class _SeaIslandSheet extends ConsumerWidget {
+  const _SeaIslandSheet({required this.place});
+
+  final SeaPlace place;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final inUse = ref.watch(gretCornerProvider).sea == place;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              GretCornerCatalog.seaOf(place).name,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleLarge,
+            ),
+            Text(
+              AppStrings.mapGretSea,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            if (inUse)
+              Text(
+                AppStrings.mapSeaInUse,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            else
+              GradientPillButton(
+                label: AppStrings.mapChooseSea,
+                height: AppButton.compact,
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  await ref.read(gretCornerProvider.notifier).chooseSea(place);
+                  navigator.pop();
+                },
+              ),
           ],
         ),
       ),

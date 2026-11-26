@@ -6,7 +6,9 @@ import 'package:material_ui/material_ui.dart';
 import '../data/gret_corner_catalog.dart';
 import '../data/mascot_mood.dart';
 import '../data/mascot_species.dart';
+import '../data/sea_time.dart';
 import '../l10n/app_strings.dart';
+import '../providers/app_providers.dart';
 import '../providers/gret_corner_providers.dart';
 import '../providers/sea_providers.dart';
 import '../theme/app_theme.dart';
@@ -97,7 +99,7 @@ class _Preview extends ConsumerWidget {
     final look = ref.watch(gretLookProvider);
     final sea = ref.watch(seaStateProvider);
     final info = GretCornerCatalog.seaOf(place);
-    final lock = ref.read(gretCornerProvider.notifier).lockOf(info.unlock, id: place.name);
+    final lock = ref.read(gretCornerProvider.notifier).lockOf(info.unlock, id: info.id);
     ref.watch(bestStreakProvider);
 
     return SeaScene(
@@ -119,6 +121,8 @@ class _Preview extends ConsumerWidget {
               Text(
                 lock == CornerLock.none
                     ? info.name
+                    : lock == CornerLock.pearls
+                    ? '${info.name} · ${AppStrings.cornerPrice(info.unlock.price)}'
                     : '${info.name} · ${AppStrings.cornerSeaLocked(info.unlock.amount)}',
                 style: theme.textTheme.labelLarge,
               ),
@@ -563,7 +567,7 @@ class _SeaTab extends ConsumerWidget {
     final corner = ref.watch(gretCornerProvider);
     ref.watch(bestStreakProvider);
     final notifier = ref.read(gretCornerProvider.notifier);
-    final isNight = theme.brightness == Brightness.dark;
+    final isNight = SeaTime.isNight(ref.watch(clockProvider)());
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -571,7 +575,7 @@ class _SeaTab extends ConsumerWidget {
         for (final sea in GretCornerCatalog.seas)
           Builder(
             builder: (context) {
-              final lock = notifier.lockOf(sea.unlock, id: sea.place.name);
+              final lock = notifier.lockOf(sea.unlock, id: sea.id);
               final chosen = corner.sea == sea.place;
               return Card(
                 key: ValueKey('corner-sea-${sea.place.name}'),
@@ -599,7 +603,39 @@ class _SeaTab extends ConsumerWidget {
                       : lock == CornerLock.none
                       ? null
                       : const Icon(AppIcons.lock),
-                  onTap: lock == CornerLock.none && !chosen
+                  onTap: lock == CornerLock.pearls
+                      // A pearl sea opens the same sheet as outfits to buy it (spec 014).
+                      ? () => _showSheet(
+                          context,
+                          preview: ClipRRect(
+                            borderRadius: AppRadius.cardBorder,
+                            child: SizedBox(
+                              width: AppCorner.sheetSeaWidth,
+                              height: AppCorner.sheetSeaHeight,
+                              child: CustomPaint(
+                                painter: SeaPainter(
+                                  loop: kAlwaysDismissedAnimation,
+                                  clarity: 85,
+                                  isNight: isNight,
+                                  place: sea.place,
+                                ),
+                              ),
+                            ),
+                          ),
+                          name: sea.name,
+                          detail: AppStrings.cornerTabSea,
+                          action: _UnlockAction(
+                            id: sea.id,
+                            name: sea.name,
+                            unlock: sea.unlock,
+                            inUse: chosen,
+                            useLabel: AppStrings.cornerChoose,
+                            onUse: () async {
+                              if (await notifier.chooseSea(sea.place)) onChosen(sea.place);
+                            },
+                          ),
+                        )
+                      : lock == CornerLock.none && !chosen
                       ? () async {
                           if (await notifier.chooseSea(sea.place)) onChosen(sea.place);
                         }

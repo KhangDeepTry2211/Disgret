@@ -70,12 +70,13 @@ class GretCornerState {
   final SeaPlace sea;
   final MascotSpecies mascot;
 
-  /// Pearls spent on owned items and mascots.
+  /// Pearls spent on owned items, mascots and seas.
   int get spent {
     var total = 0;
     for (final id in owned) {
       total += GretCornerCatalog.itemById(id)?.unlock.price ?? 0;
       total += GretCornerCatalog.mascotById(id)?.unlock.price ?? 0;
+      total += GretCornerCatalog.seaById(id)?.unlock.price ?? 0;
     }
     return total;
   }
@@ -121,10 +122,12 @@ class GretCornerNotifier extends Notifier<GretCornerState> {
   CornerLock lockOf(Unlock unlock, {required String id}) =>
       _lockOf(unlock, id: id, state: state, balance: _balance, bestStreak: _bestStreak);
 
-  /// Spends pearls on an item or a mascot. Returns false when it is not allowed.
+  /// Spends pearls on an item, a mascot or a sea. Returns false when it is not allowed.
   Future<bool> obtain(String id) async {
     final unlock =
-        GretCornerCatalog.itemById(id)?.unlock ?? GretCornerCatalog.mascotById(id)?.unlock;
+        GretCornerCatalog.itemById(id)?.unlock ??
+        GretCornerCatalog.mascotById(id)?.unlock ??
+        GretCornerCatalog.seaById(id)?.unlock;
     if (unlock == null || unlock.kind != UnlockKind.pearls || state.owned.contains(id)) {
       return false;
     }
@@ -154,7 +157,7 @@ class GretCornerNotifier extends Notifier<GretCornerState> {
   /// Chooses the sea. Returns false when the sea is still locked.
   Future<bool> chooseSea(SeaPlace place) async {
     final info = GretCornerCatalog.seaOf(place);
-    if (lockOf(info.unlock, id: 'sea_${place.name}') != CornerLock.none) return false;
+    if (lockOf(info.unlock, id: info.id) != CornerLock.none) return false;
     state = state.copyWith(sea: place);
     await _repository.saveSea(place);
     return true;

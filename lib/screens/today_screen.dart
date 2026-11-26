@@ -16,6 +16,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/mascot_mood.dart';
 import '../data/models/goal.dart';
 import '../data/models/reel.dart';
+import '../data/sea_time.dart';
 import '../data/session_plan.dart';
 import '../data/study_place.dart';
 import '../l10n/app_strings.dart';
@@ -34,6 +35,7 @@ import '../widgets/mascot/mascot_bubbles.dart';
 import '../widgets/mascot/mascot_look.dart';
 import '../widgets/motion/staggered_entrance.dart';
 import '../widgets/sea/clarity_card.dart';
+import '../widgets/sea/sea_painter.dart';
 import '../widgets/sea/sea_scene.dart';
 import '../widgets/session_plan_sheet.dart';
 import '../widgets/streak_card.dart';
@@ -43,60 +45,66 @@ class TodayScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final plan = ref.watch(sessionPlanProvider);
     final now = ref.watch(clockProvider)();
     final name = ref.watch(profileProvider)?.displayName ?? '';
+    // The header sits on the sky, which follows the clock rather than dark mode (spec 013).
+    final sky = AppTheme.forSky(night: SeaTime.isNight(now));
+
+    final header = AppBar(
+      // Transparent over the sea; the sky's surface once the cards scroll under it.
+      backgroundColor: WidgetStateColor.resolveWith(
+        (states) => states.contains(WidgetState.scrolledUnder)
+            ? sky.colorScheme.surface
+            : AppColors.transparent,
+      ),
+      surfaceTintColor: AppColors.transparent,
+      // No divider across the sky.
+      shape: const Border(),
+      // Status bar icons readable on the day sky (dark) and the night sky (light).
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: AppColors.transparent,
+        statusBarIconBrightness: sky.brightness == Brightness.light
+            ? Brightness.dark
+            : Brightness.light,
+        statusBarBrightness: sky.brightness,
+      ),
+      title: Row(
+        children: [
+          const AppLogo(size: 32),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 5.1 "DisGret" first, then the greeting with the student's name (spec 007).
+                const Text(AppStrings.appName, overflow: TextOverflow.ellipsis),
+                Text(
+                  AppStrings.greetingFor(now, name),
+                  style: sky.textTheme.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        const _CornerButton(),
+        IconButton(
+          icon: const Icon(AppIcons.settings),
+          tooltip: AppStrings.settings,
+          onPressed: () => context.push(AppRoutes.settings),
+        ),
+      ],
+    );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        // Transparent over the sea; the usual surface once the cards scroll under it.
-        backgroundColor: WidgetStateColor.resolveWith(
-          (states) => states.contains(WidgetState.scrolledUnder)
-              ? theme.colorScheme.surface
-              : AppColors.transparent,
-        ),
-        surfaceTintColor: AppColors.transparent,
-        // No divider across the sky.
-        shape: const Border(),
-        // Status bar icons readable on the day sky (dark) and the night sea (light).
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: AppColors.transparent,
-          statusBarIconBrightness: theme.brightness == Brightness.light
-              ? Brightness.dark
-              : Brightness.light,
-          statusBarBrightness: theme.brightness,
-        ),
-        title: Row(
-          children: [
-            const AppLogo(size: 32),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 5.1 "DisGret" first, then the greeting with the student's name (spec 007).
-                  const Text(AppStrings.appName, overflow: TextOverflow.ellipsis),
-                  Text(
-                    AppStrings.greetingFor(now, name),
-                    style: theme.textTheme.bodySmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          const _CornerButton(),
-          IconButton(
-            icon: const Icon(AppIcons.settings),
-            tooltip: AppStrings.settings,
-            onPressed: () => context.push(AppRoutes.settings),
-          ),
-        ],
+      appBar: PreferredSize(
+        preferredSize: header.preferredSize,
+        child: Theme(data: sky, child: header),
       ),
       body: switch (plan.state) {
         SessionPlanState.noGoal => const _WithSea(child: EmptyGoalView()),
@@ -107,7 +115,8 @@ class TodayScreen extends ConsumerWidget {
   }
 }
 
-/// The sea with Gret in it, filling Hôm nay and standing still behind the content (spec 010).
+/// The sea with Gret in it, filling Hôm nay behind the content and scrolling up with it (spec 010
+/// and its 2026-11-25 amendment).
 /// Tapping Gret shows a short line for its mood for a few seconds and never starts a session
 /// (spec 003 FR-010). The content scrolls above the sea, so it gets [talk] for its Gret area.
 class _SeaBackdrop extends ConsumerStatefulWidget {
@@ -128,6 +137,16 @@ class _SeaBackdropState extends ConsumerState<_SeaBackdrop> {
   Timer? _hide;
   String? _line;
 
+  /// How far the cards have scrolled: the sea and Gret move up by the same amount.
+  final ValueNotifier<double> _scrolled = ValueNotifier(0);
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth == 0 && notification.metrics.axis == Axis.vertical) {
+      _scrolled.value = math.max(0, notification.metrics.pixels);
+    }
+    return false;
+  }
+
   void _talk() {
     final lines = MascotLook.lines(ref.read(seaStateProvider).mood);
     _hide?.cancel();
@@ -140,36 +159,64 @@ class _SeaBackdropState extends ConsumerState<_SeaBackdrop> {
   @override
   void dispose() {
     _hide?.cancel();
+    _scrolled.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final sea = ref.watch(seaStateProvider);
+    final look = ref.watch(gretLookProvider);
     final line = _line;
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: SeaScene(
-            clarity: sea.clarity,
-            mood: sea.mood,
-            variant: SeaSceneVariant.full,
-            look: ref.watch(gretLookProvider),
-            gretAlignment: AppMascot.todayGretAlignment,
-            skyShare: AppMascot.todaySkyShare,
-            onMascotTap: _talk,
-            // Below the header, so the line is never hidden behind it.
-            overlay: line == null
-                ? null
-                : Padding(
-                    padding: EdgeInsets.only(top: widget.topInset),
-                    child: SpeechBubble(text: line),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) => Stack(
+        children: [
+          // Deeper water shows under the sea once it scrolls up.
+          Positioned.fill(
+            child: ColoredBox(
+              key: const ValueKey('today-deep-water'),
+              color: SeaPainter.deepColour(
+                clarity: sea.clarity,
+                isNight: SeaTime.isNight(ref.watch(clockProvider)()),
+                place: look.place,
+              ),
+            ),
           ),
-        ),
-        Positioned.fill(child: widget.builder(_talk)),
-      ],
+          ValueListenableBuilder<double>(
+            valueListenable: _scrolled,
+            builder: (context, scrolled, scene) => Positioned(
+              top: -scrolled,
+              left: 0,
+              right: 0,
+              height: constraints.maxHeight,
+              child: scene!,
+            ),
+            child: SeaScene(
+              clarity: sea.clarity,
+              mood: sea.mood,
+              variant: SeaSceneVariant.full,
+              look: look,
+              gretAlignment: AppMascot.todayGretAlignment,
+              skyShare: AppMascot.todaySkyShare,
+              onMascotTap: _talk,
+              // Below the header, so the line is never hidden behind it.
+              overlay: line == null
+                  ? null
+                  : Padding(
+                      padding: EdgeInsets.only(top: widget.topInset),
+                      child: SpeechBubble(text: line),
+                    ),
+            ),
+          ),
+          Positioned.fill(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScroll,
+              child: widget.builder(_talk),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

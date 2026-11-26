@@ -40,3 +40,9 @@ những mục đang sẵn có lên khung cảnh đó như unrot"; chose approach
 ## Success Criteria
 
 - **SC-001**: Exactly one control still leads into a session (ADR-0002).
+
+## Amendment (2026-11-25)
+
+The lead asked that the sea scroll with the cards ("kéo thì kéo khung hình của gret đằng sau lên
+luôn"): the sea and Gret now move up by the scroll offset, and the deepest water colour
+(`SeaPainter.deepColour`) fills the screen under them. Test: `test/today_fullscreen_test.dart`.

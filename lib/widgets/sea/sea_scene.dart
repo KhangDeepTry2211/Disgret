@@ -1,9 +1,15 @@
 // 5.3 Gret và biển sống: the sea with Gret in it (spec 003 FR-007, FR-014–FR-018, contract
 // ui-gret-sea.md). One looping controller per scene; with "remove animations" on, everything is
 // still and the water shows its final colour at once.
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/gret_corner_catalog.dart';
+import '../../data/sea_time.dart';
+import '../../providers/app_providers.dart';
 
 import '../../data/mascot_mood.dart';
 import '../../l10n/app_strings.dart';
@@ -15,7 +21,7 @@ import 'sea_painter.dart';
 
 enum SeaSceneVariant { hero, compact, full }
 
-class SeaScene extends StatefulWidget {
+class SeaScene extends ConsumerStatefulWidget {
   const SeaScene({
     required this.clarity,
     required this.mood,
@@ -58,15 +64,29 @@ class SeaScene extends StatefulWidget {
   final double skyShare;
 
   @override
-  State<SeaScene> createState() => _SeaSceneState();
+  ConsumerState<SeaScene> createState() => _SeaSceneState();
 }
 
-class _SeaSceneState extends State<SeaScene> with SingleTickerProviderStateMixin {
+class _SeaSceneState extends ConsumerState<SeaScene> with SingleTickerProviderStateMixin {
   late final AnimationController _loop = AnimationController(
     vsync: this,
     duration: AppMotion.seaLoop,
   );
   bool _animationsOff = false;
+
+  /// Turns the sea at the coming 06:00 or 18:00 while it stays open (spec 013).
+  Timer? _turn;
+  DateTime? _turnAt;
+
+  void _turnAtNextSwitch(DateTime now) {
+    final at = SeaTime.nextSwitch(now);
+    if (at == _turnAt) return;
+    _turnAt = at;
+    _turn?.cancel();
+    _turn = Timer(at.difference(now), () {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -82,6 +102,7 @@ class _SeaSceneState extends State<SeaScene> with SingleTickerProviderStateMixin
 
   @override
   void dispose() {
+    _turn?.cancel();
     _loop.dispose();
     super.dispose();
   }
@@ -94,7 +115,9 @@ class _SeaSceneState extends State<SeaScene> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final isNight = Theme.of(context).brightness == Brightness.dark;
+    final now = ref.watch(clockProvider)();
+    final isNight = SeaTime.isNight(now);
+    _turnAtNextSwitch(now);
     final label = AppStrings.seaSemantics(
       MascotLook.moodLabel(widget.mood),
       widget.clarity.round(),
@@ -118,22 +141,41 @@ class _SeaSceneState extends State<SeaScene> with SingleTickerProviderStateMixin
         children: [
           Align(
             alignment: widget.gretAlignment,
-            child: ReactionWiggle(
-              trigger: widget.gretReaction,
-              child: MascotView(
-                mood: widget.mood,
-                size: _mascotSize,
-                species: widget.look.species,
-                outfit: widget.look.outfit,
-                onTap: widget.onMascotTap,
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ReactionWiggle(
+                  trigger: widget.gretReaction,
+                  child: MascotView(
+                    mood: widget.mood,
+                    size: _mascotSize,
+                    species: widget.look.species,
+                    outfit: widget.look.outfit,
+                    onTap: widget.onMascotTap,
+                  ),
+                ),
+                // A2 (spec 013): Gret lets out a few bubbles while awake.
+                if (!_animationsOff && widget.mood != MascotMood.sleeping)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(painter: _MouthBubbles(loop: _loop)),
+                    ),
+                  ),
+              ],
             ),
           ),
           if (widget.foreground != null) Positioned.fill(child: widget.foreground!),
           if (widget.overlay != null)
             Align(
               alignment: Alignment.topCenter,
-              child: Padding(padding: const EdgeInsets.all(AppSpacing.sm), child: widget.overlay),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                // On the sky, so it takes the sky's light or dark colours (spec 013).
+                child: Theme(
+                  data: AppTheme.forSky(night: isNight),
+                  child: widget.overlay!,
+                ),
+              ),
             ),
         ],
       ),
@@ -155,4 +197,33 @@ class _SeaSceneState extends State<SeaScene> with SingleTickerProviderStateMixin
       ),
     );
   }
+}
+
+/// Bubbles rising from the mascot's mouth (the mouth sits at the same spot on every species).
+class _MouthBubbles extends CustomPainter {
+  _MouthBubbles({required this.loop}) : super(repaint: loop);
+
+  final Animation<double> loop;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var i = 0; i < 3; i++) {
+      final progress = (loop.value * 3 + i / 3) % 1;
+      final at = Offset(
+        size.width * (0.44 - 0.1 * progress) + math.sin(progress * 6) * 3,
+        size.height * (0.62 - 0.9 * progress),
+      );
+      canvas.drawCircle(
+        at,
+        2.5 + i,
+        Paint()
+          ..color = AppSea.bubble.withValues(alpha: AppSea.bubble.a * (1 - progress))
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MouthBubbles oldDelegate) => oldDelegate.loop != loop;
 }

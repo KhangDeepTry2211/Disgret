@@ -47,7 +47,7 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
   - When the reel ends or fails: a dark scrim (`AppColors.reelBlurScrim`) and `ReelEndCard` (`lib/widgets/reel_end_card.dart`) with a title, the primary "Bắt đầu N phút" (`GradientPillButton`, `AppReels.buttonHeight`), the text button "Chỉ 5 phút thôi" and an outlined "Tiếp" while reels remain; after a distraction only "Quay lại học".
   - No like, comment or share control, no counts, no social element anywhere.
 - Thanh điều hướng dưới cùng 3 tab: Hôm nay, Thói quen, Tiến độ (ADR-0002, spec 001). Bước động lực (`/motivation`), phiên học (`/focus`) và Tổng kết (`/summary`) chiếm toàn màn hình, không có thanh tab. Khi đang có phiên, dải "phiên đang chạy" (running_session_banner.dart, nền primary) nằm ngay trên thanh tab: tên thói quen, "Còn mm:ss" hoặc "Đang nghỉ", chạm để về phiên.
-- Hôm nay (today_screen.dart, feature 003, full-screen since feature 010): the sea (`SeaScene(full)`) fills the whole screen and stands still; Gret swims at `AppMascot.todayGretAlignment` (about 30% of the height). A transparent header sits over the sky (logo, "DisGret" above the greeting by time of day with the student's name when set, e.g. "Chào buổi sáng, Khôi" (feature 007), the Góc của Gret pill with the wardrobe icon and pearl count, settings) and takes the surface colour once content scrolls under it. The content scrolls over the sea: a transparent Gret area of `AppMascot.todayCardsTop` (44%) of the height (tapping it makes Gret say a line just below the header), then floating cards with 16 px margins: a row of `ClarityCard` and `StreakCard`; the goal card (with identity sentence); the "Học tiếp" card (habit + minutes + "Đổi thói quen hoặc thời lượng" opening session_plan_sheet.dart). Pinned at the bottom, above the floating tab bar, exactly ONE session control: GradientPillButton "Bắt đầu" while something is due, otherwise the secondary OutlinedButton "Học thêm một phiên" on a surface background. All cards enter with `StaggeredEntrance`. Empty states (no goal, no habit) sit in a surface card over the same full-screen calm sea.
+- Hôm nay (today_screen.dart, feature 003, full-screen since feature 010): the sea (`SeaScene(full)`) fills the whole screen and scrolls up together with the cards, Gret included (lead's request, 2026-11-25), over the deepest water colour (`SeaPainter.deepColour`); Gret swims at `AppMascot.todayGretAlignment` (about 30% of the height). A transparent header sits over the sky (logo, "DisGret" above the greeting by time of day with the student's name when set, e.g. "Chào buổi sáng, Khôi" (feature 007), the Góc của Gret pill with the wardrobe icon and pearl count, settings) and takes the surface colour once content scrolls under it. The content scrolls over the sea: a transparent Gret area of `AppMascot.todayCardsTop` (44%) of the height (tapping it makes Gret say a line just below the header), then floating cards with 16 px margins: a row of `ClarityCard` and `StreakCard`; the goal card (with identity sentence); the "Học tiếp" card (habit + minutes + "Đổi thói quen hoặc thời lượng" opening session_plan_sheet.dart). Pinned at the bottom, above the floating tab bar, exactly ONE session control: GradientPillButton "Bắt đầu" while something is due, otherwise the secondary OutlinedButton "Học thêm một phiên" on a surface background. All cards enter with `StaggeredEntrance`. Empty states (no goal, no habit) sit in a surface card over the same full-screen calm sea.
 - Tab bar (main_shell.dart, feature 010): a floating rounded `NavigationBar` (`AppShell.tabBarHeight` 64, surface colour, hairline border) 16 px from the sides and bottom; the body runs behind it (`extendBody`), so screens pad their last controls by `MediaQuery.paddingOf(context).bottom` (Hôm nay's bottom control, the Thói quen "+"). The running-session banner sits just above it with rounded corners.
 
 ## Gret and the living sea (feature 003, ADR-0008)
@@ -58,7 +58,19 @@ KHÔNG dùng logo, tên, icon hay font độc quyền của Instagram.
 - Illustration palette (the only place colours outside the UI scheme are allowed, `AppSea` and the
   SVG files): body #22D3EE, fins #1BB8D4, belly #C6F1FA, cheeks #FBD5E3, eyes and mouth #0A2A6B,
   tongue #FF8FA3, sparkles and fish #FFC93C; sea bands clear → murky blend below 70% clarity;
-  fish at ≥ 70%, litter below 40%. Dark mode shows a night sea with a moon and the same meaning.
+  fish at ≥ 70%, litter below 40%.
+- Living sea (feature 013): day and night follow the phone's clock, not dark mode
+  (`SeaTime.isNight`: night from 18:00 to 05:59), in every sea view and in Quán San Hô; an open
+  sea turns at 06:00 and 18:00. By day (A2): the sun, slanting sun rays that sway and pulse,
+  ripples under the surface, a sea floor (sand, ice or dark rock), back and front seaweed, a
+  school of four fish, rising specks and bubbles from Gret's mouth. By night (A4): the moon and
+  stars on a dark sky, pale moon rays, twinkling plankton, a glowing jellyfish drifting up and a
+  glowing coral. Rays and ripples fade as the water murks. Illustration may use translucency;
+  UI stays flat. Text on the sky or the café wall (the Hôm nay header, the session clock, Gret's
+  speech bubble) uses `AppTheme.forSky` so it stays readable by day and night.
+- Gret (feature 013): a darker crescent under the body, a bigger gloss with a sparkle, a second
+  catch-light in open eyes, the tail on its own layer (`MascotLook.gretTail`) wagging around
+  `AppMascot.tailJoint` every `AppMotion.tailWag`, and a slight tilt while bobbing.
 - `SeaScene` variants: hero (Hôm nay, 210 high), compact (onboarding, Tổng kết, Góc của Gret, 170
   high), full (story onboarding and focus session). It takes an `overlay` (speech bubble, ring) and
   a `foreground` (focus distraction effects) and a `GretLook` (mascot, outfit, sea place).
@@ -148,19 +160,39 @@ Tokens: `AppCafe` (colours by day and night, positions, sizes) and `AppMotion.ca
 - Full screen (`/sea-map`, `sea_map_screen.dart`), opened by the map button in the Thói quen app
   bar; the tab itself keeps its three list views and opens on "Theo ngày".
 - One dark ocean (`AppSeaMap.ocean`) with faint wave lines. Each goal is an island with a wobbly
-  outline (`IslandLayout.outline`), a shallow-water ring and a lighter heart, coloured by terrain
-  (coral, ice, deep, home); islands sit on slots spiralling out from the centre, followed by two
-  grey "Vùng chưa biết" seas.
+  outline (`IslandLayout.outline`); islands sit on slots spiralling out from the centre, followed by
+  two grey "Vùng chưa biết" islets.
+- Drawn islands (feature 012): shallow water (`AppSeaMap.shallowScale`), a beach with a foam line,
+  and inner land (`AppSeaMap.innerScale`), with the sea's scenery placed by `IslandScenery`
+  (`sea_scenery.dart`, seeded, never within `AppSeaMap.sceneryClearance` of a landmark or Gret):
+  Rạn san hô = sand, turquoise lagoon, corals on the reef ring, palms and starfish on the beach;
+  Biển băng = snow, pale ice, icebergs, snow mounds, cracks; Biển sâu = dark rock, glowing corals
+  and jellyfish, vents; Vịnh nhà = sand, grass, rocks, a hut, a lighthouse, bushes. Sea life
+  (`OpenSea`: fish schools, turtles, a whale tail, bubbles) swims just off each island and across
+  open water. Everything is a still drawing in `SeaWorldPainter`.
 - Darkness (`AppSeaMap.worldFog`) covers the world; soft circles open around discovered points
   (radius 70–230 with min(days, 66) / 66) and around Gret. The screen behind the world uses
   `AppSeaMap.fogOcean` so the world's edge does not show.
-- Pins: light teardrops with the point icon and an "n/66" pill; a grey "?" circle before discovery.
+- Landmarks (feature 012) replace the pins: each habit's kind is a drawing (fish cave, shipwreck,
+  kelp garden, treasure chest, coral temple, old anchor) of `AppSeaMap.landmarkSize` standing on
+  its point, stacked with the growth layers of its stage (`LandmarkLook.layers`, SVGs in
+  `assets/map/` on one 120×100 canvas): 7 days seaweed and small corals, 21 a school of fish,
+  40 a turtle and a starfish, 66 a flag with sparkles; an "n/66" pill below. A grey "?" buoy before
+  discovery. The region sheet keeps the kind icons.
   Island labels on a dark pill: goal title and "<terrain> · Độ khám phá n%".
 - Controls on top of the map: back, title and overall percentage; +/− (×1.4); "Về chỗ Gret". Pan and
   pinch-zoom between 0.2× and 2.5×. Opening glides from the whole world to Gret's island
   (`AppMotion.mapOpen`, 1.6 s); buttons glide in 0.6 s; with reduced motion the view jumps.
 
 ## Góc của Gret (feature 004, ADR-0009)
+
+- Pearl seas (feature 014): Rừng tảo bẹ (150 pearls), Núi lửa ngầm (200), Thành phố chìm (250),
+  Vịnh hoàng hôn (300), bought through the same sheet as outfits (owned ids `sea_<name>`) and drawn
+  by `SeaPainter` with their own scenery by day and night: tall swaying kelp; black rock with
+  glowing lava cracks and bubble columns; mossy columns, an arch and a treasure glint (lit windows
+  at night); a pink-orange sky with a low sun, a palm and pink sand (a shooting star at night).
+  On the sea map each bought one is its own island (ADR-0010 amendment): after the goal islands,
+  clear of the fog, "<name> · Biển của Gret", tapping it opens "Chọn làm biển của Gret".
 
 - Route `/gret-corner`, opened from the wardrobe button on the Hôm nay sea. App bar: title and the
   pearl balance chip. Preview: compact sea with the current look and arrows to browse seas (a

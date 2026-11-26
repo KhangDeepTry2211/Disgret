@@ -1,5 +1,6 @@
 // 5.5 Bản đồ biển, full screen from the Thói quen tab, and the focus session in the goal's sea
 // (spec 005).
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focus_app/data/mascot_species.dart';
 import 'package:focus_app/data/models/goal.dart';
@@ -8,13 +9,16 @@ import 'package:focus_app/data/models/habit_log.dart';
 import 'package:focus_app/data/models/motivation_type.dart';
 import 'package:focus_app/data/models/user_profile.dart';
 import 'package:focus_app/data/repositories/goal_repository.dart';
+import 'package:focus_app/data/repositories/gret_corner_repository.dart';
 import 'package:focus_app/data/repositories/habit_log_repository.dart';
 import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/data/repositories/study_place_repository.dart';
+import 'package:focus_app/data/sea_map.dart';
 import 'package:focus_app/data/study_place.dart';
 import 'package:focus_app/l10n/app_strings.dart';
 import 'package:focus_app/widgets/cafe/sea_cafe_scene.dart';
+import 'package:focus_app/widgets/sea/landmark_look.dart';
 import 'package:focus_app/widgets/sea/sea_scene.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -119,6 +123,32 @@ void main() {
     expect(find.text(AppStrings.mapExplored(2)), findsOneWidget, reason: '3 / (3 × 66) ≈ 1.5%');
   });
 
+  testWidgets('each habit is a landmark drawn by its stage; a new one is a "?" buoy (spec 012)', (
+    tester,
+  ) async {
+    await saveHabit('h1', 'g1', 'Ôn bài', sortOrder: 1);
+    await saveHabit('h2', 'g1', 'Làm đề', sortOrder: 2);
+    await doneOn('h1', 8);
+    await openMap(tester);
+
+    List<String> drawnIn(String habitId) => [
+      for (final picture in tester.widgetList<SvgPicture>(
+        find.descendant(
+          of: find.byKey(ValueKey('map-point-$habitId')),
+          matching: find.byType(SvgPicture),
+        ),
+      ))
+        (picture.bytesLoader as SvgAssetLoader).assetName,
+    ];
+
+    expect(drawnIn('h1'), LandmarkLook.layers(PointKind.fishCave, JourneyStage.warmUp));
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('map-point-h1')), matching: find.text('8/66')),
+      findsOneWidget,
+    );
+    expect(drawnIn('h2'), [LandmarkLook.buoy]);
+  });
+
   testWidgets('a "?" point says which habit discovers it', (tester) async {
     await saveHabit('h1', 'g1', 'Ôn bài');
     await openMap(tester);
@@ -178,6 +208,52 @@ void main() {
 
     await tapAndSettle(tester, find.text(AppStrings.mapToGret));
     expect(scale(), closeTo(1, 1e-6));
+  });
+
+  testWidgets('− zooms out around the middle of the screen and keeps Gret in view', (tester) async {
+    await saveHabit('h1', 'g1', 'Ôn bài');
+    await doneOn('h1', 1);
+    await openMap(tester);
+
+    final controller = tester
+        .widget<InteractiveViewer>(find.byKey(const ValueKey('sea-map')))
+        .transformationController!;
+    final middle = Offset(_phone.width / 2, _phone.height / 2);
+    final before = controller.toScene(middle);
+    // With animations on, each tap glides (AppMotion.mapGlide).
+    tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures();
+    await tester.pump();
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byTooltip(AppStrings.mapZoomOut));
+      for (var t = 0; t < 10; t++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final now = controller.toScene(middle);
+      expect((now - before).distance, lessThan(1), reason: 'zoom-out ${i + 1} kept the middle');
+    }
+    final gret = tester.getCenter(find.byKey(const ValueKey('map-gret')));
+    expect(gret.dx, inInclusiveRange(0, _phone.width));
+    expect(gret.dy, inInclusiveRange(0, _phone.height));
+  });
+
+  testWidgets("a bought pearl sea is its own island; tapping it makes it Gret's sea (spec 014)", (
+    tester,
+  ) async {
+    await saveHabit('h1', 'g1', 'Ôn bài');
+    await GretCornerRepository().saveOwned({'sea_kelp'});
+    await openMap(tester);
+    for (var i = 0; i < 3; i++) {
+      await tapAndSettle(tester, find.byTooltip(AppStrings.mapZoomOut));
+    }
+
+    expect(find.text('Rừng tảo bẹ'), findsOneWidget);
+    expect(find.text(AppStrings.mapGretSea), findsOneWidget);
+    await tapAndSettle(tester, find.byKey(const ValueKey('map-sea-kelp')));
+    await tapAndSettle(tester, find.text(AppStrings.mapChooseSea));
+
+    expect(GretCornerRepository().sea, SeaPlace.kelp);
+    await tapAndSettle(tester, find.byKey(const ValueKey('map-sea-kelp')));
+    expect(find.text(AppStrings.mapSeaInUse), findsOneWidget);
   });
 
   testWidgets('a focus session happens in the sea of the habit\'s region', (tester) async {

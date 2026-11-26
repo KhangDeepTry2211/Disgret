@@ -2,13 +2,16 @@
 // at the front table, the owner stands at the counter, the friends study at their tables, and the
 // windows look out on Gret's sea at its live clarity. Only shows what it is given: the moments and
 // the bubbles are decided by CafeSessionView.
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/gret_corner_catalog.dart';
 import '../../data/mascot_mood.dart';
 import '../../data/mascot_species.dart';
 import '../../data/sea_cafe.dart';
+import '../../data/sea_time.dart';
 import '../../l10n/app_strings.dart';
+import '../../providers/app_providers.dart';
 import '../../theme/app_theme.dart';
 import '../mascot/mascot_bubbles.dart';
 import '../mascot/mascot_view.dart';
@@ -16,7 +19,7 @@ import '../motion/reaction_wiggle.dart';
 import '../sea/sea_painter.dart';
 import 'sea_cafe_painter.dart';
 
-class SeaCafeScene extends StatelessWidget {
+class SeaCafeScene extends ConsumerWidget {
   const SeaCafeScene({
     required this.clarity,
     required this.windowPlace,
@@ -77,8 +80,9 @@ class SeaCafeScene extends StatelessWidget {
       Alignment(at.x, (at.y - AppCafe.bubbleLift).clamp(-1.0, 1.0));
 
   @override
-  Widget build(BuildContext context) {
-    final isNight = Theme.of(context).brightness == Brightness.dark;
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Day or night by the clock, like the sea outside (spec 013).
+    final isNight = SeaTime.isNight(ref.watch(clockProvider)());
     final animationsOff = MediaQuery.disableAnimationsOf(context);
     final seated = friends.take(AppCafe.seats.length).toList();
     final names = [SeaCafe.owner.name, for (final friend in seated) friend.name];
@@ -140,13 +144,19 @@ class SeaCafeScene extends StatelessWidget {
                     friend: SeaCafe.owner,
                     mood: friendMood,
                     size: friendSize,
+                    isNight: isNight,
                     atCounter: true,
                   ),
                 ),
                 for (var i = 0; i < seated.length; i++)
                   Align(
                     alignment: AppCafe.seats[i],
-                    child: _Seat(friend: seated[i], mood: friendMood, size: friendSize),
+                    child: _Seat(
+                      friend: seated[i],
+                      mood: friendMood,
+                      size: friendSize,
+                      isNight: isNight,
+                    ),
                   ),
                 Align(
                   alignment: AppCafe.gret,
@@ -176,7 +186,14 @@ class SeaCafeScene extends StatelessWidget {
                 if (overlay != null)
                   Align(
                     alignment: Alignment.topCenter,
-                    child: Padding(padding: const EdgeInsets.all(AppSpacing.sm), child: overlay),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      // On the café wall, which follows the clock (spec 013).
+                      child: Theme(
+                        data: AppTheme.forSky(night: isNight),
+                        child: overlay!,
+                      ),
+                    ),
                   ),
                 bubble(line == null ? AppCafe.gret : _speakerAt(line!.speaker), line?.text),
                 bubble(AppCafe.gret, gretLine),
@@ -245,12 +262,14 @@ class _Seat extends StatelessWidget {
     required this.friend,
     required this.mood,
     required this.size,
+    required this.isNight,
     this.atCounter = false,
   });
 
   final SeaFriend friend;
   final MascotMood mood;
   final bool atCounter;
+  final bool isNight;
 
   /// Width of the character.
   final double size;
@@ -258,7 +277,6 @@ class _Seat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isNight = theme.brightness == Brightness.dark;
     final mascot = MascotView(mood: mood, size: size, species: friend.species);
 
     return Column(
