@@ -7,16 +7,23 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+/// 2.1 Một app cài trên máy.
 class InstalledApp {
   const InstalledApp({required this.packageName, required this.name, required this.icon});
 
-  factory InstalledApp.fromJson(Map<String, dynamic> json) {
-    final iconData = json['icon'];
-    return InstalledApp(
-      packageName: json['packageName'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      icon: iconData is String && iconData.isNotEmpty ? base64Decode(iconData) : Uint8List(0),
-    );
+  /// What Kotlin sends for getLaunchableApps (native-bridge.md): a list of maps
+  /// {packageName, name, icon (PNG bytes)}. Entries without a package are skipped.
+  static List<InstalledApp> listFrom(Object? raw) {
+    if (raw is! List) return const [];
+    return [
+      for (final app in raw)
+        if (app is Map && app['packageName'] is String)
+          InstalledApp(
+            packageName: app['packageName'] as String,
+            name: app['name'] is String ? app['name'] as String : app['packageName'] as String,
+            icon: app['icon'] is Uint8List ? app['icon'] as Uint8List : Uint8List(0),
+          ),
+    ];
   }
 
   final String packageName;
@@ -103,12 +110,9 @@ class NativeBridge {
   // ---------- 2.1 Danh sách app ----------
 
   Future<List<InstalledApp>> getLaunchableApps() async {
-    final raw = await _invoke<String>('getLaunchableApps');
-    if (raw == null) return const [];
-    return (jsonDecode(raw) as List<dynamic>)
-        .cast<Map<String, dynamic>>()
-        .map(InstalledApp.fromJson)
-        .toList();
+    // Kotlin answers with a list, not a JSON string (fixed after "Ứng dụng cần nhắc" could not
+    // read the list since commit bfab4e3).
+    return InstalledApp.listFrom(await _invoke<Object?>('getLaunchableApps'));
   }
 
   // ---------- 7.2 Theo dõi app đang mở ----------
