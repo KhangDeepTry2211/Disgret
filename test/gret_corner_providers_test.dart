@@ -147,7 +147,41 @@ void main() {
     final look = container.read(gretLookProvider);
     expect(look.species, MascotSpecies.crab);
     expect(look.outfit, isEmpty);
-    expect(await corner().chooseMascot(MascotSpecies.octopus), isFalse, reason: 'Premium');
+    expect(await corner().chooseMascot(MascotSpecies.octopus), isFalse, reason: '30 focus hours');
+  });
+
+  test('10 focus hours open Mây; Mochi waits for 30 (spec 018)', () async {
+    await study([600]);
+    MascotInfo of(MascotSpecies species) => GretCornerCatalog.mascotOf(species);
+
+    expect(
+      corner().lockOf(of(MascotSpecies.octopus).unlock, id: 'mascot_octopus'),
+      CornerLock.study,
+    );
+    expect(await corner().chooseMascot(MascotSpecies.octopus), isFalse);
+    expect(await corner().chooseMascot(MascotSpecies.jellyfish), isTrue);
+    expect(container.read(gretLookProvider).species, MascotSpecies.jellyfish);
+  });
+
+  test('a chosen study friend stays open when its progress dips (spec 018)', () async {
+    await streakOf(21);
+    expect(await corner().chooseMascot(MascotSpecies.whale), isFalse, reason: 'Needs 66 days');
+    expect(await corner().chooseMascot(MascotSpecies.penguin), isTrue);
+    expect(container.read(gretCornerProvider).owned, contains('mascot_penguin'));
+
+    await HabitLogRepository().delete('log0');
+    container.invalidate(habitLogsProvider);
+    final penguin = GretCornerCatalog.mascotOf(MascotSpecies.penguin);
+    expect(container.read(studyFactsProvider).bestHabitDays, 20);
+    expect(corner().lockOf(penguin.unlock, id: penguin.id), CornerLock.none);
+    expect(await corner().chooseMascot(MascotSpecies.gret), isTrue);
+    expect(await corner().chooseMascot(MascotSpecies.penguin), isTrue);
+  });
+
+  test('earned friends cost no pearls', () async {
+    await study([600]);
+    await corner().chooseMascot(MascotSpecies.jellyfish);
+    expect(container.read(gretCornerProvider).spent, 0);
   });
 
   test('choices survive a restart; unknown stored ids are ignored', () async {

@@ -127,7 +127,11 @@ class FocusGuardService : Service() {
 
         // Chống lặp: mở lại màn chặn vì lý do trên vẫn là cùng một lần mở app, nên không đếm thêm.
         val now = SystemClock.elapsedRealtime()
-        val isNewOpening = app != lastBlockedApp || now - lastBlockedAt >= SAME_OPENING_MILLIS
+        // Counted from the last block, or from when its screen was covered without a choice: an
+        // app that opens a screen of its own over the intervention while starting is still the
+        // same opening, however long it took to start (checklist finding, 2026-11-27).
+        val lastSeen = maxOf(lastBlockedAt, InterventionActivity.coveredAt)
+        val isNewOpening = app != lastBlockedApp || now - lastSeen >= SAME_OPENING_MILLIS
         lastBlockedApp = app
         lastBlockedAt = now
 
@@ -332,7 +336,7 @@ class FocusGuardService : Service() {
 
         /** Thời gian chờ ở màn chặn: lần 1 chờ 10 giây, mỗi lần sau +5 giây, tối đa 30 giây. */
         const val FIRST_WAIT_SECONDS = 10
-        private const val WAIT_STEP_SECONDS = 5
+        const val WAIT_STEP_SECONDS = 5
         private const val MAX_WAIT_SECONDS = 30
 
         /** Service đang chạy; màn can thiệp và Flutter ra lệnh nghỉ trực tiếp qua đây. */

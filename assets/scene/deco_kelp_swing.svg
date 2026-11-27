@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+<defs><radialGradient id="g0" gradientUnits="userSpaceOnUse" cx="35.5" cy="51.8" r="27.2"><stop offset="0" stop-color="#F4E0CA"/><stop offset="0.45" stop-color="#E7B98A"/><stop offset="1" stop-color="#B4906C"/></radialGradient></defs>
+<path d="M18 76 Q14 40 26 6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#276F4C" stroke-width="11"/>
+<path d="M18 76 Q14 40 26 6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#3FB37A" stroke-width="6"/>
+<path d="M18 76 Q14 40 26 6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#95D5B6" stroke-width="2" stroke-opacity="0.7"/>
+<path d="M62 76 Q66 40 54 6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#276F4C" stroke-width="11"/>
+<path d="M62 76 Q66 40 54 6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#3FB37A" stroke-width="6"/>
+<path d="M62 76 Q66 40 54 6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#95D5B6" stroke-width="2" stroke-opacity="0.7"/>
+<path d="M30 12 V50 M50 12 V50" fill="none" stroke="#7A5E43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M24 50 H56 V56 H24 Z" fill="url(#g0)" stroke="#8F7356" stroke-width="3" stroke-linejoin="round"/>
+</svg>

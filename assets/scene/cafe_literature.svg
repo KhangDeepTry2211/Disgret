@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 230">
+<defs><radialGradient id="g0" gradientUnits="userSpaceOnUse" cx="118.7" cy="62.6" r="44.2"><stop offset="0" stop-color="#FFFBF5"/><stop offset="0.45" stop-color="#FFF7E8"/><stop offset="1" stop-color="#C7C1B5"/></radialGradient><radialGradient id="g1" gradientUnits="userSpaceOnUse" cx="170.7" cy="62.6" r="44.2"><stop offset="0" stop-color="#FFFBF5"/><stop offset="0.45" stop-color="#FFF7E8"/><stop offset="1" stop-color="#C7C1B5"/></radialGradient><radialGradient id="g2" gradientUnits="userSpaceOnUse" cx="136.3" cy="74.7" r="95.2"><stop offset="0" stop-color="#F5B6B6"/><stop offset="0.45" stop-color="#E85D5D"/><stop offset="1" stop-color="#B54949"/></radialGradient></defs>
+<path d="M100 76 L106 60 Q128 56 152 62 L152 78 Q128 72 100 76 Z" fill="url(#g0)" stroke="#9E9990" stroke-width="3" stroke-linejoin="round"/>
+<path d="M152 62 Q176 56 198 60 L204 76 Q176 72 152 78 Z" fill="url(#g1)" stroke="#9E9990" stroke-width="3" stroke-linejoin="round"/>
+<path d="M112 66 Q128 63 146 66 M112 70 Q128 67 146 70 M158 65 Q176 62 194 65" fill="none" stroke="#B1A188" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M96 78 L100 76 Q128 72 152 78 Q176 72 204 76 L208 78 Q176 75 152 81 Q128 75 96 78 Z" fill="url(#g2)" stroke="#903A3A" stroke-width="3" stroke-linejoin="round"/>
+</svg>

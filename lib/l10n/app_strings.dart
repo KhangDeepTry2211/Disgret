@@ -9,6 +9,25 @@ class AppStrings {
   // ---------- Common ----------
   static const String appName = 'DisGret';
 
+  // ---------- Hôm nay, Farmly style (spec 015) ----------
+  static const String shortcuts = 'Lối tắt';
+
+  // ---------- Hold to start (spec 016) ----------
+  static const String holdReady = 'Sẵn sàng chưa?';
+  static const String holdToStartHint = 'Giữ nút để bắt đầu';
+  static const String holdLonger = 'Giữ lâu hơn một chút nhé';
+  static const String holdTop = 'Giữ để';
+  static const String holdMore = 'Học thêm';
+  static const List<String> holdLines = ['Gret đang khởi động…', 'Hít một hơi…', 'Vào biển!'];
+  static const String holdSemantics = 'Giữ nút để bắt đầu học. Chạm hai lần để bắt đầu ngay.';
+  static const String shortcutMap = 'Bản đồ';
+  static const String shortcutCorner = 'Góc Gret';
+  static const String shortcutReminders = 'Nhắc giờ';
+  static const String shortcutProgress = 'Tiến độ';
+  static const String todayTasks = 'Việc hôm nay';
+  static String todayTasksDone(int done, int total) => '$done/$total đã xong';
+  static String todayTaskLine(String habit, int minutes) => '$habit · $minutes phút';
+
   /// Launch screen under "DisGret" while the app opens (spec 011).
   static const String launchLine = 'Đang lặn xuống biển…';
   static const String settings = 'Cài đặt';
@@ -254,6 +273,49 @@ class AppStrings {
   static const String cornerPremium = 'Món này sẽ bán bằng tiền thật. Sắp có!';
   static String cornerGot(String name) => '$name đã là của bạn!';
   static String cornerSeaLocked(int days) => 'Mở ở chuỗi $days ngày';
+
+  /// Friends earned by studying (spec 018): progress on the card, the goal in the sheet.
+  static String cornerOnTimeProgress(int done, int goal) => '$done/$goal lần đúng giờ';
+  static String cornerReturnsProgress(int done, int goal) => '$done/$goal lần quay lại';
+
+  /// Shorter forms for the narrow cards ("rarity · status" on one line).
+  static String cornerOnTimeShort(int done, int goal) => '$done/$goal đúng giờ';
+  static String cornerReturnsShort(int done, int goal) => '$done/$goal quay lại';
+  static String cornerHoursProgress(double hours, int goal) => '${_tenths(hours)}/$goal giờ';
+  static String cornerDaysProgress(int done, int goal) => '$done/$goal ngày';
+  static String cornerNeedOnTime(int times) =>
+      'Bắt đầu học trong 10 phút sau lời nhắc của thói quen, $times lần.';
+  static String cornerNeedReturns(int times) => 'Chọn "Quay lại học" ở màn can thiệp $times lần.';
+  static String cornerNeedHours(int hours) => 'Học tập trung tổng cộng $hours giờ.';
+  static String cornerNeedDays(int days) => 'Một thói quen đạt $days ngày đã làm.';
+  static String cornerSoFar(String progress) => 'Đã được: $progress';
+
+  /// The drawing style of every mascot (spec 018).
+  static const String cornerStyleTitle = 'Nét vẽ';
+  static const String styleClassic = 'Cổ điển';
+  static const String styleFlat = 'Phẳng viền';
+  static const String styleSoft = '3D mềm';
+
+  /// Gret's home in the sea (spec 019).
+  static const String cornerDecorTitle = 'Trang trí nhà Gret';
+  static const String cornerDecorHint =
+      'Đồ trang trí đứng cạnh nhà vỏ ốc của Gret trên biển Hôm nay. Mỗi chỗ đặt được một món.';
+  static const String cornerPlace = 'Đặt';
+  static const String cornerPutAway = 'Cất đi';
+  static const String cornerPlaced = 'Đang đặt';
+  static const String cornerDecorDetail = 'Trang trí';
+
+  /// How Quán San Hô is drawn (spec 019).
+  static const String cornerCafeTitle = 'Kiểu quán';
+  static const String cafeCosy = 'Ấm cúng';
+  static const String cafeDiorama = 'Phòng mô hình';
+
+  /// One decimal with a comma, rounded down and without ",0" ("6,5", "10").
+  static String _tenths(double value) {
+    final tenths = (value * 10).floor();
+    return tenths % 10 == 0 ? '${tenths ~/ 10}' : '${tenths ~/ 10},${tenths % 10}';
+  }
+
   static const String cornerPreviousSea = 'Biển trước';
   static const String cornerNextSea = 'Biển sau';
 
@@ -303,6 +365,10 @@ class AppStrings {
   static const String moodFocused = 'đang tập trung';
   static const String moodSleeping = 'đang ngủ';
   static const String moodCelebrating = 'đang ăn mừng';
+  static const String moodLove = 'đang thương bạn';
+  static const String moodSurprised = 'đang ngạc nhiên';
+  static const String moodProud = 'đang tự hào';
+  static const String moodWink = 'đang nháy mắt';
 
   /// Screen-reader description of a sea scene (spec FR-018).
   static String seaSemantics(String mood, int percent) => 'Gret $mood. Biển trong $percent%.';
@@ -341,5 +407,21 @@ class AppStrings {
   static const List<String> gretCelebrating = [
     'Tuyệt vời! Biển trong hơn hẳn rồi!',
     'Bạn làm được rồi, mình tự hào lắm!',
+  ];
+  static const List<String> gretLove = [
+    'Mình thương bạn nhất luôn!',
+    'Có bạn học cùng, mình vui ghê.',
+  ];
+  static const List<String> gretSurprised = [
+    'Ồ! Bạn giữ thói quen lâu thế rồi sao?',
+    'Một cột mốc mới kìa!',
+  ];
+  static const List<String> gretProud = [
+    'Bạn quay lại học rồi, mình tự hào lắm!',
+    'Trọn một phiên luôn, giỏi quá!',
+  ];
+  static const List<String> gretWink = [
+    'Bí mật nhỏ: học 5 phút là biển trong hơn đó.',
+    'Hôm nay mình cùng cố nha!',
   ];
 }

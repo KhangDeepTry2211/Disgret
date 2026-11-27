@@ -729,7 +729,7 @@ void main() {
       await _seedGoalAndHabit();
       await _pumpApp(tester);
 
-      await _tap(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       // Bước động lực toàn màn hình: không có thanh tab.
       expect(find.byType(NavigationBar), findsNothing);
       await finishReel(tester);

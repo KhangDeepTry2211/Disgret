@@ -260,7 +260,7 @@ void main() {
     await StudyPlaceRepository().save(StudyPlace.sea);
     await saveHabit('h3', 'g2', 'Nghe podcast');
     await pumpApp(tester, size: _phone, clock: () => now);
-    await tapAndSettle(tester, find.text(AppStrings.start));
+    await holdToStart(tester);
     await tapAndSettle(tester, find.text('Bỏ qua'));
 
     expect(tester.widget<SeaScene>(find.byType(SeaScene)).look.place, SeaPlace.ice);
@@ -269,7 +269,7 @@ void main() {
   testWidgets('in Quán San Hô the windows look out on the habit\'s region', (tester) async {
     await saveHabit('h3', 'g2', 'Nghe podcast');
     await pumpApp(tester, size: _phone, clock: () => now);
-    await tapAndSettle(tester, find.text(AppStrings.start));
+    await holdToStart(tester);
     await tapAndSettle(tester, find.text('Bỏ qua'));
 
     expect(tester.widget<SeaCafeScene>(find.byType(SeaCafeScene)).windowPlace, SeaPlace.ice);

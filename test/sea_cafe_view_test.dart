@@ -112,7 +112,7 @@ void main() {
       await pumpScene(tester, scene());
 
       expect(find.text('Rùa · Chủ quán'), findsOneWidget);
-      expect(find.text('Ẩn · Toán'), findsOneWidget);
+      expect(find.text('Bơ · Toán'), findsOneWidget);
       expect(find.text('Mochi · Văn'), findsOneWidget);
       expect(find.text('Sao · Tiếng Anh'), findsOneWidget);
       expect(find.byType(MascotView), findsNWidgets(5));
@@ -151,7 +151,7 @@ void main() {
       // The friends' name labels follow in the same node.
       expect(
         tester.getSemantics(find.byType(SeaCafeScene)).label,
-        startsWith('Quán San Hô: Gret đang học cùng Rùa, Ẩn, Mochi, Sao'),
+        startsWith('Quán San Hô: Gret đang học cùng Rùa, Bơ, Mochi, Sao'),
       );
     });
 
@@ -201,7 +201,7 @@ void main() {
 
     Future<void> startSession(WidgetTester tester) async {
       await openApp(tester);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await tapAndSettle(tester, find.text('Bỏ qua'));
     }
 

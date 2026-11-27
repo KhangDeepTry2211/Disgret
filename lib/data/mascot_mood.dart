@@ -1,7 +1,18 @@
 // 5.3 Gret và biển sống: Gret's mood from the sea clarity and the session state (spec 003 FR-006).
 
-/// What Gret's face and pose show.
-enum MascotMood { happy, neutral, sad, focused, sleeping, celebrating }
+/// What Gret's face and pose show. The last four are short emotes (spec 018).
+enum MascotMood {
+  happy,
+  neutral,
+  sad,
+  focused,
+  sleeping,
+  celebrating,
+  love,
+  surprised,
+  proud,
+  wink,
+}
 
 /// Clarity band shown as a label next to the clarity ring.
 enum ClarityLevel {

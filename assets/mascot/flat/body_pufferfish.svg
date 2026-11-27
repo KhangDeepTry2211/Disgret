@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200">
+<path d="M170 112 L216 82 Q206 112 216 142 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M171.6 134.5 L187.0 152.0 L163.3 148.9 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M152.9 159.3 L157.0 181.3 L138.5 167.6 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M124.4 171.4 L116.0 192.0 L107.6 171.4 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M93.5 167.6 L75.0 181.3 L79.1 159.3 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M68.7 148.9 L45.0 152.0 L60.4 134.5 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M56.6 120.4 L34.0 112.0 L56.6 103.6 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M60.4 89.5 L45.0 72.0 L68.7 75.1 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M79.1 64.7 L75.0 42.7 L93.5 56.4 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M107.6 52.6 L116.0 32.0 L124.4 52.6 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M138.5 56.4 L157.0 42.7 L152.9 64.7 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<path d="M163.3 75.1 L187.0 72.0 L171.6 89.5 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<ellipse cx="116" cy="112" rx="66" ry="66" fill="#FFD45E" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<ellipse cx="116" cy="150" rx="44" ry="22" fill="#FFF0B8"/>
+<ellipse cx="100" cy="64" rx="3.5" ry="3.5" fill="#F2C14E"/>
+<ellipse cx="124" cy="56" rx="4" ry="4" fill="#F2C14E"/>
+<ellipse cx="144" cy="70" rx="3" ry="3" fill="#F2C14E"/>
+<ellipse cx="80" cy="80" rx="3" ry="3" fill="#F2C14E"/>
+<path d="M58 126 Q36 130 40 152 Q56 148 64 136 Z" fill="#F2B33D" stroke="#4A3428" stroke-width="4" stroke-linejoin="round"/>
+<ellipse cx="86" cy="76" rx="15" ry="8" transform="rotate(-28 86 76)" fill="#FFFFFF" fill-opacity="0.5"/>
+</svg>

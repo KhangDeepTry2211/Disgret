@@ -90,7 +90,7 @@ Future<void> _openDistracted(WidgetTester tester) async {
   await _seedProfile();
   await _seedPlan();
   await pumpApp(tester);
-  await tapAndSettle(tester, find.text('Bắt đầu'));
+  await holdToStart(tester);
   await tapAndSettle(tester, find.text('Bỏ qua'));
   GoRouter.of(tester.element(find.text('Thời gian còn lại')))
       .go(AppRoutes.motivationFor(ReelContext.distracted));
@@ -571,7 +571,7 @@ void main() {
       await _seedPlan();
       final startOnly = testReels.where((reel) => reel.id == 'r1').toList();
       await pumpApp(tester, reels: startOnly);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await tapAndSettle(tester, find.text('Bỏ qua'));
 
       GoRouter.of(tester.element(find.text('Thời gian còn lại')))

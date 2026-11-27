@@ -10,8 +10,10 @@ import '../data/models/event.dart';
 import '../data/models/habit.dart';
 import '../data/models/habit_log.dart';
 import '../data/sea_clarity.dart';
+import '../data/sea_time.dart';
 import 'app_providers.dart';
 import 'focus_session_provider.dart';
+import 'gret_emote_provider.dart';
 
 /// What the sea shows right now.
 class SeaState {
@@ -172,9 +174,19 @@ final seaStateProvider = Provider<SeaState>((ref) {
   final isRunning = session.phase == FocusPhase.running;
   // Only a running session is unsaved for sure; a finished one may already be in the repository.
   final result = inputs.compute(today, liveFocusMinutes: isRunning ? session.focusedMinutes : 0);
+  // A short emote (spec 018) shows over the mood of the sea; during a session Gret stays
+  // focused, except for the proud return from the intervention screen.
+  final emote = ref.watch(gretEmoteProvider);
+  final showEmote = emote != null && (!isRunning || emote == MascotMood.proud);
+  // Late at night Gret sleeps by its house, outside a session (spec 019).
+  final asleep = !isRunning && SeaTime.isLateNight(ref.watch(clockProvider)());
   return SeaState(
     clarity: result.today,
-    mood: moodFor(clarity: result.today, isSessionRunning: isRunning, isOnBreak: session.onBreak),
+    mood: showEmote
+        ? emote
+        : asleep
+        ? MascotMood.sleeping
+        : moodFor(clarity: result.today, isSessionRunning: isRunning, isOnBreak: session.onBreak),
   );
 });
 

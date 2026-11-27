@@ -3,8 +3,10 @@
 // windows look out on Gret's sea at its live clarity. Only shows what it is given: the moments and
 // the bubbles are decided by CafeSessionView.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../data/gret_work.dart';
 import '../../data/gret_corner_catalog.dart';
 import '../../data/mascot_mood.dart';
 import '../../data/mascot_species.dart';
@@ -16,7 +18,9 @@ import '../../theme/app_theme.dart';
 import '../mascot/mascot_bubbles.dart';
 import '../mascot/mascot_view.dart';
 import '../motion/reaction_wiggle.dart';
+import '../mascot/mascot_at_desk.dart';
 import '../sea/sea_painter.dart';
+import 'cafe_diorama_painter.dart';
 import 'sea_cafe_painter.dart';
 
 class SeaCafeScene extends ConsumerWidget {
@@ -33,6 +37,8 @@ class SeaCafeScene extends ConsumerWidget {
     this.foreground,
     this.bottom,
     this.gretReaction = 0,
+    this.work,
+    this.cafeLook = CafeLook.cosy,
     super.key,
   });
 
@@ -70,10 +76,21 @@ class SeaCafeScene extends ConsumerWidget {
   /// Gret wiggles once each time this number changes.
   final int gretReaction;
 
+  /// During a session Gret works at a wooden desk at the front (spec 019); null keeps the table.
+  final MascotWork? work;
+
+  /// The cosy room or the isometric diorama room (spec 019).
+  final CafeLook cafeLook;
+
+  bool get _diorama => cafeLook == CafeLook.diorama;
+  Alignment get _ownerAt => _diorama ? AppCafe.dioramaOwner : AppCafe.owner;
+  List<Alignment> get _seatsAt => _diorama ? AppCafe.dioramaSeats : AppCafe.seats;
+  Alignment get _gretAt => _diorama ? AppCafe.dioramaGret : AppCafe.gret;
+
   Alignment _speakerAt(SeaFriend speaker) {
-    if (speaker == SeaCafe.owner) return AppCafe.owner;
+    if (speaker == SeaCafe.owner) return _ownerAt;
     final seat = friends.indexOf(speaker);
-    return seat < 0 || seat >= AppCafe.seats.length ? AppCafe.gret : AppCafe.seats[seat];
+    return seat < 0 || seat >= _seatsAt.length ? _gretAt : _seatsAt[seat];
   }
 
   static Alignment _lifted(Alignment at) =>
@@ -94,14 +111,13 @@ class SeaCafeScene extends ConsumerWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final size = constraints.biggest;
-            final friendSize = (size.height * AppCafe.friendShare).clamp(
-              AppCafe.friendMin,
-              AppCafe.friendMax,
-            );
-            final gretSize = (size.height * AppCafe.gretShare).clamp(
-              AppCafe.gretMin,
-              AppCafe.gretMax,
-            );
+            // Everyone is a little smaller in the diorama room, which floats with a margin.
+            final scale = _diorama ? AppCafe.dioramaScale : 1.0;
+            final friendSize =
+                (size.height * AppCafe.friendShare).clamp(AppCafe.friendMin, AppCafe.friendMax) *
+                scale;
+            final gretSize =
+                (size.height * AppCafe.gretShare).clamp(AppCafe.gretMin, AppCafe.gretMax) * scale;
 
             Widget bubble(Alignment at, String? text) => Positioned.fill(
               child: AnimatedSwitcher(
@@ -124,22 +140,36 @@ class SeaCafeScene extends ConsumerWidget {
             return Stack(
               children: [
                 Positioned.fill(
-                  child: CustomPaint(painter: SeaCafePainter(isNight: isNight)),
-                ),
-                for (final window in const [AppCafe.leftWindow, AppCafe.rightWindow])
-                  _Window(
-                    rect: Rect.fromLTWH(
-                      window.left * size.width,
-                      window.top * size.height,
-                      window.width * size.width,
-                      window.height * size.height,
-                    ),
-                    clarity: clarity,
-                    place: windowPlace,
-                    isNight: isNight,
+                  child: CustomPaint(
+                    painter: _diorama
+                        ? CafeDioramaPainter(isNight: isNight)
+                        : SeaCafePainter(isNight: isNight),
                   ),
+                ),
+                if (!_diorama)
+                  for (final at in AppCafe.hangingPlants)
+                    Align(
+                      alignment: at,
+                      child: SvgPicture.asset(
+                        'assets/scene/cafe_plant_hanging.svg',
+                        height: size.height * AppCafe.hangingPlantShare,
+                      ),
+                    ),
+                if (!_diorama)
+                  for (final window in const [AppCafe.leftWindow, AppCafe.rightWindow])
+                    _Window(
+                      rect: Rect.fromLTWH(
+                        window.left * size.width,
+                        window.top * size.height,
+                        window.width * size.width,
+                        window.height * size.height,
+                      ),
+                      clarity: clarity,
+                      place: windowPlace,
+                      isNight: isNight,
+                    ),
                 Align(
-                  alignment: AppCafe.owner,
+                  alignment: _ownerAt,
                   child: _Seat(
                     friend: SeaCafe.owner,
                     mood: friendMood,
@@ -150,7 +180,7 @@ class SeaCafeScene extends ConsumerWidget {
                 ),
                 for (var i = 0; i < seated.length; i++)
                   Align(
-                    alignment: AppCafe.seats[i],
+                    alignment: _seatsAt[i],
                     child: _Seat(
                       friend: seated[i],
                       mood: friendMood,
@@ -158,30 +188,55 @@ class SeaCafeScene extends ConsumerWidget {
                       isNight: isNight,
                     ),
                   ),
-                Align(
-                  alignment: AppCafe.gret,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ReactionWiggle(
-                        trigger: gretReaction,
-                        child: MascotView(
-                          mood: gretMood,
-                          size: gretSize,
-                          species: look.species,
-                          outfit: look.outfit,
-                        ),
+                if (work != null)
+                  Align(
+                    alignment: _gretAt,
+                    child: ReactionWiggle(
+                      trigger: gretReaction,
+                      child: MascotAtDesk(
+                        mood: gretMood,
+                        desk: work!.desk,
+                        task: work!.task,
+                        size: gretSize,
+                        species: look.species,
+                        outfit: look.outfit,
                       ),
-                      _Table(
-                        size: Size(
-                          gretSize * AppCafe.gretTableScale,
-                          gretSize * AppCafe.tableHeight,
+                    ),
+                  )
+                else
+                  Align(
+                    alignment: _gretAt,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ReactionWiggle(
+                          trigger: gretReaction,
+                          child: MascotView(
+                            mood: gretMood,
+                            size: gretSize,
+                            species: look.species,
+                            outfit: look.outfit,
+                          ),
                         ),
-                        isNight: isNight,
-                      ),
-                    ],
+                        _Table(
+                          size: Size(
+                            gretSize * AppCafe.gretTableScale,
+                            gretSize * AppCafe.tableHeight,
+                          ),
+                          isNight: isNight,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                if (!_diorama)
+                  for (final at in AppCafe.floorPlants)
+                    Align(
+                      alignment: at,
+                      child: SvgPicture.asset(
+                        'assets/scene/cafe_plant_pot.svg',
+                        height: size.height * AppCafe.floorPlantShare,
+                      ),
+                    ),
                 if (foreground != null) Positioned.fill(child: foreground!),
                 if (overlay != null)
                   Align(
@@ -195,8 +250,8 @@ class SeaCafeScene extends ConsumerWidget {
                       ),
                     ),
                   ),
-                bubble(line == null ? AppCafe.gret : _speakerAt(line!.speaker), line?.text),
-                bubble(AppCafe.gret, gretLine),
+                bubble(line == null ? _gretAt : _speakerAt(line!.speaker), line?.text),
+                bubble(_gretAt, gretLine),
                 if (bottom != null) Align(alignment: Alignment.bottomCenter, child: bottom),
               ],
             );
@@ -250,6 +305,10 @@ class _Window extends StatelessWidget {
               ),
             ),
           ),
+          // Tied curtains (spec 019).
+          Positioned.fill(
+            child: SvgPicture.asset('assets/scene/cafe_curtains.svg', fit: BoxFit.fill),
+          ),
         ],
       ),
     );
@@ -274,41 +333,28 @@ class _Seat extends StatelessWidget {
   /// Width of the character.
   final double size;
 
+  /// What lies on a friend's table, by subject.
+  static String _propOf(SeaFriend friend) => switch (friend.subject) {
+    AppStrings.subjectMaths => 'cafe_maths',
+    AppStrings.subjectLiterature => 'cafe_literature',
+    AppStrings.subjectEnglish => 'cafe_english',
+    _ => 'cafe_biology',
+  };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mascot = MascotView(mood: mood, size: size, species: friend.species);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (atCounter)
-          Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(bottom: AppCafe.counterHeight * AppCafe.counterOverlap),
-                child: mascot,
-              ),
-              Container(
-                width: size * AppCafe.counterWidthScale,
-                height: AppCafe.counterHeight,
-                decoration: BoxDecoration(
-                  color: isNight ? AppCafe.counterNight : AppCafe.counterDay,
-                  borderRadius: AppRadius.cardBorder,
-                  border: const Border(top: BorderSide(color: AppCafe.counterTop, width: 4)),
-                ),
-              ),
-            ],
-          )
-        else ...[
-          mascot,
-          _Table(
-            size: Size(size * AppCafe.friendTableScale, size * AppCafe.tableHeight),
-            isNight: isNight,
-          ),
-        ],
-        const SizedBox(height: AppSpacing.xs),
+        MascotSeated(
+          mood: mood,
+          species: friend.species,
+          size: size,
+          behind: atCounter ? const [] : const ['cafe_chair'],
+          front: atCounter ? const ['cafe_counter'] : ['cafe_table', _propOf(friend), 'cafe_cup'],
+        ),
         DecoratedBox(
           decoration: BoxDecoration(
             color: theme.colorScheme.surface.withValues(alpha: 0.85),

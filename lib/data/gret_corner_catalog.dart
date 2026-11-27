@@ -19,6 +19,18 @@ enum UnlockKind {
 
   /// Sold for real money later; listed as "Sắp có" and not obtainable in this version.
   premium,
+
+  /// Earned by studying (spec 018): starts within 10 minutes after a habit's reminder.
+  onTimeStarts,
+
+  /// Earned by choosing "Quay lại học" on the intervention screen.
+  interventionReturns,
+
+  /// Earned by focused study, in hours.
+  focusHours,
+
+  /// Earned when one habit reaches [Unlock.amount] days done.
+  habitDays,
 }
 
 class Unlock {
@@ -28,14 +40,27 @@ class Unlock {
   const Unlock.pearls(int price) : this._(UnlockKind.pearls, price);
   const Unlock.streak(int days) : this._(UnlockKind.streak, days);
   const Unlock.premium() : this._(UnlockKind.premium, 0);
+  const Unlock.onTimeStarts(int times) : this._(UnlockKind.onTimeStarts, times);
+  const Unlock.interventionReturns(int times) : this._(UnlockKind.interventionReturns, times);
+  const Unlock.focusHours(int hours) : this._(UnlockKind.focusHours, hours);
+  const Unlock.habitDays(int days) : this._(UnlockKind.habitDays, days);
 
   final UnlockKind kind;
 
-  /// Price in pearls, or streak days.
+  /// Price in pearls, streak days, or the goal of a study unlock.
   final int amount;
 
   /// Pearls this costs (0 unless bought with pearls).
   int get price => kind == UnlockKind.pearls ? amount : 0;
+
+  /// Earned by studying (spec 018), see `StudyFacts`.
+  bool get isStudy => switch (kind) {
+    UnlockKind.onTimeStarts ||
+    UnlockKind.interventionReturns ||
+    UnlockKind.focusHours ||
+    UnlockKind.habitDays => true,
+    UnlockKind.free || UnlockKind.pearls || UnlockKind.streak || UnlockKind.premium => false,
+  };
 }
 
 class CornerItem {
@@ -69,27 +94,60 @@ class SeaInfo {
 }
 
 class MascotInfo {
-  const MascotInfo({required this.species, required this.name, required this.unlock});
+  const MascotInfo({
+    required this.species,
+    required this.name,
+    required this.unlock,
+    this.kind = '',
+  });
 
   final MascotSpecies species;
   final String name;
   final Unlock unlock;
 
+  /// What kind of animal it is, shown under the name ("Cá ngựa").
+  final String kind;
+
   /// Stored with the owned items, so it must not clash with an outfit id.
   String get id => 'mascot_${species.name}';
 }
 
-/// What the sea shows: which mascot swims, what it wears (drawings by slot) and which sea.
+/// Where a decoration stands by Gret's home (spec 019): two spots on the rock ledge left of Gret,
+/// one beside the shell house on the right. Stored by name; new values go last.
+enum DecorSpot { leftBack, leftFront, byHouse }
+
+/// A decoration for Gret's home, bought with pearls and placed in its spot (spec 019).
+class DecorationInfo {
+  const DecorationInfo({
+    required this.id,
+    required this.name,
+    required this.spot,
+    required this.unlock,
+  });
+
+  final String id;
+  final String name;
+  final DecorSpot spot;
+  final Unlock unlock;
+
+  /// The drawing, on an 80×80 canvas standing at y 76 (assets/scene, scene_art.py).
+  String get asset => 'assets/scene/$id.svg';
+}
+
+/// What the sea shows: which mascot swims, what it wears (drawings by slot), which sea, and the
+/// decorations by Gret's home (drawings by spot, spec 019).
 class GretLook {
   const GretLook({
     this.species = MascotSpecies.gret,
     this.outfit = const {},
     this.place = SeaPlace.home,
+    this.decor = const {},
   });
 
   final MascotSpecies species;
   final Map<OutfitSlot, String> outfit;
   final SeaPlace place;
+  final Map<DecorSpot, String> decor;
 }
 
 class GretCornerCatalog {
@@ -181,10 +239,98 @@ class GretCornerCatalog {
   ];
 
   static const List<MascotInfo> mascots = [
-    MascotInfo(species: MascotSpecies.gret, name: 'Gret', unlock: Unlock.free()),
-    MascotInfo(species: MascotSpecies.crab, name: 'Ẩn', unlock: Unlock.pearls(300)),
-    MascotInfo(species: MascotSpecies.octopus, name: 'Mochi', unlock: Unlock.premium()),
+    MascotInfo(species: MascotSpecies.gret, name: 'Gret', kind: 'Cá', unlock: Unlock.free()),
+    MascotInfo(
+      species: MascotSpecies.crab,
+      name: 'Bơ',
+      kind: 'Cua ẩn sĩ',
+      unlock: Unlock.pearls(300),
+    ),
+    // Friends earned by studying (spec 018).
+    MascotInfo(
+      species: MascotSpecies.seahorse,
+      name: 'Tép',
+      kind: 'Cá ngựa',
+      unlock: Unlock.onTimeStarts(5),
+    ),
+    MascotInfo(
+      species: MascotSpecies.pufferfish,
+      name: 'Phồng',
+      kind: 'Cá nóc',
+      unlock: Unlock.interventionReturns(5),
+    ),
+    MascotInfo(
+      species: MascotSpecies.jellyfish,
+      name: 'Mây',
+      kind: 'Sứa',
+      unlock: Unlock.focusHours(10),
+    ),
+    MascotInfo(
+      species: MascotSpecies.octopus,
+      name: 'Mochi',
+      kind: 'Bạch tuộc',
+      unlock: Unlock.focusHours(30),
+    ),
+    MascotInfo(
+      species: MascotSpecies.penguin,
+      name: 'Bông',
+      kind: 'Cánh cụt',
+      unlock: Unlock.habitDays(21),
+    ),
+    MascotInfo(
+      species: MascotSpecies.whale,
+      name: 'Bự',
+      kind: 'Cá voi',
+      unlock: Unlock.habitDays(66),
+    ),
   ];
+
+  /// Decorations for Gret's home (spec 019), two per spot.
+  static const List<DecorationInfo> decorations = [
+    DecorationInfo(
+      id: 'deco_jelly_lantern',
+      name: 'Đèn lồng sứa',
+      spot: DecorSpot.leftBack,
+      unlock: Unlock.pearls(40),
+    ),
+    DecorationInfo(
+      id: 'deco_coral_garden',
+      name: 'Vườn san hô mini',
+      spot: DecorSpot.leftBack,
+      unlock: Unlock.pearls(100),
+    ),
+    DecorationInfo(
+      id: 'deco_sand_castle',
+      name: 'Lâu đài cát',
+      spot: DecorSpot.leftFront,
+      unlock: Unlock.pearls(60),
+    ),
+    DecorationInfo(
+      id: 'deco_kelp_swing',
+      name: 'Xích đu rong',
+      spot: DecorSpot.leftFront,
+      unlock: Unlock.pearls(80),
+    ),
+    DecorationInfo(
+      id: 'deco_mailbox',
+      name: 'Hộp thư san hô',
+      spot: DecorSpot.byHouse,
+      unlock: Unlock.pearls(60),
+    ),
+    DecorationInfo(
+      id: 'deco_treasure_chest',
+      name: 'Rương báu vàng',
+      spot: DecorSpot.byHouse,
+      unlock: Unlock.pearls(150),
+    ),
+  ];
+
+  static DecorationInfo? decorationById(String id) {
+    for (final decoration in decorations) {
+      if (decoration.id == id) return decoration;
+    }
+    return null;
+  }
 
   static CornerItem? itemById(String id) {
     for (final item in items) {

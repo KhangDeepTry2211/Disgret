@@ -1,17 +1,22 @@
 // 5.4 Góc của Gret: dress Gret, change the sea, choose a mascot (spec 004, ADR-0009).
 // Pearls are earned only by studying; premium items are listed as "Sắp có".
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/gret_corner_catalog.dart';
 import '../data/mascot_mood.dart';
 import '../data/mascot_species.dart';
+import '../data/sea_cafe.dart';
 import '../data/sea_time.dart';
+import '../data/study_unlocks.dart';
 import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../providers/gret_corner_providers.dart';
 import '../providers/sea_providers.dart';
 import '../theme/app_theme.dart';
+import '../widgets/cafe/cafe_diorama_painter.dart';
+import '../widgets/cafe/sea_cafe_painter.dart';
 import '../widgets/gradient_pill_button.dart';
 import '../widgets/mascot/mascot_view.dart';
 import '../widgets/sea/sea_painter.dart';
@@ -202,12 +207,46 @@ Color _rarityColour(Rarity rarity, ColorScheme scheme) => switch (rarity) {
 };
 
 /// What a card says about an item, mascot or sea that is not in use.
-String _statusOf(Unlock unlock, CornerLock lock) => switch (lock) {
-  CornerLock.none =>
-    unlock.kind == UnlockKind.pearls ? AppStrings.cornerOwned : AppStrings.cornerFree,
-  CornerLock.pearls => AppStrings.cornerPrice(unlock.price),
-  CornerLock.streak => AppStrings.cornerStreak(unlock.amount),
-  CornerLock.premium => AppStrings.cornerSoon,
+String _statusOf(Unlock unlock, CornerLock lock, {StudyFacts facts = const StudyFacts()}) =>
+    switch (lock) {
+      CornerLock.none =>
+        unlock.kind == UnlockKind.pearls || unlock.isStudy
+            ? AppStrings.cornerOwned
+            : AppStrings.cornerFree,
+      CornerLock.pearls => AppStrings.cornerPrice(unlock.price),
+      CornerLock.streak => AppStrings.cornerStreak(unlock.amount),
+      CornerLock.premium => AppStrings.cornerSoon,
+      CornerLock.study => _studyProgress(unlock, facts, short: true),
+    };
+
+/// "2/5 lần đúng giờ", "6,5/10 giờ"… for a friend earned by studying (spec 018); [short] for the
+/// narrow cards.
+String _studyProgress(Unlock unlock, StudyFacts facts, {bool short = false}) {
+  final progress = facts.progressOf(unlock);
+  final done = progress.floor().clamp(0, unlock.amount);
+  return switch (unlock.kind) {
+    UnlockKind.onTimeStarts =>
+      short
+          ? AppStrings.cornerOnTimeShort(done, unlock.amount)
+          : AppStrings.cornerOnTimeProgress(done, unlock.amount),
+    UnlockKind.interventionReturns =>
+      short
+          ? AppStrings.cornerReturnsShort(done, unlock.amount)
+          : AppStrings.cornerReturnsProgress(done, unlock.amount),
+    UnlockKind.focusHours => AppStrings.cornerHoursProgress(
+      progress.clamp(0, unlock.amount).toDouble(),
+      unlock.amount,
+    ),
+    _ => AppStrings.cornerDaysProgress(done, unlock.amount),
+  };
+}
+
+/// What has to be done to earn a friend (spec 018).
+String _studyNeed(Unlock unlock) => switch (unlock.kind) {
+  UnlockKind.onTimeStarts => AppStrings.cornerNeedOnTime(unlock.amount),
+  UnlockKind.interventionReturns => AppStrings.cornerNeedReturns(unlock.amount),
+  UnlockKind.focusHours => AppStrings.cornerNeedHours(unlock.amount),
+  _ => AppStrings.cornerNeedDays(unlock.amount),
 };
 
 /// The one action for a locked or available entry, or the reason there is none.
@@ -220,6 +259,7 @@ class _UnlockAction extends ConsumerWidget {
     required this.useLabel,
     required this.onUse,
     this.onStopUsing,
+    this.stopLabel = AppStrings.cornerTakeOff,
   });
 
   final String id;
@@ -229,6 +269,7 @@ class _UnlockAction extends ConsumerWidget {
   final String useLabel;
   final Future<void> Function() onUse;
   final Future<void> Function()? onStopUsing;
+  final String stopLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -247,6 +288,9 @@ class _UnlockAction extends ConsumerWidget {
     switch (lock) {
       case CornerLock.premium:
         return reason(AppStrings.cornerPremium);
+      case CornerLock.study:
+        final progress = _studyProgress(unlock, ref.watch(studyFactsProvider));
+        return reason('${_studyNeed(unlock)}\n${AppStrings.cornerSoFar(progress)}');
       case CornerLock.streak:
         return reason(AppStrings.cornerNeedStreak(unlock.amount));
       case CornerLock.pearls:
@@ -274,7 +318,7 @@ class _UnlockAction extends ConsumerWidget {
               await stop();
               navigator.pop();
             },
-            child: const Text(AppStrings.cornerTakeOff),
+            child: Text(stopLabel),
           );
         }
         if (inUse) return reason(AppStrings.cornerChosen);
@@ -570,6 +614,7 @@ class _SeaTab extends ConsumerWidget {
     final isNight = SeaTime.isNight(ref.watch(clockProvider)());
 
     return ListView(
+      key: const ValueKey('corner-sea-list'),
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         for (final sea in GretCornerCatalog.seas)
@@ -644,6 +689,63 @@ class _SeaTab extends ConsumerWidget {
               );
             },
           ),
+        // Decorations for Gret's home (spec 019).
+        const SizedBox(height: AppSpacing.md),
+        Text(AppStrings.cornerDecorTitle, style: theme.textTheme.titleSmall),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          AppStrings.cornerDecorHint,
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GridView.count(
+          crossAxisCount: 3,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSpacing.sm,
+          crossAxisSpacing: AppSpacing.sm,
+          childAspectRatio: AppCorner.cardAspect,
+          children: [
+            for (final decoration in GretCornerCatalog.decorations)
+              Builder(
+                builder: (context) {
+                  final placed = corner.decor[decoration.spot] == decoration.id;
+                  return _CornerCard(
+                    key: ValueKey('corner-decor-${decoration.id}'),
+                    preview: SvgPicture.asset(decoration.asset, height: AppCorner.cardMascot),
+                    name: decoration.name,
+                    rarity: decoration.unlock.price >= 100 ? Rarity.rare : Rarity.common,
+                    status: placed
+                        ? AppStrings.cornerPlaced
+                        : _statusOf(
+                            decoration.unlock,
+                            notifier.lockOf(decoration.unlock, id: decoration.id),
+                          ),
+                    highlighted: placed,
+                    onTap: () => _showSheet(
+                      context,
+                      preview: SvgPicture.asset(decoration.asset, height: AppCorner.sheetMascot),
+                      name: decoration.name,
+                      detail: AppStrings.cornerDecorDetail,
+                      action: Consumer(
+                        builder: (context, ref, _) => _UnlockAction(
+                          id: decoration.id,
+                          name: decoration.name,
+                          unlock: decoration.unlock,
+                          inUse:
+                              ref.watch(gretCornerProvider).decor[decoration.spot] == decoration.id,
+                          useLabel: AppStrings.cornerPlace,
+                          stopLabel: AppStrings.cornerPutAway,
+                          onUse: () async => notifier.placeDecoration(decoration.id),
+                          onStopUsing: () async => notifier.removeDecoration(decoration.spot),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -658,55 +760,126 @@ class _MascotTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final corner = ref.watch(gretCornerProvider);
     ref.watch(pearlBalanceProvider);
+    final facts = ref.watch(studyFactsProvider);
     final notifier = ref.read(gretCornerProvider.notifier);
+    final theme = Theme.of(context);
+    final isNight = SeaTime.isNight(ref.watch(clockProvider)());
 
-    return GridView.count(
+    return ListView(
+      key: const ValueKey('corner-mascot-list'),
       padding: const EdgeInsets.all(AppSpacing.md),
-      crossAxisCount: 3,
-      mainAxisSpacing: AppSpacing.sm,
-      crossAxisSpacing: AppSpacing.sm,
-      childAspectRatio: AppCorner.cardAspect,
       children: [
-        for (final mascot in GretCornerCatalog.mascots)
-          _CornerCard(
-            key: ValueKey('corner-mascot-${mascot.species.name}'),
-            preview: MascotView(
-              mood: MascotMood.happy,
-              size: AppCorner.cardMascot,
-              species: mascot.species,
-            ),
-            name: mascot.name,
-            rarity: switch (mascot.unlock.kind) {
-              UnlockKind.free => Rarity.common,
-              UnlockKind.premium => Rarity.special,
-              _ => Rarity.rare,
-            },
-            status: corner.mascot == mascot.species
-                ? AppStrings.cornerChosen
-                : _statusOf(mascot.unlock, notifier.lockOf(mascot.unlock, id: mascot.id)),
-            highlighted: corner.mascot == mascot.species,
-            onTap: () => _showSheet(
-              context,
-              preview: MascotView(
-                mood: MascotMood.happy,
-                size: AppCorner.sheetMascot,
-                species: mascot.species,
+        // The drawing style of every mascot, seen at once on the sea above (spec 018).
+        Text(AppStrings.cornerStyleTitle, style: theme.textTheme.titleSmall),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final style in MascotStyle.values)
+              ChoiceChip(
+                key: ValueKey('corner-style-${style.name}'),
+                label: Text(_styleLabel(style)),
+                selected: corner.style == style,
+                onSelected: (_) => notifier.chooseStyle(style),
               ),
-              name: mascot.name,
-              detail: AppStrings.cornerTabMascots,
-              action: Consumer(
-                builder: (context, ref, _) => _UnlockAction(
-                  id: mascot.id,
-                  name: mascot.name,
-                  unlock: mascot.unlock,
-                  inUse: ref.watch(gretCornerProvider).mascot == mascot.species,
-                  useLabel: AppStrings.cornerChoose,
-                  onUse: () async => notifier.chooseMascot(mascot.species),
-                ),
+          ],
+        ),
+        // How Quán San Hô looks during café sessions (spec 019).
+        const SizedBox(height: AppSpacing.md),
+        Text(AppStrings.cornerCafeTitle, style: theme.textTheme.titleSmall),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final cafe in CafeLook.values)
+              ChoiceChip(
+                key: ValueKey('corner-cafe-${cafe.name}'),
+                label: Text(cafe == CafeLook.cosy ? AppStrings.cafeCosy : AppStrings.cafeDiorama),
+                selected: corner.cafeLook == cafe,
+                onSelected: (_) => notifier.chooseCafeLook(cafe),
               ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        ClipRRect(
+          borderRadius: AppRadius.cardBorder,
+          child: SizedBox(
+            height: AppCorner.cafePreviewHeight,
+            child: CustomPaint(
+              key: ValueKey('corner-cafe-preview-${corner.cafeLook.name}'),
+              size: Size.infinite,
+              painter: corner.cafeLook == CafeLook.cosy
+                  ? SeaCafePainter(isNight: isNight)
+                  : CafeDioramaPainter(isNight: isNight),
             ),
           ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        GridView.count(
+          crossAxisCount: 3,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSpacing.sm,
+          crossAxisSpacing: AppSpacing.sm,
+          childAspectRatio: AppCorner.cardAspect,
+          children: [
+            for (final mascot in GretCornerCatalog.mascots)
+              _CornerCard(
+                key: ValueKey('corner-mascot-${mascot.species.name}'),
+                preview: MascotView(
+                  mood: MascotMood.happy,
+                  size: AppCorner.cardMascot,
+                  species: mascot.species,
+                ),
+                name: mascot.name,
+                rarity: switch (mascot.unlock.kind) {
+                  UnlockKind.free => Rarity.common,
+                  UnlockKind.premium => Rarity.special,
+                  _ => Rarity.rare,
+                },
+                status: corner.mascot == mascot.species
+                    ? AppStrings.cornerChosen
+                    : _statusOf(
+                        mascot.unlock,
+                        notifier.lockOf(mascot.unlock, id: mascot.id),
+                        facts: facts,
+                      ),
+                highlighted: corner.mascot == mascot.species,
+                onTap: () => _showSheet(
+                  context,
+                  // A friend already earned greets with love (spec 018).
+                  preview: MascotView(
+                    mood: notifier.lockOf(mascot.unlock, id: mascot.id) == CornerLock.none
+                        ? MascotMood.love
+                        : MascotMood.happy,
+                    size: AppCorner.sheetMascot,
+                    species: mascot.species,
+                  ),
+                  name: mascot.name,
+                  detail: mascot.kind.isEmpty ? AppStrings.cornerTabMascots : mascot.kind,
+                  action: Consumer(
+                    builder: (context, ref, _) => _UnlockAction(
+                      id: mascot.id,
+                      name: mascot.name,
+                      unlock: mascot.unlock,
+                      inUse: ref.watch(gretCornerProvider).mascot == mascot.species,
+                      useLabel: AppStrings.cornerChoose,
+                      onUse: () async => notifier.chooseMascot(mascot.species),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
+
+  static String _styleLabel(MascotStyle style) => switch (style) {
+    MascotStyle.classic => AppStrings.styleClassic,
+    MascotStyle.flat => AppStrings.styleFlat,
+    MascotStyle.soft => AppStrings.styleSoft,
+  };
 }

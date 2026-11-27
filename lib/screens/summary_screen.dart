@@ -110,7 +110,12 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
                     children: [
                       SeaScene(
                         clarity: ref.watch(clarityAfterSessionProvider),
-                        mood: celebrate ? MascotMood.celebrating : MascotMood.happy,
+                        // A full session makes Gret proud (spec 018).
+                        mood: _session.finishedOnTime
+                            ? MascotMood.proud
+                            : celebrate
+                            ? MascotMood.celebrating
+                            : MascotMood.happy,
                         variant: SeaSceneVariant.compact,
                         look: ref.watch(gretLookProvider),
                       ),

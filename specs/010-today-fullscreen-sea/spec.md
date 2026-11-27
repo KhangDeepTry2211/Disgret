@@ -46,3 +46,13 @@ những mục đang sẵn có lên khung cảnh đó như unrot"; chose approach
 The lead asked that the sea scroll with the cards ("kéo thì kéo khung hình của gret đằng sau lên
 luôn"): the sea and Gret now move up by the scroll offset, and the deepest water colour
 (`SeaPainter.deepColour`) fills the screen under them. Test: `test/today_fullscreen_test.dart`.
+
+## Amendment (2026-11-27)
+
+The lead found scrolling not smooth and asked to pin Gret ("cố định lại Gret khi tôi scroll
+xuống"), reversing the 2026-11-25 amendment: the sea and Gret stay put and the cards slide over
+them (as in the original story 1.2), and the sea's animations (waves, rays, fish, Gret's bob and
+tail) pause from the start to the end of a scroll (`TickerMode`), so a scroll only moves the cards.
+Both activities also ask Android for the screen's fastest refresh rate (`DisplayRate.kt`), so
+phones with 90/120 Hz screens do not keep DisGret at 60 Hz.
+Tests: `test/today_fullscreen_test.dart`.

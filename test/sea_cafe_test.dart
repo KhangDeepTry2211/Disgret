@@ -51,7 +51,7 @@ void main() {
       for (final friend in friends) friend.species,
     ];
 
-    test('with Gret worn, Ẩn, Mochi and Sao sit at the tables', () {
+    test('with Gret worn, Bơ, Mochi and Sao sit at the tables', () {
       expect(species(SeaCafe.seated(MascotSpecies.gret)), [
         MascotSpecies.crab,
         MascotSpecies.octopus,
@@ -74,20 +74,20 @@ void main() {
     test('the owner is Rùa the turtle; labels read "name · subject"', () {
       expect(SeaCafe.owner.species, MascotSpecies.turtle);
       expect(SeaCafe.owner.name, 'Rùa');
-      expect(SeaCafe.seated(MascotSpecies.gret).first.label, 'Ẩn · Toán');
+      expect(SeaCafe.seated(MascotSpecies.gret).first.label, 'Bơ · Toán');
     });
 
     test('the café seats the friends for the mascot the student wears', () async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
-      expect(container.read(cafeFriendsProvider).first.name, 'Ẩn');
+      expect(container.read(cafeFriendsProvider).first.name, 'Bơ');
 
       await GretCornerRepository().saveMascot(MascotSpecies.crab);
       container.invalidate(gretCornerProvider);
       expect(species(container.read(cafeFriendsProvider)), isNot(contains(MascotSpecies.crab)));
     });
 
-    test('Ẩn and Mochi have the same names as in Góc của Gret', () {
+    test('Bơ and Mochi have the same names as in Góc của Gret', () {
       for (final friend in SeaCafe.roster) {
         if (friend.species == MascotSpecies.crab || friend.species == MascotSpecies.octopus) {
           expect(friend.name, GretCornerCatalog.mascotOf(friend.species).name);

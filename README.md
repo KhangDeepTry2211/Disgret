@@ -155,7 +155,7 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
    một lần; vuốt không đổi reel; chạm để tạm dừng. Hết reel (khoảng 15–25 giây) thì hiện thẻ kết
    thúc: **Bắt đầu N phút**, **Chỉ 5 phút thôi**, **Tiếp**. (Không bắt buộc: **Tiếp** để xem reel
    2/3.) → **Chỉ 5 phút thôi** → phiên học ở **Quán San Hô** (nơi học mặc định): Gret ngồi bàn
-   giữa, chủ quán Rùa chào "Chào mừng đến Quán San Hô!", ba bạn biển Ẩn · Toán, Mochi · Văn, Sao ·
+   giữa, chủ quán Rùa chào "Chào mừng đến Quán San Hô!", ba bạn biển Bơ · Toán, Mochi · Văn, Sao ·
    Tiếng Anh cùng học; cửa sổ nhìn ra biển của Gret. Đồng hồ treo tường đếm ngược từ 05:00 (thật ra
    100 giây), thỉnh thoảng một xao nhãng trôi tới và bị Gret hất văng. Trong phút đầu, chạm
    **Chào cả quán!** → Gret nói, một bạn đáp lại. (Hoặc **Bỏ qua** bất cứ lúc nào để vào học ngay
@@ -183,7 +183,14 @@ Cài đặt → **Ứng dụng cần nhắc**. Muốn xem trước màn can thi�
    thấy Gret đeo nơ. Tab **Biển**: rạn san hô, biển băng, đáy biển sâu mở theo chuỗi ngày; rừng
    tảo bẹ, núi lửa ngầm, thành phố chìm, vịnh hoàng hôn đổi bằng 150–300 ngọc, mua xong thành một
    hòn đảo riêng trên bản đồ biển; tab
-   **Linh vật**: cua **Ẩn** (300 ngọc), bạch tuộc **Mochi** "Sắp có" (bán bằng tiền thật sau).
+   **Linh vật**: chip **Nét vẽ** (Cổ điển, Phẳng viền, 3D mềm) đổi nét của mọi linh vật ngay trên
+   biển phía trên; cua ẩn sĩ **Bơ** (300 ngọc) và sáu bạn mở bằng việc học, mỗi thẻ có tiến độ:
+   Tép (5 lần bắt đầu đúng giờ nhắc), Phồng (5 lần "Quay lại học"), Mây (10 giờ tập trung), Mochi
+   (30 giờ), Bông (thói quen 21 ngày), Bự (66 ngày). Chạm Gret trên Hôm nay: Gret thả tim, lần thứ
+   ba thì nháy mắt. Chip **Kiểu quán** (Ấm cúng, Phòng mô hình) đổi cách vẽ Quán San Hô. Tab
+   **Biển** → **Trang trí nhà Gret**: đổi ngọc lấy đèn lồng sứa, lâu đài cát… rồi **Đặt** cạnh nhà
+   vỏ ốc của Gret trên Hôm nay. Trong phiên học Gret ngồi bàn làm việc (bàn đá ở biển, bàn gỗ ở
+   quán), lần lượt viết bài, gõ máy, đọc sách.
 10. **Bản đồ biển.** Tab **Thói quen** → nút bản đồ trên thanh tiêu đề: bản đồ toàn màn hình
    lướt từ toàn cảnh vào đảo có Gret. Mỗi mục tiêu là một hòn đảo có bãi cát, rạn san hô (hoặc
    băng, đá núi lửa, cỏ tuỳ vùng biển) và cá bơi quanh; mỗi thói quen là một địa danh (hang cá,

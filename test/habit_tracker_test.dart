@@ -539,7 +539,13 @@ void main() {
       expect(find.bySemanticsLabel(RegExp(r'^Tỉ lệ 30 ngày: \d+%$')), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(r'^Lần hoàn thành: \d+$')), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp(r'^Sức mạnh: \d+%$')), findsOneWidget);
-      // Lịch tháng: hôm qua (4/3) "Ôn bài" đã xong.
+      // Lịch tháng: hôm qua (4/3) "Ôn bài" đã xong. The stat tiles are taller with their icon
+      // tiles (spec 015), so scroll the calendar into view first.
+      await tester.scrollUntilVisible(
+        find.bySemanticsLabel('4/3: đã xong'),
+        200,
+        scrollable: _pageScroll,
+      );
       expect(find.bySemanticsLabel('4/3: đã xong'), findsOneWidget);
       await tester.scrollUntilVisible(find.byType(LineChart), 200, scrollable: _pageScroll);
       expect(find.byType(LineChart), findsOneWidget);

@@ -40,7 +40,7 @@ abstract final class ReminderPlan {
     final reminders = <PlannedReminder>[];
     for (final habit in habits) {
       if (habit.archived || !habit.reminderEnabled) continue;
-      final (hour, minute) = _parseTime(habit.reminderTime);
+      final (hour, minute) = parseTime(habit.reminderTime);
       for (var offset = 0; offset < daysAhead; offset++) {
         final day = addDays(today, offset);
         if (!HabitSchedule.isScheduledOn(habit, day)) continue;
@@ -62,12 +62,12 @@ abstract final class ReminderPlan {
   }
 
   /// "HH:mm"; anything unreadable falls back to the default reminder time.
-  static (int, int) _parseTime(String raw) {
+  static (int, int) parseTime(String raw) {
     final parts = raw.split(':');
     final hour = parts.length == 2 ? int.tryParse(parts[0]) : null;
     final minute = parts.length == 2 ? int.tryParse(parts[1]) : null;
     if (hour == null || minute == null || hour > 23 || minute > 59) {
-      return _parseTime(Habit.defaultReminderTime);
+      return parseTime(Habit.defaultReminderTime);
     }
     return (hour, minute);
   }

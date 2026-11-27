@@ -11,6 +11,7 @@ import '../providers/app_providers.dart';
 import '../services/focus_stats.dart';
 import '../services/time_format.dart';
 import '../theme/app_theme.dart';
+import '../widgets/icon_tile.dart';
 
 /// Study statistics body without Scaffold; shown in Tiến độ.
 class StatsView extends ConsumerWidget {
@@ -74,7 +75,8 @@ class _StatCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20, color: secondaryColor),
+                // Farmly-style pastel tile (spec 015).
+                IconTile(icon: icon, colour: AppHabitColors.of(9), size: AppIconTile.small),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(

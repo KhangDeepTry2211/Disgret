@@ -6,6 +6,11 @@ abstract final class SeaTime {
 
   static bool isNight(DateTime now) => now.hour < dayStarts || now.hour >= nightStarts;
 
+  /// Gret sleeps at home from 23:00 to 05:59 (spec 019); the evening stays study time.
+  static const int lateNightStarts = 23;
+
+  static bool isLateNight(DateTime now) => now.hour < dayStarts || now.hour >= lateNightStarts;
+
   /// The coming 06:00 or 18:00, when an open sea turns.
   static DateTime nextSwitch(DateTime now) {
     if (now.hour < dayStarts) return DateTime(now.year, now.month, now.day, dayStarts);

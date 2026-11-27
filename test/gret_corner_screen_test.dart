@@ -160,7 +160,7 @@ void main() {
 
     await tapAndSettle(tester, find.text(AppStrings.cornerTabMascots));
     expect(find.text('Mochi'), findsOneWidget);
-    await tapAndSettle(tester, find.text('Ẩn'));
+    await tapAndSettle(tester, find.text('Bơ'));
     await tapAndSettle(tester, find.text(AppStrings.cornerObtain(300)));
 
     expect(GretCornerRepository().mascot, MascotSpecies.crab);

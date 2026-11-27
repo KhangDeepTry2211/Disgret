@@ -71,7 +71,7 @@ class SeaPainter extends CustomPainter {
     final orb = math.min(w * 0.06, surface * 0.25);
     final orbAt = Offset(w * 0.8, surface * 0.7);
     if (isNight) {
-      canvas.drawCircle(orbAt, orb, Paint()..color = AppSea.moon);
+      _orb(canvas, orbAt, orb, AppSea.moon);
       final star = Paint()..color = AppSea.star;
       for (final (x, y) in const [(0.12, 0.2), (0.34, 0.12), (0.58, 0.3), (0.68, 0.1)]) {
         canvas.drawCircle(Offset(w * x, surface * y), 1.2, star);
@@ -80,7 +80,7 @@ class SeaPainter extends CustomPainter {
       // Vịnh hoàng hôn: a big low sun half in the water (spec 014).
       canvas.drawCircle(Offset(w * 0.5, surface), orb * 1.8, Paint()..color = AppSea.sunsetSun);
     } else {
-      canvas.drawCircle(orbAt, orb, Paint()..color = AppSea.sun);
+      _orb(canvas, orbAt, orb, AppSea.sun);
     }
 
     // Three wave bands, each drifting at its own speed.
@@ -162,12 +162,20 @@ class SeaPainter extends CustomPainter {
 
     // Bubbles rise from the bottom; fewer when the sea is murky.
     final bubbles = clarity >= 70 ? 7 : (clarity >= 40 ? 4 : 2);
-    final bubblePaint = Paint()..color = AppSea.bubble;
+    final bubbleFill = Paint()..color = AppSea.bubble.withValues(alpha: 0.25);
+    final bubbleRing = Paint()
+      ..color = AppSea.bubble
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final bubbleShine = Paint()..color = Colors.white;
     for (var i = 0; i < bubbles; i++) {
       final progress = (t + i / bubbles) % 1;
       final x = w * (0.2 + 0.6 * ((i * 37) % 100) / 100) + math.sin(progress * 6 + i) * 4;
       final y = h - progress * h * (1 - skyShare);
-      canvas.drawCircle(Offset(x, y), 2.0 + (i % 3), bubblePaint);
+      final r = 2.5 + (i % 3);
+      canvas.drawCircle(Offset(x, y), r, bubbleFill);
+      canvas.drawCircle(Offset(x, y), r, bubbleRing);
+      canvas.drawCircle(Offset(x - r * 0.35, y - r * 0.35), r * 0.3, bubbleShine);
     }
 
     if (clarity >= 70 && place != SeaPlace.deep) {
@@ -260,14 +268,70 @@ class SeaPainter extends CustomPainter {
       ..lineTo(w, h)
       ..lineTo(0, h)
       ..close();
-    canvas.drawPath(path, Paint()..color = colour);
-    final pebble = Paint()..color = isNight ? _night(AppSea.pebble) : AppSea.pebble;
-    for (final (x, y) in const [(0.2, 0.955), (0.63, 0.97), (0.84, 0.95)]) {
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset(w * x, h * y), width: h * 0.03, height: h * 0.012),
-        pebble,
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color.lerp(colour, Colors.white, 0.25)!, colour],
+        ).createShader(Rect.fromLTRB(0, top - h * 0.02, w, h)),
+    );
+    final ripple = Paint()
+      ..color = Color.lerp(colour, Colors.black, 0.12)!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+    for (final (x, y) in const [(0.12, 0.95), (0.46, 0.975), (0.72, 0.94), (0.9, 0.985)]) {
+      final at = Offset(w * x, h * y);
+      canvas.drawArc(
+        Rect.fromCenter(center: at, width: w * 0.1, height: h * 0.012),
+        3.4,
+        2.6,
+        false,
+        ripple,
       );
     }
+    final shell = isNight ? _night(AppSea.pebble) : AppSea.pebble;
+    for (final (x, y) in const [(0.2, 0.965), (0.63, 0.975)]) {
+      final at = Offset(w * x, h * y);
+      final r = h * 0.012;
+      canvas.drawCircle(
+        at,
+        r,
+        Paint()
+          ..shader = RadialGradient(
+            center: const Alignment(-0.4, -0.4),
+            colors: [Color.lerp(shell, Colors.white, 0.6)!, shell],
+          ).createShader(Rect.fromCircle(center: at, radius: r)),
+      );
+    }
+    _star(
+      canvas,
+      Offset(w * 0.84, h * 0.955),
+      h * 0.014,
+      isNight ? _night(AppSea.coralOrange) : AppSea.coralOrange,
+    );
+  }
+
+  /// A little starfish on the sand.
+  void _star(Canvas canvas, Offset centre, double radius, Color colour) {
+    final path = Path();
+    for (var i = 0; i < 10; i++) {
+      final r = i.isEven ? radius : radius * 0.45;
+      final angle = -math.pi / 2 + i * math.pi / 5;
+      final point = centre + Offset(math.cos(angle) * r, math.sin(angle) * r);
+      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = colour);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Color.lerp(colour, Colors.black, 0.3)!
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
   }
 
   /// Tiny specks rising slowly through the day water.
@@ -337,18 +401,35 @@ class SeaPainter extends CustomPainter {
 
   /// A branching coral on the sea floor.
   void _coral(Canvas canvas, Offset base, double height, Color colour) {
-    final paint = Paint()
-      ..color = colour
-      ..strokeWidth = height * 0.12
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-    final top = Offset(base.dx, base.dy - height);
-    canvas.drawLine(base, top, paint);
-    for (final side in [-1.0, 1.0]) {
-      final joint = Offset(base.dx, base.dy - height * (side < 0 ? 0.45 : 0.62));
-      canvas.drawLine(joint, joint.translate(side * height * 0.35, -height * 0.3), paint);
+    final outline = Paint()
+      ..color = Color.lerp(colour, Colors.black, 0.35)!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    final stem = Paint()
+      ..color = Color.lerp(colour, Colors.black, 0.15)!
+      ..strokeWidth = height * 0.1
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(base, base.translate(0, -height * 0.6), stem);
+    for (final (dx, dy, r) in const [
+      (0.0, 0.78, 0.2),
+      (-0.26, 0.55, 0.16),
+      (0.24, 0.62, 0.17),
+      (-0.12, 0.32, 0.13),
+      (0.16, 0.3, 0.12),
+    ]) {
+      final centre = base.translate(dx * height, -dy * height);
+      final radius = r * height;
+      canvas.drawCircle(
+        centre,
+        radius,
+        Paint()
+          ..shader = RadialGradient(
+            center: const Alignment(-0.35, -0.4),
+            colors: [Color.lerp(colour, Colors.white, 0.55)!, colour],
+          ).createShader(Rect.fromCircle(center: centre, radius: radius)),
+      );
+      canvas.drawCircle(centre, radius, outline);
     }
-    canvas.drawCircle(top, height * 0.09, Paint()..color = colour);
   }
 
   /// Rừng tảo bẹ: a tall kelp stalk swaying towards the light, with a few leaves.
@@ -652,6 +733,40 @@ class SeaPainter extends CustomPainter {
       ..lineTo(size.width, size.height)
       ..close();
     canvas.drawPath(path, Paint()..color = colour);
+    final crest = Path();
+    for (var s = 0; s <= steps; s++) {
+      final x = size.width * s / steps;
+      final y = top + amplitude * math.sin(phase + s / steps * 2 * math.pi * 1.5);
+      s == 0 ? crest.moveTo(x, y) : crest.lineTo(x, y);
+    }
+    canvas.drawPath(
+      crest,
+      Paint()
+        ..color = Color.lerp(colour, Colors.white, 0.35)!.withValues(alpha: 0.6)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  /// The sun or the moon: a soft glow, a shaded disc and a highlight (spec 019).
+  void _orb(Canvas canvas, Offset centre, double radius, Color colour) {
+    canvas.drawCircle(
+      centre,
+      radius * 2.2,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [colour.withValues(alpha: 0.45), colour.withValues(alpha: 0)],
+        ).createShader(Rect.fromCircle(center: centre, radius: radius * 2.2)),
+    );
+    canvas.drawCircle(
+      centre,
+      radius,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(-0.35, -0.35),
+          colors: [Color.lerp(colour, Colors.white, 0.6)!, colour],
+        ).createShader(Rect.fromCircle(center: centre, radius: radius)),
+    );
   }
 
   void _seaweed(
@@ -673,9 +788,20 @@ class SeaPainter extends CustomPainter {
       )
       ..quadraticBezierTo(base.dx + 10 + sway, base.dy - height / 2, base.dx + 4, base.dy)
       ..close();
+    final fill = colour ?? (offset > 1 ? AppSea.seaweedDark : AppSea.seaweed);
+    final bounds = path.getBounds();
     canvas.drawPath(
       path,
-      Paint()..color = colour ?? (offset > 1 ? AppSea.seaweedDark : AppSea.seaweed),
+      Paint()
+        ..shader = LinearGradient(colors: [fill, Color.lerp(fill, Colors.white, 0.3)!, fill])
+            .createShader(bounds),
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Color.lerp(fill, Colors.black, 0.3)!
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
     );
   }
 
@@ -689,13 +815,31 @@ class SeaPainter extends CustomPainter {
     final x = -20 + (size.width + 40) * progress;
     final y = size.height * row;
     final body = Rect.fromCenter(center: Offset(x, y), width: 18 * scale, height: 10 * scale);
-    canvas.drawOval(body, Paint()..color = AppSea.fish);
     final tail = Path()
       ..moveTo(body.left + 2, y)
       ..lineTo(body.left - 7 * scale, y - 5 * scale)
       ..lineTo(body.left - 7 * scale, y + 5 * scale)
       ..close();
+    final outline = Paint()
+      ..color = Color.lerp(AppSea.fishFin, Colors.black, 0.35)!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
     canvas.drawPath(tail, Paint()..color = AppSea.fishFin);
+    canvas.drawPath(tail, outline);
+    canvas.drawOval(
+      body,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(-0.2, -0.5),
+          colors: [Color.lerp(AppSea.fish, Colors.white, 0.5)!, AppSea.fish],
+        ).createShader(body),
+    );
+    canvas.drawOval(body, outline);
+    canvas.drawCircle(
+      Offset(body.right - 4 * scale, y - scale),
+      1.2 * scale,
+      Paint()..color = AppSea.fishEye,
+    );
   }
 
   void _bottle(Canvas canvas, Offset centre) {

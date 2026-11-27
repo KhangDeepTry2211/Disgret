@@ -4,13 +4,17 @@ import 'package:material_ui/material_ui.dart';
 
 import '../l10n/app_strings.dart';
 import '../theme/app_theme.dart';
+import 'icon_tile.dart';
 import 'motion/count_up_text.dart';
 
 class StreakCard extends StatelessWidget {
-  const StreakCard({required this.days, this.highlight = false, super.key});
+  const StreakCard({required this.days, this.highlight = false, this.onTap, super.key});
 
   final int days;
   final bool highlight;
+
+  /// Opens more detail; shows the round chevron (spec 015).
+  final VoidCallback? onTap;
 
   /// Peach from the pastel habit palette: warm colours are kept for streaks and rewards.
   static const int _paletteIndex = 7;
@@ -21,53 +25,53 @@ class StreakCard extends StatelessWidget {
     final colour = AppHabitColors.of(_paletteIndex);
     final off = MediaQuery.disableAnimationsOf(context);
 
-    final flame = Container(
-      width: AppStatCard.badge,
-      height: AppStatCard.badge,
-      decoration: BoxDecoration(color: colour.background, shape: BoxShape.circle),
-      child: Icon(AppIcons.streak, color: colour.foreground, size: AppStatCard.icon),
-    );
+    final flame = IconTile(icon: AppIcons.streak, colour: colour, size: AppStatCard.badge);
 
     return Semantics(
       container: true,
       label: AppStrings.streakSemantics(days),
       excludeSemantics: true,
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(AppStatCard.padding),
-          child: Row(
-            children: [
-              if (highlight && !off)
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: 1),
-                  duration: AppMotion.ringFill,
-                  builder: (context, t, child) => Transform.scale(
-                    scale: 1 + AppStatCard.popScale * (1 - (2 * t - 1).abs()),
-                    child: child,
-                  ),
-                  child: flame,
-                )
-              else
-                flame,
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(AppStatCard.padding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CountUpText(
-                      value: days,
-                      format: AppStrings.streakDays,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    Text(
-                      AppStrings.streakLabel,
-                      style: theme.textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    if (highlight && !off)
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: AppMotion.ringFill,
+                        builder: (context, t, child) => Transform.scale(
+                          scale: 1 + AppStatCard.popScale * (1 - (2 * t - 1).abs()),
+                          child: child,
+                        ),
+                        child: flame,
+                      )
+                    else
+                      flame,
+                    const Spacer(),
+                    if (onTap != null) const ChevronCircle(),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.sm),
+                CountUpText(
+                  value: days,
+                  format: AppStrings.streakDays,
+                  style: theme.textTheme.titleLarge,
+                ),
+                Text(
+                  AppStrings.streakLabel,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),

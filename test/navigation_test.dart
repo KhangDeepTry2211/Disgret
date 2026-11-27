@@ -14,7 +14,8 @@ import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/providers/focus_session_provider.dart';
 import 'package:focus_app/services/native_bridge.dart';
 import 'package:focus_app/services/study_starter.dart';
-import 'package:focus_app/widgets/gradient_pill_button.dart';
+import 'package:focus_app/l10n/app_strings.dart';
+import 'package:focus_app/widgets/hold_to_start_button.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -117,7 +118,7 @@ void main() {
       expect(find.text('30 phút'), findsOneWidget);
       expect(find.bySemanticsLabel('Chuỗi 0 ngày học liên tiếp'), findsOneWidget);
       // SC-002: one control leads into a session; no habit list, no second start link.
-      expect(find.byType(GradientPillButton), findsOneWidget);
+      expect(find.byType(HoldToStartButton), findsOneWidget);
       expect(find.textContaining('Bắt đầu'), findsOneWidget);
       expect(find.text('Bỏ qua, vào học luôn'), findsNothing);
       expect(find.text('Đọc sách'), findsNothing);
@@ -128,7 +129,7 @@ void main() {
     ) async {
       await openApp(tester);
 
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       expect(find.byType(NavigationBar), findsNothing);
       await finishReel(tester);
       expect(find.text('Bắt đầu 30 phút'), findsOneWidget);
@@ -181,8 +182,10 @@ void main() {
       await openApp(tester);
 
       expect(find.text('Hôm nay bạn đã xong hết!'), findsOneWidget);
-      expect(find.byType(GradientPillButton), findsNothing);
-      await tapAndSettle(tester, find.text('Học thêm một phiên'));
+      // Today is done: the hold bar offers an extra session instead (spec 016).
+      expect(find.text(AppStrings.holdReady), findsNothing);
+      expect(find.text(AppStrings.extraSession), findsOneWidget);
+      await holdToStart(tester);
       await finishReel(tester);
       expect(find.text('Bắt đầu 30 phút'), findsOneWidget, reason: 'First habit, its minutes');
     });
@@ -211,7 +214,7 @@ void main() {
   group('US2: way back to a running session', () {
     Future<void> startAndLeave(WidgetTester tester, {FakeNativeBridge? native}) async {
       await openApp(tester, native: native);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await tapAndSettle(tester, find.text('Bỏ qua'));
       await tapAndSettle(tester, find.byTooltip('Quay lại'));
     }
@@ -238,7 +241,7 @@ void main() {
       final native = FakeNativeBridge();
       await startAndLeave(tester, native: native);
 
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       expect(find.text('Thời gian còn lại'), findsOneWidget);
       expect(native.guardStarts, hasLength(1));
     });

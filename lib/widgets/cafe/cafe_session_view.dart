@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../data/gret_work.dart';
 import '../../data/gret_corner_catalog.dart';
 import '../../data/mascot_mood.dart';
 import '../../data/sea_cafe.dart';
@@ -132,6 +133,13 @@ class _CafeSessionViewState extends ConsumerState<CafeSessionView> {
       line: _line,
       gretLine: _gretLine,
       gretReaction: _swats,
+      // Gret works at the wooden desk at the front, or sleeps at it on a break (spec 019).
+      work: MascotWork(
+        desk: DeskKind.wood,
+        task: onBreak ? null : GretWork.taskAt(session.focused),
+      ),
+      // The look chosen in Góc của Gret (spec 019).
+      cafeLook: ref.watch(gretCornerProvider.select((corner) => corner.cafeLook)),
       overlay: widget.clock,
       foreground: DistractionSwatLayer(
         active: !onBreak,

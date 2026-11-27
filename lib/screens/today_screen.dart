@@ -17,12 +17,17 @@ import '../data/mascot_mood.dart';
 import '../data/models/goal.dart';
 import '../data/models/reel.dart';
 import '../data/sea_time.dart';
+import '../data/date_utils.dart';
 import '../data/session_plan.dart';
+import '../data/today_tasks.dart';
 import '../data/study_place.dart';
 import '../l10n/app_strings.dart';
 import '../providers/app_providers.dart';
 import '../providers/focus_session_provider.dart';
 import '../providers/gret_corner_providers.dart';
+import '../providers/gret_emote_provider.dart';
+import '../providers/launch_providers.dart';
+import '../providers/reminder_providers.dart';
 import '../providers/sea_cafe_providers.dart';
 import '../providers/sea_providers.dart';
 import '../router/app_router.dart';
@@ -30,12 +35,12 @@ import '../services/focus_session_timer.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/empty_goal_view.dart';
-import '../widgets/gradient_pill_button.dart';
+import '../widgets/hold_to_start_button.dart';
+import '../widgets/icon_tile.dart';
 import '../widgets/mascot/mascot_bubbles.dart';
 import '../widgets/mascot/mascot_look.dart';
 import '../widgets/motion/staggered_entrance.dart';
 import '../widgets/sea/clarity_card.dart';
-import '../widgets/sea/sea_painter.dart';
 import '../widgets/sea/sea_scene.dart';
 import '../widgets/session_plan_sheet.dart';
 import '../widgets/streak_card.dart';
@@ -115,8 +120,9 @@ class TodayScreen extends ConsumerWidget {
   }
 }
 
-/// The sea with Gret in it, filling Hôm nay behind the content and scrolling up with it (spec 010
-/// and its 2026-11-25 amendment).
+/// The sea with Gret in it, filling Hôm nay behind the content (spec 010). Since 2026-11-27 the
+/// sea and Gret stay put while the cards scroll over them (lead's request), and the sea's
+/// animations pause while a scroll is under way, so scrolling only moves the cards.
 /// Tapping Gret shows a short line for its mood for a few seconds and never starts a session
 /// (spec 003 FR-010). The content scrolls above the sea, so it gets [talk] for its Gret area.
 class _SeaBackdrop extends ConsumerStatefulWidget {
@@ -137,18 +143,34 @@ class _SeaBackdropState extends ConsumerState<_SeaBackdrop> {
   Timer? _hide;
   String? _line;
 
-  /// How far the cards have scrolled: the sea and Gret move up by the same amount.
-  final ValueNotifier<double> _scrolled = ValueNotifier(0);
+  /// Taps so far: every third one is a wink instead of love (spec 018).
+  int _taps = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Gret winks at the morning greeting when DisGret opens with its launch screen, once per app
+    // run (spec 018).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !ref.read(launchScreenProvider)) return;
+      ref.read(gretEmoteProvider.notifier).greet(ref.read(clockProvider)());
+    });
+  }
+
+  /// True from the start to the end of a scroll of the cards: the sea's tickers are muted then.
+  final ValueNotifier<bool> _scrolling = ValueNotifier(false);
 
   bool _onScroll(ScrollNotification notification) {
-    if (notification.depth == 0 && notification.metrics.axis == Axis.vertical) {
-      _scrolled.value = math.max(0, notification.metrics.pixels);
-    }
+    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) return false;
+    if (notification is ScrollStartNotification) _scrolling.value = true;
+    if (notification is ScrollEndNotification) _scrolling.value = false;
     return false;
   }
 
   void _talk() {
     final lines = MascotLook.lines(ref.read(seaStateProvider).mood);
+    _taps++;
+    ref.read(gretEmoteProvider.notifier).show(_taps % 3 == 0 ? MascotMood.wink : MascotMood.love);
     _hide?.cancel();
     setState(() => _line = lines[_random.nextInt(lines.length)]);
     _hide = Timer(AppMotion.speechBubble, () {
@@ -159,7 +181,7 @@ class _SeaBackdropState extends ConsumerState<_SeaBackdrop> {
   @override
   void dispose() {
     _hide?.cancel();
-    _scrolled.dispose();
+    _scrolling.dispose();
     super.dispose();
   }
 
@@ -172,41 +194,28 @@ class _SeaBackdropState extends ConsumerState<_SeaBackdrop> {
     return LayoutBuilder(
       builder: (context, constraints) => Stack(
         children: [
-          // Deeper water shows under the sea once it scrolls up.
           Positioned.fill(
-            child: ColoredBox(
-              key: const ValueKey('today-deep-water'),
-              color: SeaPainter.deepColour(
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _scrolling,
+              builder: (context, scrolling, scene) =>
+                  TickerMode(enabled: !scrolling, child: scene!),
+              child: SeaScene(
                 clarity: sea.clarity,
-                isNight: SeaTime.isNight(ref.watch(clockProvider)()),
-                place: look.place,
+                mood: sea.mood,
+                variant: SeaSceneVariant.full,
+                look: look,
+                gretAlignment: AppMascot.todayGretAlignment,
+                skyShare: AppMascot.todaySkyShare,
+                onMascotTap: _talk,
+                showHome: true,
+                // Below the header, so the line is never hidden behind it.
+                overlay: line == null
+                    ? null
+                    : Padding(
+                        padding: EdgeInsets.only(top: widget.topInset),
+                        child: SpeechBubble(text: line),
+                      ),
               ),
-            ),
-          ),
-          ValueListenableBuilder<double>(
-            valueListenable: _scrolled,
-            builder: (context, scrolled, scene) => Positioned(
-              top: -scrolled,
-              left: 0,
-              right: 0,
-              height: constraints.maxHeight,
-              child: scene!,
-            ),
-            child: SeaScene(
-              clarity: sea.clarity,
-              mood: sea.mood,
-              variant: SeaSceneVariant.full,
-              look: look,
-              gretAlignment: AppMascot.todayGretAlignment,
-              skyShare: AppMascot.todaySkyShare,
-              onMascotTap: _talk,
-              // Below the header, so the line is never hidden behind it.
-              overlay: line == null
-                  ? null
-                  : Padding(
-                      padding: EdgeInsets.only(top: widget.topInset),
-                      child: SpeechBubble(text: line),
-                    ),
             ),
           ),
           Positioned.fill(
@@ -341,7 +350,6 @@ class _PlanView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final streak = ref.watch(overallStreakProvider);
     final isReady = plan.state == SessionPlanState.ready;
 
@@ -366,11 +374,23 @@ class _PlanView extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Expanded(child: ClarityCard(clarity: clarity)),
+                          Expanded(
+                            child: ClarityCard(
+                              clarity: clarity,
+                              onTap: () => context.go(AppRoutes.progress),
+                            ),
+                          ),
                           const SizedBox(width: AppSpacing.sm),
-                          Expanded(child: StreakCard(days: streak)),
+                          Expanded(
+                            child: StreakCard(
+                              days: streak,
+                              onTap: () => context.go(AppRoutes.progress),
+                            ),
+                          ),
                         ],
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      const _Shortcuts(),
                       const SizedBox(height: AppSpacing.sm),
                       _GoalCard(goal: plan.goal!),
                       const SizedBox(height: AppSpacing.sm),
@@ -379,6 +399,7 @@ class _PlanView extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.sm),
                       ],
                       _NextSessionCard(plan: plan),
+                      const _TodayTasksCard(),
                     ],
                   ),
                 ),
@@ -396,21 +417,12 @@ class _PlanView extends ConsumerWidget {
               width: double.infinity,
               // Exactly one control leads into a session (FR-004, SC-002). When today is already
               // done or a rest day, the extra session is a secondary action.
-              child: isReady
-                  ? GradientPillButton(
-                      label: AppStrings.start,
-                      // The one action that matters most here gently breathes (button style 2).
-                      breathing: true,
-                      onPressed: () => _openStudy(context, ref),
-                    )
-                  : OutlinedButton(
-                      // On the sea it needs its own background to stay readable.
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.surfaceContainer,
-                      ),
-                      onPressed: () => _openStudy(context, ref),
-                      child: Text(AppStrings.extraSession, style: theme.textTheme.titleSmall),
-                    ),
+              // Hold to start, like starting an engine (spec 016): one control, two titles.
+              child: HoldToStartButton(
+                title: isReady ? AppStrings.holdReady : AppStrings.extraSession,
+                action: isReady ? AppStrings.start : AppStrings.holdMore,
+                onStart: () => _openStudy(context, ref),
+              ),
             ),
           ),
         ],
@@ -617,6 +629,223 @@ class _NoHabitView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// "Lối tắt" (spec 015): four pastel tiles to the rest of DisGret. None of them starts a session
+/// (ADR-0002: "Bắt đầu" stays the one way in).
+class _Shortcuts extends ConsumerWidget {
+  const _Shortcuts();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final pearls = ref.watch(pearlBalanceProvider);
+    final today = ref.watch(todayProvider);
+    final remindersLeft = ref
+        .watch(reminderPlanProvider)
+        .where((reminder) => dateOnly(reminder.at) == today)
+        .length;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(AppStrings.shortcuts, style: theme.textTheme.titleSmall),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                _Shortcut(
+                  key: const ValueKey('shortcut-map'),
+                  icon: AppIcons.map,
+                  colour: AppHabitColors.of(0),
+                  label: AppStrings.shortcutMap,
+                  onTap: () => context.push(AppRoutes.seaMap),
+                ),
+                _Shortcut(
+                  key: const ValueKey('shortcut-corner'),
+                  icon: AppIcons.wardrobe,
+                  colour: AppHabitColors.of(6),
+                  label: AppStrings.shortcutCorner,
+                  tag: pearls > 0 ? '$pearls' : null,
+                  onTap: () => context.push(AppRoutes.gretCorner),
+                ),
+                _Shortcut(
+                  key: const ValueKey('shortcut-reminders'),
+                  icon: AppIcons.bell,
+                  colour: AppHabitColors.of(9),
+                  label: AppStrings.shortcutReminders,
+                  badge: remindersLeft,
+                  onTap: () => context.go(AppRoutes.habits),
+                ),
+                _Shortcut(
+                  key: const ValueKey('shortcut-progress'),
+                  icon: AppIcons.stats,
+                  colour: AppHabitColors.of(4),
+                  label: AppStrings.shortcutProgress,
+                  onTap: () => context.go(AppRoutes.progress),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Shortcut extends StatelessWidget {
+  const _Shortcut({
+    required this.icon,
+    required this.colour,
+    required this.label,
+    required this.onTap,
+    this.badge = 0,
+    this.tag,
+    super.key,
+  });
+
+  final IconData icon;
+  final HabitColor colour;
+  final String label;
+  final VoidCallback onTap;
+  final int badge;
+  final String? tag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: InkWell(
+          borderRadius: AppRadius.cardBorder,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: Column(
+              children: [
+                IconTile(icon: icon, colour: colour, badge: badge, tag: tag),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Việc hôm nay" (spec 015): the habits scheduled today, with a round tick, the minutes and the
+/// reminder time. Tapping a row opens the habit; hidden when nothing is scheduled.
+class _TodayTasksCard extends ConsumerWidget {
+  const _TodayTasksCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final secondary = theme.colorScheme.onSurfaceVariant;
+    final tasks = TodayTasks.of(
+      habits: ref.watch(habitsProvider),
+      logs: ref.watch(habitLogsProvider),
+      today: ref.watch(todayProvider),
+    );
+    if (tasks.isEmpty) return const SizedBox.shrink();
+    final done = tasks.where((task) => task.done).length;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(AppStrings.todayTasks, style: theme.textTheme.titleSmall),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                AppStrings.todayTasksDone(done, tasks.length),
+                style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              ClipRRect(
+                borderRadius: AppRadius.pillBorder,
+                child: LinearProgressIndicator(
+                  value: done / tasks.length,
+                  minHeight: 4,
+                  color: theme.colorScheme.primary,
+                  backgroundColor: AppColors.heatOf(context).first,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              for (final task in tasks)
+                InkWell(
+                  borderRadius: AppRadius.cardBorder,
+                  onTap: () => context.push(AppRoutes.habitDetail(task.habit.id)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs + 2),
+                    child: Row(
+                      children: [
+                        _Tick(done: task.done),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            AppStrings.todayTaskLine(task.habit.name, task.habit.minMinutesPerDay),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: task.done ? secondary : null,
+                              decoration: task.done ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                        if (task.time != null)
+                          Text(
+                            task.time!,
+                            style: theme.textTheme.bodySmall?.copyWith(color: secondary),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Tick extends StatelessWidget {
+  const _Tick({required this.done});
+
+  final bool done;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: AppIconTile.badge + 2,
+      height: AppIconTile.badge + 2,
+      decoration: BoxDecoration(
+        color: done ? scheme.primary : null,
+        shape: BoxShape.circle,
+        border: done ? null : Border.all(color: scheme.outline, width: 1.5),
+      ),
+      child: done
+          ? Icon(AppIcons.done, size: AppIconTile.badge - 4, color: scheme.onPrimary)
+          : null,
     );
   }
 }

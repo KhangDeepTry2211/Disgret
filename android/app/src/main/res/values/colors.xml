@@ -8,6 +8,14 @@
     <color name="disgret_white">#FFFFFF</color>
     <color name="intervention_button_ripple">#3307111F</color>
     <color name="intervention_secondary_ripple">#33FFFFFF</color>
+    <!-- 2.3 Gret on the intervention screen (spec 017): AppColors.sun, the ring's track, Gret's fin
+         colour (assets/mascot/gret) and the rising bubbles. -->
+    <color name="disgret_sun">#FFC93C</color>
+    <color name="intervention_ring_track">#1E3B66</color>
+    <color name="gret_fin">#1BB8D4</color>
+    <!-- The fins' outline in the 3D mềm style (spec 018): a darker shade of gret_fin. -->
+    <color name="gret_fin_outline">#117283</color>
+    <color name="intervention_bubble">#B3FFFFFF</color>
     <!-- Nền của icon adaptive, do flutter_launcher_icons ghi. -->
     <color name="ic_launcher_background">#1E88E5</color>
 </resources>

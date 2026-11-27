@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.SystemClock
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -29,6 +30,8 @@ class InterventionActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isShowing = true
+        // Gret's breathing animation as smooth as the screen allows.
+        DisplayRate.preferHighest(this)
         setContentView(R.layout.activity_intervention)
         setUpChoices()
         setUpBreakOptions()
@@ -54,17 +57,37 @@ class InterventionActivity : Activity() {
         returnToStudy()
     }
 
-    /** Hiện tên app và đếm ngược từ đầu; các lựa chọn chờ đếm xong mới hiện. */
+    /**
+     * Hiện tên app và đếm ngược từ đầu; các lựa chọn chờ đếm xong mới hiện. Gret bơi ra chắn cửa
+     * rồi thở cùng người dùng trong vòng đếm ngược (spec 017); câu của Gret đổi theo lần chặn.
+     */
     private fun showForCurrentIntent() {
         val appName = intent.getStringExtra(EXTRA_APP_NAME).orEmpty()
+        val waitSeconds = intent.getIntExtra(EXTRA_WAIT_SECONDS, FocusGuardService.FIRST_WAIT_SECONDS)
         findViewById<TextView>(R.id.intervention_app_name).text = appName
         findViewById<TextView>(R.id.intervention_question).text =
             getString(R.string.intervention_question, appName)
 
+        val lines = resources.getStringArray(R.array.intervention_gret_lines)
+        val block = (waitSeconds - FocusGuardService.FIRST_WAIT_SECONDS) /
+            FocusGuardService.WAIT_STEP_SECONDS
+        findViewById<TextView>(R.id.intervention_gret_line).text =
+            lines[block.coerceIn(0, lines.size - 1)]
+
+        val breathText = findViewById<TextView>(R.id.intervention_breath)
+        breathText.setText(R.string.intervention_breathe)
+        val gret = findViewById<GretGuardView>(R.id.intervention_gret)
+        gret.onBreath = { inhale ->
+            breathText.setText(if (inhale) R.string.intervention_inhale else R.string.intervention_exhale)
+        }
+        gret.remaining = 1f
+        gret.restart()
+
         findViewById<View>(R.id.intervention_countdown_panel).visibility = View.VISIBLE
+        findViewById<View>(R.id.intervention_countdown).visibility = View.VISIBLE
         findViewById<View>(R.id.intervention_choices).visibility = View.GONE
         findViewById<View>(R.id.intervention_break_options).visibility = View.GONE
-        startCountdown(intent.getIntExtra(EXTRA_WAIT_SECONDS, FocusGuardService.FIRST_WAIT_SECONDS))
+        startCountdown(waitSeconds)
     }
 
     private fun setUpChoices() {
@@ -89,15 +112,21 @@ class InterventionActivity : Activity() {
 
     private fun startCountdown(waitSeconds: Int) {
         val countdownText = findViewById<TextView>(R.id.intervention_countdown)
-        countdownText.text = waitSeconds.toString()
+        val gret = findViewById<GretGuardView>(R.id.intervention_gret)
+        val total = waitSeconds * MILLIS_PER_SECOND
+        countdownText.text = getString(R.string.intervention_seconds, waitSeconds)
         countdown?.cancel()
-        countdown = object : CountDownTimer(waitSeconds * MILLIS_PER_SECOND, COUNTDOWN_STEP_MILLIS) {
+        countdown = object : CountDownTimer(total, COUNTDOWN_STEP_MILLIS) {
             override fun onTick(millisLeft: Long) {
-                countdownText.text = ceil(millisLeft / 1000.0).toInt().toString()
+                countdownText.text =
+                    getString(R.string.intervention_seconds, ceil(millisLeft / 1000.0).toInt())
+                gret.remaining = millisLeft / total.toFloat()
             }
 
             override fun onFinish() {
-                findViewById<View>(R.id.intervention_countdown_panel).visibility = View.GONE
+                // Gret stays and keeps breathing while the student chooses.
+                gret.remaining = 0f
+                countdownText.visibility = View.GONE
                 showChoices()
             }
         }.start()
@@ -151,6 +180,10 @@ class InterventionActivity : Activity() {
 
     override fun onStop() {
         super.onStop()
+        // Covered rather than closed by a choice: the blocked app opened a screen of its own over
+        // this one while starting (YouTube does ~6 s after a cold start), or Home / screen off.
+        // FocusGuardService then treats a block of the same app within 5 s as the same opening.
+        if (!isFinishing && !isTrial) coveredAt = SystemClock.elapsedRealtime()
         // Người dùng bấm Home hoặc tắt màn hình: màn này xong việc. Lần mở app sau sẽ có màn mới
         // với đếm ngược từ đầu, không để một màn cũ nằm chờ ở phía sau.
         finish()
@@ -172,6 +205,11 @@ class InterventionActivity : Activity() {
         /** FocusGuardService đọc cờ này để không mở chồng màn chặn lên nhau. */
         @Volatile
         var isShowing = false
+            private set
+
+        /** When an intervention was last covered without a choice (elapsedRealtime), else 0. */
+        @Volatile
+        var coveredAt = 0L
             private set
 
         fun open(context: Context, appName: String, waitSeconds: Int) {

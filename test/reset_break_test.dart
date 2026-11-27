@@ -255,8 +255,7 @@ void main() {
     /// Hôm nay → "Bắt đầu" → bước động lực → "Bỏ qua" (mọi nút bắt đầu đi qua StudyStarter).
     Future<void> pressStart(WidgetTester tester, FakeNativeBridge native) async {
       await pumpApp(tester, size: _phone, native: native);
-      await tester.tap(find.text('Bắt đầu'));
-      await tester.pumpAndSettle();
+      await holdToStart(tester);
       await tester.tap(find.text('Bỏ qua'));
       await tester.pumpAndSettle();
     }
@@ -324,8 +323,7 @@ void main() {
     testWidgets('Bấm "Bỏ qua" hai lần liền cũng chỉ hỏi một lần', (tester) async {
       final native = FakeNativeBridge(usageAccess: false);
       await pumpApp(tester, size: _phone, native: native);
-      await tester.tap(find.text('Bắt đầu'));
-      await tester.pumpAndSettle();
+      await holdToStart(tester);
 
       // Giữ kết quả kiểm tra quyền lại để sheet chưa hiện khi người dùng bấm lần thứ hai.
       native.permissionsGate = Completer<void>();
@@ -348,8 +346,7 @@ void main() {
 
     testWidgets('"Chỉ 5 phút thôi" cũng hỏi khi thiếu quyền', (tester) async {
       await pumpApp(tester, size: _phone, native: FakeNativeBridge(usageAccess: false));
-      await tester.tap(find.text('Bắt đầu'));
-      await tester.pumpAndSettle();
+      await holdToStart(tester);
       await finishReel(tester);
 
       await tester.tap(find.text('Chỉ 5 phút thôi'));
@@ -387,8 +384,7 @@ void main() {
 
     Future<void> startSession(WidgetTester tester) async {
       await pumpApp(tester, size: _phone, clock: () => now, native: native);
-      await tester.tap(find.text('Bắt đầu'));
-      await tester.pumpAndSettle();
+      await holdToStart(tester);
       await tester.tap(find.text('Bỏ qua'));
       await tester.pumpAndSettle();
     }

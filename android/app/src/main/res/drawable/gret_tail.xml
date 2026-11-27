@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2.3 Gret for the intervention screen (spec 017, redrawn in 3D mềm by spec 018),
+     converted from assets/mascot/soft/tail.svg
+     by specs/018-mascot-family/svg2vector.py. Regenerate, do not edit. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="240dp" android:height="200dp"
+    android:viewportWidth="240" android:viewportHeight="200">
+    <!-- mascot/soft/tail.svg -->
+    <path android:pathData="M160 112 L222 76 Q210 112 222 148 Z" android:strokeColor="#FF117283" android:strokeWidth="3" android:strokeLineJoin="round">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="182.3" android:centerY="97.6" android:gradientRadius="61.2">
+            <item android:offset="0" android:color="#FF98DFEC" />
+            <item android:offset="0.45" android:color="#FF1BB8D4" />
+            <item android:offset="1" android:color="#FF1590A5" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M182 112 L212 94 M182 112 L212 130" android:strokeColor="#FF12859D" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

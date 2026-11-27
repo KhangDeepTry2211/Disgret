@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../data/gret_work.dart';
 import '../../data/gret_corner_catalog.dart';
 import '../../data/sea_time.dart';
 import '../../providers/app_providers.dart';
@@ -16,6 +17,8 @@ import '../../l10n/app_strings.dart';
 import '../../theme/app_theme.dart';
 import '../mascot/mascot_look.dart';
 import '../mascot/mascot_view.dart';
+import '../mascot/mascot_at_desk.dart';
+import 'gret_home.dart';
 import '../motion/reaction_wiggle.dart';
 import 'sea_painter.dart';
 
@@ -33,6 +36,8 @@ class SeaScene extends ConsumerStatefulWidget {
     this.look = const GretLook(),
     this.gretAlignment = SeaScene.defaultGretAlignment,
     this.skyShare = SeaPainter.defaultSkyShare,
+    this.work,
+    this.showHome = false,
     super.key,
   });
 
@@ -57,11 +62,21 @@ class SeaScene extends ConsumerStatefulWidget {
   /// Where Gret swims by default, as an alignment inside the scene.
   static const Alignment defaultGretAlignment = Alignment(0, 0.45);
 
+  /// Where Gret sits at its coral-rock desk, low enough for the desk to stand on the sand
+  /// (spec 019).
+  static const Alignment deskGretAlignment = Alignment(0, 0.7);
+
   /// Where Gret swims in this scene (Hôm nay puts Gret higher, spec 010).
   final Alignment gretAlignment;
 
   /// Share of the scene above the water.
   final double skyShare;
+
+  /// During a session Gret sits at its coral-rock desk and works (spec 019); null swims freely.
+  final MascotWork? work;
+
+  /// Gret's home on two ledges beside it, with the decorations in [look] (spec 019).
+  final bool showHome;
 
   @override
   ConsumerState<SeaScene> createState() => _SeaSceneState();
@@ -117,6 +132,7 @@ class _SeaSceneState extends ConsumerState<SeaScene> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final now = ref.watch(clockProvider)();
     final isNight = SeaTime.isNight(now);
+    final work = widget.work;
     _turnAtNextSwitch(now);
     final label = AppStrings.seaSemantics(
       MascotLook.moodLabel(widget.mood),
@@ -139,6 +155,21 @@ class _SeaSceneState extends ConsumerState<SeaScene> with SingleTickerProviderSt
       ),
       child: Stack(
         children: [
+          if (widget.showHome)
+            for (final right in const [false, true])
+              Align(
+                alignment: Alignment(
+                  right ? 1 : -1,
+                  (widget.gretAlignment.y + AppMascot.homeLedgeDrop).clamp(-1.0, 1.0),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => GretHomeLedge(
+                    right: right,
+                    width: GretHomeLedge.widthIn(constraints.maxWidth),
+                    decor: widget.look.decor,
+                  ),
+                ),
+              ),
           Align(
             alignment: widget.gretAlignment,
             child: Stack(
@@ -146,16 +177,26 @@ class _SeaSceneState extends ConsumerState<SeaScene> with SingleTickerProviderSt
               children: [
                 ReactionWiggle(
                   trigger: widget.gretReaction,
-                  child: MascotView(
-                    mood: widget.mood,
-                    size: _mascotSize,
-                    species: widget.look.species,
-                    outfit: widget.look.outfit,
-                    onTap: widget.onMascotTap,
-                  ),
+                  child: work == null
+                      ? MascotView(
+                          mood: widget.mood,
+                          size: _mascotSize,
+                          species: widget.look.species,
+                          outfit: widget.look.outfit,
+                          onTap: widget.onMascotTap,
+                        )
+                      : MascotAtDesk(
+                          mood: widget.mood,
+                          desk: work.desk,
+                          task: work.task,
+                          size: _mascotSize,
+                          species: widget.look.species,
+                          outfit: widget.look.outfit,
+                          onTap: widget.onMascotTap,
+                        ),
                 ),
-                // A2 (spec 013): Gret lets out a few bubbles while awake.
-                if (!_animationsOff && widget.mood != MascotMood.sleeping)
+                // A2 (spec 013): Gret lets out a few bubbles while awake and swimming.
+                if (!_animationsOff && widget.mood != MascotMood.sleeping && work == null)
                   Positioned.fill(
                     child: IgnorePointer(
                       child: CustomPaint(painter: _MouthBubbles(loop: _loop)),

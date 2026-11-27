@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 230">
+<defs><radialGradient id="g0" gradientUnits="userSpaceOnUse" cx="115.5" cy="59.2" r="27.2"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.45" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C7C7C7"/></radialGradient><radialGradient id="g1" gradientUnits="userSpaceOnUse" cx="151.5" cy="63.2" r="27.2"><stop offset="0" stop-color="#FFF8DF"/><stop offset="0.45" stop-color="#FFF0B8"/><stop offset="1" stop-color="#C7BB90"/></radialGradient><radialGradient id="g2" gradientUnits="userSpaceOnUse" cx="187.5" cy="63.2" r="27.2"><stop offset="0" stop-color="#F1FBFE"/><stop offset="0.45" stop-color="#DFF7FC"/><stop offset="1" stop-color="#AEC1C5"/></radialGradient></defs>
+<path d="M104 74 L108 52 L136 54 L132 76 Z" fill="url(#g0)" stroke="#9E9E9E" stroke-width="3" stroke-linejoin="round"/>
+<path d="M140 76 L146 56 L172 60 L166 80 Z" fill="url(#g1)" stroke="#9E9572" stroke-width="3" stroke-linejoin="round"/>
+<path d="M176 76 L184 56 L208 62 L200 80 Z" fill="url(#g2)" stroke="#8A999C" stroke-width="3" stroke-linejoin="round"/>
+<text x="114" y="70" font-family="sans-serif" font-weight="bold" font-size="14" fill="#E85D5D">A</text>
+<text x="151" y="73" font-family="sans-serif" font-weight="bold" font-size="14" fill="#5B8FD6">B</text>
+<text x="186" y="74" font-family="sans-serif" font-weight="bold" font-size="14" fill="#3FB37A">C</text>
+</svg>

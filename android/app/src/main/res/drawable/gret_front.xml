@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2.3 Gret for the intervention screen (spec 017, redrawn in 3D mềm by spec 018),
+     converted from assets/mascot/soft/body_gret.svg, assets/mascot/soft/cheeks.svg, assets/mascot/soft/eyes_focused.svg, assets/mascot/soft/mouth_neutral.svg
+     by specs/018-mascot-family/svg2vector.py. Regenerate, do not edit. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="240dp" android:height="200dp"
+    android:viewportWidth="240" android:viewportHeight="200">
+    <!-- mascot/soft/body_gret.svg -->
+    <path android:pathData="M45,192 a70,7 0 1,0 140,0 a70,7 0 1,0 -140,0 Z">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="115" android:centerY="192" android:gradientRadius="70">
+            <item android:offset="0" android:color="#3D000000" />
+            <item android:offset="1" android:color="#00000000" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M86 66 Q116 0 150 64 Z" android:strokeColor="#FF117283" android:strokeWidth="3" android:strokeLineJoin="round">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="109.0" android:centerY="19.8" android:gradientRadius="56.1">
+            <item android:offset="0" android:color="#FF98DFEC" />
+            <item android:offset="0.45" android:color="#FF1BB8D4" />
+            <item android:offset="1" android:color="#FF1590A5" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M43,112 a72,62 0 1,0 144,0 a72,62 0 1,0 -144,0 Z" android:strokeColor="#FF1B7E8F" android:strokeWidth="3" android:strokeLineJoin="round">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="94.8" android:centerY="87.2" android:gradientRadius="122.4">
+            <item android:offset="0" android:color="#FFA0E8F4" />
+            <item android:offset="0.45" android:color="#FF2CCCE6" />
+            <item android:offset="1" android:color="#FF229FB3" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M68,142 a44,25 0 1,0 88,0 a44,25 0 1,0 -88,0 Z">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="112.0" android:centerY="129.5" android:gradientRadius="79.2">
+            <item android:offset="0" android:color="#FFE8F9FD" />
+            <item android:offset="0.45" android:color="#FFC6F1FA" />
+            <item android:offset="1" android:color="#FFB6DEE6" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M146 146 Q170 150 166 172 Q148 166 140 152 Z" android:strokeColor="#FF117283" android:strokeWidth="3" android:strokeLineJoin="round">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="150.8" android:centerY="153.8" android:gradientRadius="25.5">
+            <item android:offset="0" android:color="#FF98DFEC" />
+            <item android:offset="0.45" android:color="#FF1BB8D4" />
+            <item android:offset="1" android:color="#FF1590A5" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <group android:rotation="-28" android:pivotX="82" android:pivotY="74"><path android:pathData="M64,74 a18,9 0 1,0 36,0 a18,9 0 1,0 -36,0 Z" android:fillColor="#99FFFFFF" /></group>
+    <path android:pathData="M60,90 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 Z" android:fillColor="#B2FFFFFF" />
+    <!-- mascot/soft/cheeks.svg -->
+    <path android:pathData="M65,123 a11,6.5 0 1,0 22,0 a11,6.5 0 1,0 -22,0 Z" android:fillColor="#B2FF9DB8" />
+    <path android:pathData="M69.6,127 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" android:fillColor="#FFE8768F" />
+    <path android:pathData="M75.6,129 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" android:fillColor="#FFE8768F" />
+    <path android:pathData="M80.6,126 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" android:fillColor="#FFE8768F" />
+    <path android:pathData="M145,123 a11,6.5 0 1,0 22,0 a11,6.5 0 1,0 -22,0 Z" android:fillColor="#B2FF9DB8" />
+    <path android:pathData="M149.6,127 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" android:fillColor="#FFE8768F" />
+    <path android:pathData="M155.6,129 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" android:fillColor="#FFE8768F" />
+    <path android:pathData="M160.6,126 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" android:fillColor="#FFE8768F" />
+    <!-- mascot/soft/eyes_focused.svg -->
+    <path android:pathData="M82,107 a10,12.5 0 1,0 20,0 a10,12.5 0 1,0 -20,0 Z">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="89.6" android:centerY="102.0" android:gradientRadius="22.5">
+            <item android:offset="0" android:color="#FF5A78BE" />
+            <item android:offset="0.45" android:color="#FF24407E" />
+            <item android:offset="1" android:color="#FF0A1633" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M85.6,102 a3.8,4.6 0 1,0 7.6,0 a3.8,4.6 0 1,0 -7.6,0 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M94,112.4 a1.8,1.8 0 1,0 3.6,0 a1.8,1.8 0 1,0 -3.6,0 Z" android:fillColor="#E6FFFFFF" />
+    <path android:pathData="M130,107 a10,12.5 0 1,0 20,0 a10,12.5 0 1,0 -20,0 Z">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="radial" android:centerX="137.6" android:centerY="102.0" android:gradientRadius="22.5">
+            <item android:offset="0" android:color="#FF5A78BE" />
+            <item android:offset="0.45" android:color="#FF24407E" />
+            <item android:offset="1" android:color="#FF0A1633" />
+          </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M133.6,102 a3.8,4.6 0 1,0 7.6,0 a3.8,4.6 0 1,0 -7.6,0 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M142,112.4 a1.8,1.8 0 1,0 3.6,0 a1.8,1.8 0 1,0 -3.6,0 Z" android:fillColor="#E6FFFFFF" />
+    <path android:pathData="M78 84 L102 91 M130 91 L154 84" android:strokeColor="#FF0A1633" android:strokeWidth="4" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    <!-- mascot/soft/mouth_neutral.svg -->
+    <path android:pathData="M106 130 Q116 137 126 130" android:strokeColor="#FF0A1633" android:strokeWidth="3.5" android:strokeLineCap="round" android:strokeLineJoin="round" />
+</vector>

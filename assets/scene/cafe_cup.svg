@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 230">
+<defs><radialGradient id="g0" gradientUnits="userSpaceOnUse" cx="132.2" cy="106.5" r="148.8"><stop offset="0" stop-color="#FFFBF5"/><stop offset="0.45" stop-color="#FFF7E8"/><stop offset="1" stop-color="#C7C1B5"/></radialGradient><radialGradient id="g1" gradientUnits="userSpaceOnUse" cx="219.0" cy="53.5" r="21.6"><stop offset="0" stop-color="#D1BDB1"/><stop offset="0.45" stop-color="#8B5A3C"/><stop offset="1" stop-color="#805337"/></radialGradient></defs>
+<path d="M206 54 H232 L229 76 Q219 82 209 76 Z" fill="url(#g0)" stroke="#9E9990" stroke-width="3" stroke-linejoin="round"/>
+<path d="M232 60 Q242 62 231 70" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#9E9990" stroke-width="8"/>
+<path d="M232 60 Q242 62 231 70" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#FFF7E8" stroke-width="3"/>
+<path d="M232 60 Q242 62 231 70" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#FFFBF2" stroke-width="2" stroke-opacity="0.7"/>
+<ellipse cx="219" cy="55" rx="12" ry="3" fill="url(#g1)"/>
+<path d="M214 46 Q210 38 216 30 M224 46 Q220 36 226 26" fill="none" stroke="#E0E0E0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

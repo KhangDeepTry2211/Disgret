@@ -15,6 +15,7 @@ class DistractionSwatLayer extends StatefulWidget {
     required this.active,
     required this.distractions,
     required this.onSwat,
+    this.gret = SeaScene.defaultGretAlignment,
     super.key,
   });
 
@@ -26,6 +27,9 @@ class DistractionSwatLayer extends StatefulWidget {
 
   /// Gret batted a distraction away (the scene wiggles Gret).
   final VoidCallback onSwat;
+
+  /// Where Gret is in the scene (lower when it works at its desk, spec 019).
+  final Alignment gret;
 
   @override
   State<DistractionSwatLayer> createState() => _DistractionSwatLayerState();
@@ -143,7 +147,7 @@ class _DistractionSwatLayerState extends State<DistractionSwatLayer> with Ticker
     final travel = AppMotion.curve.transform((t / _travel).clamp(0.0, 1.0));
     final pop = ((t - _travel) / (1 - _travel)).clamp(0.0, 1.0);
     // It stops just before Gret, on the side it came from.
-    final target = Alignment(_from.x.sign * 0.5, SeaScene.defaultGretAlignment.y - 0.1);
+    final target = Alignment(_from.x.sign * 0.5, widget.gret.y - 0.1);
 
     return Align(
       key: const ValueKey('distraction-bubble'),
@@ -171,7 +175,7 @@ class _DistractionSwatLayerState extends State<DistractionSwatLayer> with Ticker
       for (var i = 0; i < _burstTargets.length; i++)
         Align(
           key: ValueKey('distraction-burst-$i'),
-          alignment: Alignment.lerp(SeaScene.defaultGretAlignment, _burstTargets[i], t)!,
+          alignment: Alignment.lerp(widget.gret, _burstTargets[i], t)!,
           child: Opacity(
             opacity: 1 - t,
             child: Transform.rotate(
@@ -181,7 +185,7 @@ class _DistractionSwatLayerState extends State<DistractionSwatLayer> with Ticker
           ),
         ),
       Align(
-        alignment: SeaScene.defaultGretAlignment,
+        alignment: widget.gret,
         child: _Sparkles(progress: t),
       ),
     ];

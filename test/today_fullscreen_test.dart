@@ -12,7 +12,7 @@ import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/l10n/app_strings.dart';
 import 'package:focus_app/widgets/empty_goal_view.dart';
-import 'package:focus_app/widgets/gradient_pill_button.dart';
+import 'package:focus_app/widgets/hold_to_start_button.dart';
 import 'package:focus_app/widgets/mascot/mascot_bubbles.dart';
 import 'package:focus_app/widgets/mascot/mascot_view.dart';
 import 'package:focus_app/widgets/ripple_add_button.dart';
@@ -59,7 +59,9 @@ void main() {
   Rect rectOf(WidgetTester tester, Finder finder) => tester.getRect(finder.first);
 
   group('The sea fills Hôm nay (US1, FR-001, FR-002)', () {
-    testWidgets('the sea fills the screen and scrolls up with the cards, Gret too', (tester) async {
+    testWidgets('the sea fills the screen and stays put while the cards scroll, Gret too', (
+      tester,
+    ) async {
       await withPlan();
       // A small phone, so the cards are taller than the space left and the list scrolls.
       await openApp(tester, size: smallPhone);
@@ -73,13 +75,31 @@ void main() {
       final scrolled = cardBefore.top - rectOf(tester, find.byType(ClarityCard)).top;
 
       expect(scrolled, greaterThan(50));
-      expect(rectOf(tester, find.byType(SeaScene)), sea.shift(Offset(0, -scrolled)));
-      expect(rectOf(tester, find.byType(MascotView)), gret.shift(Offset(0, -scrolled)));
-      // Deeper water shows under the sea once it moves up.
-      expect(
-        rectOf(tester, find.byKey(const ValueKey('today-deep-water'))),
-        Offset.zero & smallPhone,
-      );
+      // The lead asked for Gret to stay put (2026-11-27): only the cards move.
+      expect(rectOf(tester, find.byType(SeaScene)), sea);
+      expect(rectOf(tester, find.byType(MascotView)), gret);
+    });
+
+    testWidgets('the sea pauses its animations while the cards are being scrolled', (tester) async {
+      await withPlan();
+      await openApp(tester, size: smallPhone);
+      bool seaTicking() => tester
+          .widget<TickerMode>(
+            find.ancestor(of: find.byType(SeaScene), matching: find.byType(TickerMode)).first,
+          )
+          .enabled;
+      expect(seaTicking(), isTrue);
+
+      final gesture = await tester.startGesture(tester.getCenter(find.byType(ClarityCard)));
+      await gesture.moveBy(const Offset(0, -60));
+      await tester.pump();
+      await gesture.moveBy(const Offset(0, -60));
+      await tester.pump();
+      expect(seaTicking(), isFalse);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(seaTicking(), isTrue);
     });
 
     testWidgets('Gret swims in the upper part and the cards start below Gret', (tester) async {
@@ -132,7 +152,7 @@ void main() {
       await openApp(tester);
       final bar = rectOf(tester, find.byType(NavigationBar));
 
-      expect(rectOf(tester, find.byType(GradientPillButton)).bottom, lessThanOrEqualTo(bar.top));
+      expect(rectOf(tester, find.byType(HoldToStartButton)).bottom, lessThanOrEqualTo(bar.top));
 
       await tapAndSettle(tester, find.widgetWithText(NavigationDestination, AppStrings.tabHabits));
       expect(rectOf(tester, find.byType(RippleAddButton)).bottom, lessThanOrEqualTo(bar.top));

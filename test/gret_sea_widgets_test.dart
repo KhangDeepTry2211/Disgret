@@ -25,47 +25,104 @@ void main() {
 
   group('MascotLook', () {
     test('only Gret has a tail layer; outfits still sit on the body (spec 013)', () {
-      expect(File(MascotLook.gretTail).existsSync(), isTrue);
-      for (final species in MascotSpecies.values.where((s) => s != MascotSpecies.gret)) {
+      for (final style in MascotStyle.values) {
+        expect(File(MascotLook.tailOf(style)).existsSync(), isTrue);
+        for (final species in MascotSpecies.values.where((s) => s != MascotSpecies.gret)) {
+          expect(
+            MascotLook.layers(MascotMood.happy, species: species, style: style),
+            isNot(contains(MascotLook.tailOf(style))),
+          );
+        }
+        final dressed = MascotLook.layers(
+          MascotMood.happy,
+          style: style,
+          outfit: const {OutfitSlot.back: 'assets/mascot/outfits/hero_cape.svg'},
+        );
         expect(
-          MascotLook.layers(MascotMood.happy, species: species),
-          isNot(contains(MascotLook.gretTail)),
+          dressed.indexOf(MascotLook.tailOf(style)),
+          lessThan(dressed.indexOf(MascotLook.bodyOf(MascotSpecies.gret, style))),
         );
       }
-      final dressed = MascotLook.layers(
-        MascotMood.happy,
-        outfit: const {OutfitSlot.back: 'assets/mascot/outfits/hero_cape.svg'},
-      );
+    });
+
+    test('every mood of every species and style has its drawings (spec 018)', () {
+      for (final style in MascotStyle.values) {
+        for (final species in MascotSpecies.values) {
+          for (final mood in MascotMood.values) {
+            for (final blinking in [false, true]) {
+              final layers = MascotLook.layers(
+                mood,
+                species: species,
+                style: style,
+                blinking: blinking,
+              );
+              for (final path in layers) {
+                expect(File(path).existsSync(), isTrue, reason: path);
+              }
+            }
+          }
+        }
+      }
+      for (final mood in MascotMood.values) {
+        expect(MascotLook.lines(mood), isNotEmpty);
+        expect(MascotLook.moodLabel(mood), isNotEmpty);
+      }
+    });
+
+    test('the classic style keeps the first drawings', () {
+      final layers = MascotLook.layers(MascotMood.happy, style: MascotStyle.classic);
+      expect(layers.take(2), ['assets/mascot/gret/tail.svg', 'assets/mascot/gret/body.svg']);
+      expect(layers, contains('assets/mascot/gret/mouth_happy.svg'));
       expect(
-        dressed.indexOf(MascotLook.gretTail),
-        lessThan(dressed.indexOf('assets/mascot/gret/body.svg')),
+        MascotLook.layers(
+          MascotMood.happy,
+          species: MascotSpecies.crab,
+          style: MascotStyle.classic,
+        ),
+        contains('assets/mascot/crab/body.svg'),
       );
     });
 
-    test('every mood has eyes and a mouth on the shared canvas', () {
-      for (final mood in MascotMood.values) {
-        final layers = MascotLook.layers(mood);
-        // The tail is its own layer behind the body, so it can wag (spec 013).
-        expect(layers.take(2), [MascotLook.gretTail, 'assets/mascot/gret/body.svg']);
-        expect(layers, contains('assets/mascot/gret/mouth_${mood.name}.svg'));
-        expect(MascotLook.lines(mood), isNotEmpty);
-      }
+    test('the other styles have their own folder', () {
+      expect(MascotLook.layers(MascotMood.happy, style: MascotStyle.flat).take(2), [
+        'assets/mascot/flat/tail.svg',
+        'assets/mascot/flat/body_gret.svg',
+      ]);
+      expect(
+        MascotLook.layers(MascotMood.happy, species: MascotSpecies.whale),
+        contains('assets/mascot/soft/body_whale.svg'),
+        reason: '3D mềm is the default',
+      );
     });
 
     test('blinking swaps open eyes only', () {
       expect(
         MascotLook.layers(MascotMood.happy, blinking: true),
-        contains('assets/mascot/gret/eyes_blink.svg'),
+        contains('assets/mascot/soft/eyes_blink.svg'),
       );
       expect(
         MascotLook.layers(MascotMood.sleeping, blinking: true),
-        contains('assets/mascot/gret/eyes_sleeping.svg'),
+        contains('assets/mascot/soft/eyes_sleeping.svg'),
+      );
+      expect(
+        MascotLook.layers(MascotMood.wink, blinking: true),
+        contains('assets/mascot/soft/eyes_wink.svg'),
       );
     });
 
-    test('extras: z for sleeping, sparkles for celebrating', () {
+    test('extras: z, sparkles, hearts, one sparkle and a burst', () {
       expect(MascotLook.layers(MascotMood.sleeping).last, endsWith('zzz.svg'));
       expect(MascotLook.layers(MascotMood.celebrating).last, endsWith('sparkles.svg'));
+      expect(MascotLook.layers(MascotMood.love).last, endsWith('hearts.svg'));
+      expect(MascotLook.layers(MascotMood.proud).last, endsWith('sparkle.svg'));
+      expect(MascotLook.layers(MascotMood.surprised).last, endsWith('burst.svg'));
+    });
+
+    test('only the tail files count as tails', () {
+      for (final style in MascotStyle.values) {
+        expect(MascotLook.isTail(MascotLook.tailOf(style)), isTrue);
+        expect(MascotLook.isTail(MascotLook.bodyOf(MascotSpecies.gret, style)), isFalse);
+      }
     });
   });
 

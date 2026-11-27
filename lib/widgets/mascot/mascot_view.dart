@@ -10,6 +10,7 @@ import '../../data/gret_corner_catalog.dart';
 import '../../data/mascot_mood.dart';
 import '../../theme/app_theme.dart';
 import 'mascot_look.dart';
+import 'mascot_style_scope.dart';
 
 class MascotView extends StatefulWidget {
   const MascotView({
@@ -18,11 +19,15 @@ class MascotView extends StatefulWidget {
     this.outfit = const {},
     this.size = AppMascot.hero,
     this.onTap,
+    this.style,
     super.key,
   });
 
   final MascotMood mood;
   final MascotSpecies species;
+
+  /// Drawing style; null follows the student's choice from [MascotStyleScope] (spec 018).
+  final MascotStyle? style;
 
   /// Worn items by slot (drawing paths), spec 004.
   final Map<OutfitSlot, String> outfit;
@@ -105,6 +110,7 @@ class _MascotViewState extends State<MascotView> with TickerProviderStateMixin {
     final layers = MascotLook.layers(
       widget.mood,
       species: widget.species,
+      style: widget.style ?? MascotStyleScope.of(context),
       blinking: _blinking,
       outfit: widget.outfit,
     );
@@ -116,7 +122,7 @@ class _MascotViewState extends State<MascotView> with TickerProviderStateMixin {
         fit: StackFit.expand,
         children: [
           for (final path in layers)
-            if (path == MascotLook.gretTail)
+            if (MascotLook.isTail(path))
               // The tail wags around where it meets the body (spec 013).
               AnimatedBuilder(
                 animation: _wag,

@@ -17,6 +17,7 @@ class GradientPillButton extends StatefulWidget {
     required this.onPressed,
     this.height = 72,
     this.icon,
+    this.trailingIcon,
     this.breathing = false,
     this.bubbles = false,
     super.key,
@@ -28,6 +29,9 @@ class GradientPillButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final double height;
   final IconData? icon;
+
+  /// After the label, for example an arrow on a forward action (spec 015).
+  final IconData? trailingIcon;
 
   /// Gently grows and shrinks to invite a tap (use on one button per screen at most).
   final bool breathing;
@@ -146,6 +150,10 @@ class _GradientPillButtonState extends State<GradientPillButton>
                           style: textStyle,
                         ),
                       ),
+                      if (widget.trailingIcon != null) ...[
+                        const SizedBox(width: AppSpacing.sm),
+                        Icon(widget.trailingIcon, color: foreground),
+                      ],
                     ],
                   ),
                 ),

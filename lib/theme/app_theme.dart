@@ -147,7 +147,8 @@ class AppSpacing {
 class AppRadius {
   AppRadius._();
 
-  static const double card = 16;
+  /// Larger corners in the lead's Farmly style (spec 015).
+  static const double card = 20;
   static const double pill = 999;
 
   /// 5.3 Frame of the sea scene (hero illustration) on Hôm nay and the onboarding.
@@ -269,6 +270,9 @@ class AppReels {
 class AppSea {
   AppSea._();
 
+  /// The eye of the little fish (spec 019).
+  static const Color fishEye = Color(0xFF2A1C14);
+
   // Day sea (light mode).
   static const Color skyDay = Color(0xFFD9F1FC);
   static const List<Color> clearDay = [Color(0xFF4CC9F0), Color(0xFF1F7AE0), Color(0xFF0A2A6B)];
@@ -359,6 +363,20 @@ class AppMascot {
 
   static const double canvasWidth = 240;
   static const double canvasHeight = 200;
+
+  /// Gret's desk (spec 019): the desk and prop drawings share a 312×230 canvas in mascot units
+  /// (assets/scene, scene_art.py); its top edge at y 64 lines up with this share of the mascot's
+  /// height, below the mouth, so the face stays visible.
+  static const double deskCanvasWidth = 312;
+  static const double deskCanvasHeight = 230;
+  static const double deskTopY = 64;
+  static const double deskTopOnMascot = 0.76;
+
+  /// Gret's home ledges beside Gret (spec 019): width as a share of the scene, at most this, and
+  /// how far below Gret's centre they sit (alignment units).
+  static const double homeLedgeShare = 0.33;
+  static const double homeLedgeMax = 170;
+  static const double homeLedgeDrop = 0.12;
 
   static const double hero = 132;
   static const double full = 180;
@@ -537,6 +555,45 @@ class AppCafe {
   static const double counterWidthScale = 1.3;
   static const double counterHeight = 28;
   static const double counterOverlap = 0.85;
+
+  // Cosy café (spec 019 user story 2).
+  static const Color wallpaper = Color(0xFFE3B98F);
+  static const double wallpaperStep = 26;
+  static const double wallpaperDot = 2.2;
+  static const Color sunBeam = Color(0x24FFFFFF);
+  static const Color lampShade = Color(0xFFE8A23A);
+  static const List<double> lampXs = [0.33, 0.67];
+  static const Color rug = Color(0xFFE8604A);
+  static const Color rugNight = Color(0xFF7A3A3A);
+  static const Color rugBorder = Color(0xFFFFC93C);
+
+  /// The rug under Gret's desk: centre height, width and height as shares of the scene.
+  static const double rugY = 0.75;
+  static const double rugWidth = 0.62;
+  static const double rugHeight = 0.10;
+
+  /// Plants: hanging pots between the windows and the lamps, big pots in the floor corners.
+  static const List<Alignment> hangingPlants = [Alignment(-0.5, -1), Alignment(0.5, -1)];
+  static const double hangingPlantShare = 0.085;
+  static const List<Alignment> floorPlants = [Alignment(-1.04, 1.02), Alignment(1.04, 1.02)];
+  static const double floorPlantShare = 0.17;
+
+  // "Phòng mô hình" look (spec 019 user story 3): backdrop, window sea and where everyone stands
+  // on the isometric floor (CafeDioramaPainter's corners).
+  static const Color dioramaSky = Color(0xFFDDF3FB);
+  static const Color dioramaFloorBg = Color(0xFFF6E7F2);
+  static const Color dioramaSkyNight = Color(0xFF1B2440);
+  static const Color dioramaFloorBgNight = Color(0xFF2B2140);
+  static const Color dioramaWindowSea = Color(0xFF2E9BD6);
+  static const Color dioramaWindowSeaNight = Color(0xFF123A6B);
+  static const Alignment dioramaOwner = Alignment(-0.42, 0.0);
+  static const List<Alignment> dioramaSeats = [
+    Alignment(0.42, 0.0),
+    Alignment(-0.62, 0.34),
+    Alignment(0.62, 0.34),
+  ];
+  static const Alignment dioramaGret = Alignment(0, 0.56);
+  static const double dioramaScale = 0.85;
 }
 
 /// 5.5 Bản đồ biển (feature 005): ocean, islands per terrain, fog, and layout sizes.
@@ -665,6 +722,9 @@ class AppSeaMap {
 
 /// 5.4 Góc của Gret (feature 004): rarity colours and preview sizes.
 class AppCorner {
+  /// The café look preview under "Kiểu quán" (spec 019).
+  static const double cafePreviewHeight = 120;
+
   AppCorner._();
 
   /// The sea picture in the sheet that buys a pearl sea (spec 014).
@@ -681,6 +741,31 @@ class AppCorner {
 }
 
 /// 5.3 Small stat cards next to each other on Hôm nay (clarity ring, streak).
+/// 2.1 Hold to start (spec 016): the round button, its blue core, the ring and how far the glow
+/// grows.
+class AppHold {
+  AppHold._();
+
+  static const double button = 76;
+  static const double core = 54;
+  static const double ring = 5;
+  static const double glow = 8;
+}
+
+/// 5.2 Icon tiles (spec 015, Farmly style): pastel squares behind outline icons.
+class AppIconTile {
+  AppIconTile._();
+
+  static const double size = 44;
+  static const double small = 34;
+  static const double cornerShare = 0.32;
+  static const double iconShare = 0.5;
+  static const double badge = 18;
+  static const double badgeOffset = 5;
+  static const double tagOffset = 10;
+  static const double chevron = 24;
+}
+
 class AppStatCard {
   AppStatCard._();
 
@@ -730,6 +815,12 @@ class AppMotion {
   static const Duration reaction = Duration(milliseconds: 400);
   static const Duration speechBubble = Duration(seconds: 3);
 
+  /// How long an emote (love, wink, proud, surprised) shows before Gret's mood returns (spec 018).
+  static const Duration emote = Duration(milliseconds: 2500);
+
+  /// One loop of Gret's work at the desk: the pen crossing the notebook, a page turning (spec 019).
+  static const Duration deskLoop = Duration(milliseconds: 3000);
+
   /// Quán San Hô: a friend replies this long after Gret greets (feature 006).
   static const Duration cafeReplyDelay = Duration(milliseconds: 1500);
   static const Duration seaReady = Duration(milliseconds: 1200);
@@ -755,6 +846,11 @@ class AppMotion {
   /// Sea map: opening the map glides from the whole world to Gret's island; buttons glide faster.
   static const Duration mapOpen = Duration(milliseconds: 1600);
   static const Duration mapGlide = Duration(milliseconds: 600);
+
+  /// Hold to start (spec 016): hold this long to start; a press shorter than [holdTapLimit]
+  /// counts as a tap and shows the hint.
+  static const Duration holdToStart = Duration(milliseconds: 1500);
+  static const Duration holdTapLimit = Duration(milliseconds: 250);
 
   /// Launch screen (spec 011): Gret swims for [launch], then the screen fades for [launchFade].
   static const Duration launch = Duration(milliseconds: 1400);
@@ -898,6 +994,7 @@ class AppIcons {
   static const IconData alarm = Icons.alarm_rounded;
   static const IconData search = Icons.search_rounded;
   static const IconData arrowForward = Icons.arrow_forward_rounded;
+  static const IconData bell = Icons.notifications_none_rounded;
   static const IconData archive = Icons.inventory_2_outlined;
   static const IconData deleteHistory = Icons.delete_sweep_outlined;
   static const IconData skip = Icons.skip_next_rounded;
@@ -1065,12 +1162,14 @@ class AppTheme {
           textStyle: text.titleMedium,
         ),
       ),
+      // Farmly style (spec 015): a white pill with a blue border and blue text.
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: scheme.onSurface,
+          foregroundColor: scheme.primary,
+          backgroundColor: scheme.surface,
           minimumSize: const Size(64, 52),
           shape: const StadiumBorder(),
-          side: thinLine,
+          side: BorderSide(color: scheme.primary.withValues(alpha: 0.45), width: 1.5),
           textStyle: text.titleMedium,
         ),
       ),

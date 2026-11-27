@@ -24,6 +24,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 90/120 Hz on phones that have it, so scrolling is smooth (lead's request, 2026-11-27).
+        DisplayRate.preferHighest(this)
         forwardAction(intent)
     }
 

@@ -29,6 +29,10 @@ class CafeLine {
   final String text;
 }
 
+/// How Quán San Hô is drawn, chosen in Góc của Gret (spec 019): the cosy room, or a small
+/// isometric diorama room. Stored by name; unknown reads as [cosy].
+enum CafeLook { cosy, diorama }
+
 abstract final class SeaCafe {
   /// The owner stands at the counter and greets the student when a session starts.
   static const SeaFriend owner = SeaFriend(
@@ -38,7 +42,7 @@ abstract final class SeaCafe {
   );
 
   /// Friends in seating order; the first three the student is not wearing sit at the tables.
-  /// Ẩn, Mochi and Gret keep their Góc của Gret names.
+  /// Bơ, Mochi and Gret keep their Góc của Gret names.
   static final List<SeaFriend> roster = [
     _fromCatalog(MascotSpecies.crab, AppStrings.subjectMaths),
     _fromCatalog(MascotSpecies.octopus, AppStrings.subjectLiterature),

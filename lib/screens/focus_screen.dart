@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../data/gret_work.dart';
 import '../data/gret_corner_catalog.dart';
 import '../data/study_place.dart';
 import '../l10n/app_strings.dart';
@@ -23,6 +24,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/cafe/cafe_session_view.dart';
 import '../widgets/gradient_pill_button.dart';
+import '../widgets/icon_tile.dart';
 import '../widgets/progress_ring.dart';
 import '../widgets/sea/distraction_swat.dart';
 import '../widgets/sea/sea_scene.dart';
@@ -183,10 +185,18 @@ class _FocusSeaState extends ConsumerState<_FocusSea> {
             variant: SeaSceneVariant.full,
             look: GretLook(species: look.species, outfit: look.outfit, place: place),
             gretReaction: _swats,
+            gretAlignment: SeaScene.deskGretAlignment,
+            showHome: true,
+            // Gret works at its coral-rock desk, or sleeps at it on a break (spec 019).
+            work: MascotWork(
+              desk: DeskKind.coral,
+              task: breakRemaining == null ? GretWork.taskAt(session.focused) : null,
+            ),
             foreground: DistractionSwatLayer(
               active: breakRemaining == null,
               distractions: session.distractionCount,
               onSwat: () => setState(() => _swats++),
+              gret: SeaScene.deskGretAlignment,
             ),
             overlay: clock,
           ),
@@ -267,12 +277,8 @@ class _StatCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppStatCard.padding),
         child: Row(
           children: [
-            Container(
-              width: AppStatCard.badge,
-              height: AppStatCard.badge,
-              decoration: BoxDecoration(color: scheme.primaryContainer, shape: BoxShape.circle),
-              child: Icon(icon, size: AppStatCard.icon, color: scheme.onPrimaryContainer),
-            ),
+            // Farmly-style pastel tile (spec 015).
+            IconTile(icon: icon, colour: AppHabitColors.of(0), size: AppStatCard.badge),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(

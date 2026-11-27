@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 230">
+<defs><radialGradient id="g0" gradientUnits="userSpaceOnUse" cx="232.7" cy="75.4" r="86.7"><stop offset="0" stop-color="#E6EAF0"/><stop offset="0.45" stop-color="#C7D0DE"/><stop offset="1" stop-color="#9BA2AD"/></radialGradient><radialGradient id="g1" gradientUnits="userSpaceOnUse" cx="245.0" cy="36.4" r="73.1"><stop offset="0" stop-color="#CCD2DE"/><stop offset="0.45" stop-color="#8E9BB5"/><stop offset="1" stop-color="#6F798D"/></radialGradient><radialGradient id="g2" gradientUnits="userSpaceOnUse" cx="260.0" cy="43.0" r="14.4"><stop offset="0" stop-color="#F1F4F9"/><stop offset="0.45" stop-color="#DDE4F0"/><stop offset="1" stop-color="#CBD2DD"/></radialGradient></defs>
+<path d="M196 88 L214 70 L298 70 L284 88 Z" fill="url(#g0)" stroke="#7B818A" stroke-width="3" stroke-linejoin="round"/>
+<path d="M210 78 L282 78 M206 83 L278 83" fill="none" stroke="#8892A4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M214 70 L222 22 L300 22 L298 70 Z" fill="url(#g1)" stroke="#586070" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="260" cy="46" rx="8" ry="6" fill="url(#g2)"/>
+</svg>

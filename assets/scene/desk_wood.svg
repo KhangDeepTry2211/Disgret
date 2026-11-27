@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 230">
+<defs><radialGradient id="g0" gradientUnits="userSpaceOnUse" cx="119.0" cy="64.8" r="224.4"><stop offset="0" stop-color="#E7CAB5"/><stop offset="0.45" stop-color="#C98A5A"/><stop offset="1" stop-color="#9D6C46"/></radialGradient><radialGradient id="g1" gradientUnits="userSpaceOnUse" cx="156.0" cy="116.0" r="7.2"><stop offset="0" stop-color="#FAEDD7"/><stop offset="0.45" stop-color="#F2D39B"/><stop offset="1" stop-color="#DFC28F"/></radialGradient><radialGradient id="g2" gradientUnits="userSpaceOnUse" cx="115.7" cy="98.4" r="244.8"><stop offset="0" stop-color="#F4E0CA"/><stop offset="0.45" stop-color="#E7B98A"/><stop offset="1" stop-color="#B4906C"/></radialGradient></defs>
+<path d="M24 92 H288 V150 Q288 160 278 160 H34 Q24 160 24 150 Z" fill="url(#g0)" stroke="#7D5638" stroke-width="3" stroke-linejoin="round"/>
+<path d="M112 106 H200 V130 H112 Z" fill="none" stroke="#946038" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="156" cy="118" rx="4" ry="4" fill="url(#g1)"/>
+<path d="M12 72 Q12 62 24 62 H288 Q300 62 300 72 V84 Q300 94 288 94 H24 Q12 94 12 84 Z" fill="url(#g2)" stroke="#8F7356" stroke-width="3" stroke-linejoin="round"/>
+<path d="M30 70 H130 M160 76 H280" fill="none" stroke="#D4BBA3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

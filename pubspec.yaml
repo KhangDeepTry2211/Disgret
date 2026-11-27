@@ -83,6 +83,16 @@ flutter:
     - assets/mascot/octopus/
     - assets/mascot/turtle/
     - assets/mascot/starfish/
+    # Friends earned by studying and the two new drawing styles (spec 018).
+    - assets/mascot/seahorse/
+    - assets/mascot/pufferfish/
+    - assets/mascot/jellyfish/
+    - assets/mascot/penguin/
+    - assets/mascot/whale/
+    - assets/mascot/flat/
+    - assets/mascot/soft/
+    # Gret's desk and work props, the café and the sea home (spec 019).
+    - assets/scene/
     # Sea map landmarks and their growth layers (spec 012).
     - assets/map/
     # Baloo 2 and Nunito OFL licences, shown in the licence page (the fonts are declared below).

@@ -68,14 +68,18 @@ void main() {
     });
 
     test(
-      '10 outfits, 8 seas (4 bought with pearls, spec 014) and 3 mascots; premium only listed',
+      '10 outfits, 8 seas (4 bought with pearls, spec 014) and 8 mascots; premium only listed',
       () {
         expect(GretCornerCatalog.items, hasLength(10));
         expect(GretCornerCatalog.seas, hasLength(8));
-        expect(GretCornerCatalog.mascots, hasLength(3));
+        expect(GretCornerCatalog.mascots, hasLength(8));
         final premium = GretCornerCatalog.items.where((i) => i.unlock.kind == UnlockKind.premium);
         expect(premium, hasLength(2));
-        expect(GretCornerCatalog.mascotOf(MascotSpecies.octopus).unlock.kind, UnlockKind.premium);
+        // Mochi is earned by studying since spec 018; no mascot is sold.
+        expect(
+          GretCornerCatalog.mascots.where((m) => m.unlock.kind == UnlockKind.premium),
+          isEmpty,
+        );
       },
     );
 

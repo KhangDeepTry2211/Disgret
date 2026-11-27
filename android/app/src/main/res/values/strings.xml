@@ -15,6 +15,16 @@
     <!-- 2.3 Màn can thiệp. -->
     <string name="intervention_question">Bạn có chắc muốn vào %1$s không?</string>
     <string name="intervention_breathe">Hít thở sâu một chút…</string>
+    <!-- 2.3 Gret guards the door and breathes with you (spec 017). -->
+    <string name="intervention_inhale">Hít vào…</string>
+    <string name="intervention_exhale">Thở ra…</string>
+    <string name="intervention_seconds">%1$d giây</string>
+    <string name="intervention_gret_description">Gret đang vây chắn trước app và thở cùng bạn</string>
+    <string-array name="intervention_gret_lines">
+        <item>Khoan đã! Học thêm chút nhé?</item>
+        <item>Lại gặp nhau rồi! Thở cùng mình nào.</item>
+        <item>Mình tin bạn quay lại được mà.</item>
+    </string-array>
     <string name="intervention_back_to_study">Quay lại học</string>
     <string name="intervention_watch_reel">Xem 1 reel động lực</string>
     <string name="intervention_take_break">Nghỉ có chủ đích</string>

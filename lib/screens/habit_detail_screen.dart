@@ -24,6 +24,7 @@ import '../router/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/goal_habit_sheets.dart';
 import '../widgets/habit_icon_view.dart';
+import '../widgets/icon_tile.dart';
 import '../widgets/month_calendar.dart';
 
 class HabitDetailScreen extends ConsumerWidget {
@@ -339,7 +340,8 @@ class _StatTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 20, color: theme.colorScheme.tertiary),
+              // Farmly-style pastel tile (spec 015).
+              IconTile(icon: icon, colour: AppHabitColors.of(2), size: AppIconTile.small),
               const SizedBox(height: AppSpacing.sm),
               Text(value, style: theme.textTheme.titleLarge, maxLines: 1),
               Text(label, style: theme.textTheme.bodySmall),

@@ -68,7 +68,7 @@ void main() {
   Future<void> startSession(WidgetTester tester, {int minutes = 25}) async {
     await openApp(tester);
     if (minutes != 25) await changePlanMinutes(tester, minutes);
-    await tapAndSettle(tester, find.text('Bắt đầu'));
+    await holdToStart(tester);
     await tapAndSettle(tester, find.text('Bỏ qua'));
   }
 
@@ -165,7 +165,7 @@ void main() {
       expect(find.text('Làm đề'), findsOneWidget);
       expect(find.text('45 phút'), findsOneWidget);
 
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await finishReel(tester);
       expect(find.text('Bắt đầu 45 phút'), findsOneWidget);
       await tapAndSettle(tester, find.text('Bắt đầu 45 phút'));
@@ -195,7 +195,7 @@ void main() {
       await tapAndSettle(tester, find.text('Dùng kế hoạch này'));
       expect(find.text('7 phút'), findsOneWidget);
 
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await tapAndSettle(tester, find.text('Bỏ qua'));
       expect(find.text('07:00'), findsOneWidget);
     });
@@ -293,7 +293,7 @@ void main() {
   group('Bắt đầu từ bước động lực', () {
     testWidgets('"Chỉ 5 phút thôi" bắt đầu phiên 5 phút cho thói quen của Hôm nay', (tester) async {
       await openApp(tester);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await finishReel(tester);
       await tapAndSettle(tester, find.text('Chỉ 5 phút thôi'));
 
@@ -303,7 +303,7 @@ void main() {
 
     testWidgets('"Bắt đầu N phút" dùng đúng số phút của kế hoạch', (tester) async {
       await openApp(tester);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await finishReel(tester);
       await tester.tap(find.text('Bắt đầu 25 phút'));
       await tester.pumpAndSettle();
@@ -313,7 +313,7 @@ void main() {
 
     testWidgets('Đóng bước động lực thì về Hôm nay, không bắt đầu phiên', (tester) async {
       await openApp(tester);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await tapAndSettle(tester, find.byTooltip('Đóng'));
 
       expect(find.text('Bắt đầu'), findsOneWidget);
@@ -325,7 +325,7 @@ void main() {
       await wait(tester, const Duration(minutes: 5));
       await tapAndSettle(tester, find.byTooltip('Quay lại'));
 
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
 
       expect(find.text('20:00'), findsOneWidget);
       expect(SessionRepository().getAll(), isEmpty);
@@ -560,7 +560,7 @@ void main() {
       tester,
     ) async {
       await openApp(tester);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await finishReel(tester);
 
       expect(find.text('Bắt đầu 25 phút'), findsOneWidget);
@@ -636,13 +636,14 @@ void main() {
       expect(find.text('Lưu'), findsNothing, reason: 'Đã lưu thì không lưu lại nữa');
     });
 
-    testWidgets('5.3 Gret ăn mừng, biển trong thêm +N% và được +5 ngọc trai cho 25 phút', (
+    testWidgets('5.3 Gret tự hào, biển trong thêm +N% và được +5 ngọc trai cho 25 phút', (
       tester,
     ) async {
       await startSession(tester);
       await finishSession(tester);
 
-      expect(tester.widget<MascotView>(find.byType(MascotView)).mood, MascotMood.celebrating);
+      // A full session makes Gret proud (spec 018 user story 4).
+      expect(tester.widget<MascotView>(find.byType(MascotView)).mood, MascotMood.proud);
       final gain = find.textContaining('% độ trong');
       expect(gain, findsOneWidget);
       final points = int.parse(
@@ -738,7 +739,7 @@ void main() {
       await tapAndSettle(tester, find.byTooltip('Quay lại'));
 
       expect(find.text('Chế độ demo: 1 phút chỉ dài 20 giây'), findsOneWidget);
-      await tapAndSettle(tester, find.text('Bắt đầu'));
+      await holdToStart(tester);
       await tapAndSettle(tester, find.text('Bỏ qua'));
 
       await wait(tester, const Duration(seconds: 20));
@@ -867,7 +868,7 @@ void main() {
     await pumpApp(tester, clock: () => now);
     expect(tester.takeException(), isNull);
 
-    await tapAndSettle(tester, find.text('Bắt đầu'));
+    await holdToStart(tester);
     expect(tester.takeException(), isNull);
     await tapAndSettle(tester, find.text('Bỏ qua'));
     expect(tester.takeException(), isNull);

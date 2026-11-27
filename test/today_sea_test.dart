@@ -10,7 +10,7 @@ import 'package:focus_app/data/repositories/habit_repository.dart';
 import 'package:focus_app/data/repositories/profile_repository.dart';
 import 'package:focus_app/l10n/app_strings.dart';
 import 'package:focus_app/screens/today_screen.dart';
-import 'package:focus_app/widgets/gradient_pill_button.dart';
+import 'package:focus_app/widgets/hold_to_start_button.dart';
 import 'package:focus_app/widgets/mascot/mascot_bubbles.dart';
 import 'package:focus_app/widgets/mascot/mascot_view.dart';
 import 'package:focus_app/widgets/sea/clarity_card.dart';
@@ -76,7 +76,7 @@ void main() {
   testWidgets('still exactly one control leads into a session (spec 001 SC-002)', (tester) async {
     await openApp(tester);
 
-    expect(find.byType(GradientPillButton), findsOneWidget);
+    expect(find.byType(HoldToStartButton), findsOneWidget);
     expect(find.text(AppStrings.start), findsOneWidget);
   });
 

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160">
+<defs><radialGradient id="g0" gradientUnits="userSpaceOnUse" cx="80.9" cy="118.6" r="176.8"><stop offset="0" stop-color="#CCD2DE"/><stop offset="0.45" stop-color="#8E9BB5"/><stop offset="1" stop-color="#6F798D"/></radialGradient><radialGradient id="g1" gradientUnits="userSpaceOnUse" cx="60.0" cy="135.0" r="25.2"><stop offset="0" stop-color="#CBCFD9"/><stop offset="0.45" stop-color="#7D889F"/><stop offset="1" stop-color="#737D92"/></radialGradient><radialGradient id="g2" gradientUnits="userSpaceOnUse" cx="160.0" cy="139.5" r="21.6"><stop offset="0" stop-color="#CBCFD9"/><stop offset="0.45" stop-color="#7D889F"/><stop offset="1" stop-color="#737D92"/></radialGradient><radialGradient id="g3" gradientUnits="userSpaceOnUse" cx="83.1" cy="106.6" r="163.2"><stop offset="0" stop-color="#FDF2DB"/><stop offset="0.45" stop-color="#FBE3B0"/><stop offset="1" stop-color="#C4B189"/></radialGradient><radialGradient id="g4" gradientUnits="userSpaceOnUse" cx="27.5" cy="136.4" r="15.3"><stop offset="0" stop-color="#F8BCCA"/><stop offset="0.45" stop-color="#F06A8A"/><stop offset="1" stop-color="#BB536C"/></radialGradient><radialGradient id="g5" gradientUnits="userSpaceOnUse" cx="40.3" cy="145.6" r="10.2"><stop offset="0" stop-color="#F8BCCA"/><stop offset="0.45" stop-color="#F06A8A"/><stop offset="1" stop-color="#BB536C"/></radialGradient></defs>
+<path d="M6 116 Q10 104 40 106 Q110 100 180 106 Q214 106 214 118 Q210 140 180 150 Q110 162 40 152 Q8 144 6 116 Z" fill="url(#g0)" stroke="#586070" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="60" cy="138" rx="14" ry="6" fill="url(#g1)"/>
+<ellipse cx="160" cy="142" rx="12" ry="5" fill="url(#g2)"/>
+<path d="M14 112 Q40 100 110 104 Q180 100 206 112 Q180 120 110 118 Q40 122 14 112 Z" fill="url(#g3)" stroke="#9C8D6D" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="30" cy="140" rx="9" ry="9" fill="url(#g4)" stroke="#954256" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="42" cy="148" rx="6" ry="6" fill="url(#g5)" stroke="#954256" stroke-width="3" stroke-linejoin="round"/>
+<path d="M196 150 Q202 132 194 118" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#276F4C" stroke-width="10"/>
+<path d="M196 150 Q202 132 194 118" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#3FB37A" stroke-width="5"/>
+<path d="M196 150 Q202 132 194 118" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke="#95D5B6" stroke-width="2" stroke-opacity="0.7"/>
+</svg>
